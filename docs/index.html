@@ -169,17 +169,38 @@
       </div>
       <div class="install-grid">
         <div class="install-card">
-          <h3>Мультитул</h3>
-          <p>Интерактивное меню: профиль dotfiles, nvim пресет, зависимости, применение конфигов.</p>
+          <h3>Arch Linux</h3>
+          <p>Одной командой, без клонирования репо:</p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool.sh | bash</code></pre>
+          <p style="margin-top:14px">Или вручную:</p>
           <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
 cd stylish-dots
 bash arch_multitool.sh</code></pre>
         </div>
         <div class="install-card">
+          <h3>Debian / Ubuntu</h3>
+          <p>Адаптированная версия (apt, без AUR/pacman flow):</p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool_debian.sh | bash</code></pre>
+          <p style="margin-top:14px">Или вручную:</p>
+          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
+bash arch_multitool_debian.sh</code></pre>
+        </div>
+      </div>
+      <div class="install-grid" style="margin-top:18px">
+        <div class="install-card">
           <h3>Только end-4 конфиг</h3>
           <p>Применить мой текущий конфиг поверх уже установленного dots-hyprland.</p>
-          <pre><code>cd stylish-dots
+          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
 bash config/end4/install.sh</code></pre>
+        </div>
+        <div class="install-card">
+          <h3>MangoWC (Debian helper)</h3>
+          <p>Зависимости через apt + применение MangoWC dotfiles.</p>
+          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
+bash config/mango/install_debian.sh</code></pre>
         </div>
       </div>
       <div class="note">
