@@ -1546,12 +1546,16 @@ install_mpv() { clear; install_mpv_core; pause; }
 apply_mango_config() {
     resolve_configs || return 1
 
-    # Единый источник правды: используем mango/install.sh из репозитория/конфигов,
-    # чтобы не расходилась логика установки/бэкапа/слияния настроек.
+    # На Debian предпочитаем helper, который ставит apt-зависимости и применяет dotfiles.
+    if [[ -f "$CONFIGS_DIR/mango/install_debian.sh" ]]; then
+        info "=== Применение MangoWC dotfiles (Debian helper) ==="
+        bash "$CONFIGS_DIR/mango/install_debian.sh" || return 1
+        return 0
+    fi
+
     if [[ -f "$CONFIGS_DIR/mango/install.sh" ]]; then
         info "=== Применение MangoWC dotfiles ==="
         bash "$CONFIGS_DIR/mango/install.sh" || return 1
-        # Доп. безопасность: нормализовать старые жёстко прописанные пути, если встретятся
         normalize_paths "$HOME/.config/mango" 2>/dev/null || true
         normalize_paths "$HOME/.config/waybar" 2>/dev/null || true
         normalize_paths "$HOME/.config/foot" 2>/dev/null || true
