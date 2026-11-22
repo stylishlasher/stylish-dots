@@ -121,6 +121,21 @@ MANGO_MENU=(
     "matugen-bin|Цвета из обоев (Matugen, AUR, опционально)|off"
 )
 
+# --- end-4 / dots-hyprland (illogical-impulse) — пользовательский конфиг из этого репо ---
+END4_MENU=(
+    "hyprland|Композитор Hyprland|on"
+    "illogical-impulse-quickshell-git|Quickshell shell (ii), AUR|on"
+    "hyprshot|Скриншоты (используются биндами Print/Shift+Print)|on"
+    "grim|Скриншот экрана (CLI)|on"
+    "slurp|Выделение области|on"
+    "wl-clipboard|Буфер обмена Wayland|on"
+    "jq|JSON/Hyprctl парсинг в биндах и скриптах|on"
+    "libnotify|Уведомления (notify-send)|on"
+    "bibata-cursor-theme-bin|Курсор Bibata Modern Classic (AUR)|on"
+    "foot|Терминал (используется конфигом)|off"
+    "ttf-jetbrains-mono-nerd|Шрифт Nerd Font|off"
+)
+
 # --- Консольные «приколы» (вкладка «Консольные приколы», пункт 8/15). AUR-пакеты помечены. ---
 # Все пункты по умолчанию ВЫКЛЮЧЕНЫ — ставятся только по явному выбору.
 
@@ -1092,9 +1107,9 @@ apply_fish_config() {
     stash_dir "$dst"
     mkdir -p "$dst"
 
-    # Копируем только осмысленные элементы (без случайных fish_variablesXXXX)
+    # Копируем осмысленные элементы fish-конфига (без кэшей/рантайм-файлов)
     local item
-    for item in config.fish fish_plugins fish_variables conf.d functions completions; do
+    for item in config.fish fish_plugins conf.d functions completions themes auto-Hypr.fish; do
         [[ -e "$src/$item" ]] && cp -a "$src/$item" "$dst/"
     done
 
@@ -1338,18 +1353,23 @@ install_fish() { clear; install_fish_core; pause; }
 # ------------------------------------------------------------------------------
 apply_nvim_config() {
     resolve_configs || return 1
-    local src="$CONFIGS_DIR/nvim/init.lua"
-    [[ -f "$src" ]] || { err "nvim/init.lua не найден в конфигах."; return 1; }
+    local src="$CONFIGS_DIR/nvim"
+    [[ -d "$src" ]] || { err "Каталог nvim/ не найден в конфигах."; return 1; }
 
     local dst="$HOME/.config/nvim"
+    stash_dir "$dst"
     mkdir -p "$dst"
-    if [[ -f "$dst/init.lua" ]]; then
-        cp -a "$dst/init.lua" "$dst/init.lua.bak.$(date +%Y%m%d_%H%M%S)"
-        info "Старый init.lua сохранён."
+
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -a --exclude='.git/' --exclude='.git' --exclude='*.bak' --exclude='*.bak2' "$src/" "$dst/"
+    else
+        cp -a "$src/." "$dst/"
+        rm -rf "$dst/.git" 2>/dev/null || true
+        find "$dst" -type f \( -name '*.bak' -o -name '*.bak2' \) -delete 2>/dev/null || true
     fi
-    cp -a "$src" "$dst/init.lua"
+
     normalize_paths "$dst"
-    ok "Конфиг Neovim применён → $dst/init.lua"
+    ok "Конфиг Neovim (LazyVim) применён → $dst"
 }
 
 apply_neovide_config() {
@@ -1463,6 +1483,47 @@ install_mango() { clear; install_mango_core; pause; }
 
 
 # ------------------------------------------------------------------------------
+# 7.3 END-4 / DOTS-HYPRLAND (illogical-impulse, мой текущий конфиг)
+# ------------------------------------------------------------------------------
+apply_end4_config() {
+    resolve_configs || return 1
+
+    if [[ -f "$CONFIGS_DIR/end4/install.sh" ]]; then
+        info "=== Применение end-4 / illogical-impulse dotfiles ==="
+        bash "$CONFIGS_DIR/end4/install.sh" || return 1
+        return 0
+    fi
+
+    err "end-4 конфиги не найдены в $CONFIGS_DIR (ожидается end4/install.sh)."
+    return 1
+}
+
+install_end4_deps() {
+    info "=== Зависимости end-4 (illogical-impulse) ==="
+    select_packages "end-4 — пакеты и утилиты" "${END4_MENU[@]}" || { warn "Отменено."; return 1; }
+    (( ${#SELECTED_PACKAGES[@]} == 0 )) && { warn "Ничего не выбрано."; return 1; }
+    software_install_pkgs "${SELECTED_PACKAGES[@]}"
+}
+
+install_end4_core() {
+    info "=== end-4: зависимости + мой конфиг ==="
+    echo
+    echo "Будет применён мой текущий конфиг для end-4 / dots-hyprland (illogical-impulse):"
+    echo "  ~/.config/hypr/custom/*, ~/.config/hypr/hyprland/keybinds.lua (патч Print),"
+    echo "  ~/.config/illogical-impulse/config.json, cursor/GTK/env.d"
+    echo
+    warn "Перед этим должен быть установлен сам dots-hyprland (illogical-impulse)."
+    if confirm "Установить зависимости/утилиты end-4 (hyprshot, grim, bibata, ...)?"; then
+        install_end4_deps || warn "Часть зависимостей не установлена."
+    fi
+    apply_end4_config || return 1
+    ok "end-4 конфиг применён. Выполни hyprctl reload или перезайди в сессию."
+}
+
+install_end4() { clear; install_end4_core; pause; }
+
+
+# ------------------------------------------------------------------------------
 # 8. ПРИМЕНИТЬ МОИ КОНФИГИ (без установки пакетов)
 # ------------------------------------------------------------------------------
 apply_all_configs() {
@@ -1483,6 +1544,13 @@ apply_all_configs() {
         echo
         if confirm "Применить MangoWC dotfiles (mango/waybar/foot/fuzzel/mako/matugen)?"; then
             apply_mango_config || warn "MangoWC dotfiles не применены."
+        fi
+    fi
+    # end-4 / illogical-impulse dotfiles (мой текущий конфиг)
+    if [[ -d "${CONFIGS_DIR:-}/end4" ]]; then
+        echo
+        if confirm "Применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
+            apply_end4_config || warn "end-4 конфиг не применён."
         fi
     fi
     echo
@@ -2176,6 +2244,7 @@ full_setup() {
     echo " 12. Файрвол (ufw / firewalld — по выбору)"
     echo " 13. Применение тем Serpantinum (archy, авто-поиск)"
     echo " 14. MangoWC dotfiles (если есть в репозитории, по выбору)"
+    echo " 15. end-4 / illogical-impulse конфиг (мой текущий, по выбору)"
     echo
     gpu_drivers_notice
     confirm "Начать полную установку?" || { warn "Отменено."; pause; return; }
@@ -2227,6 +2296,12 @@ full_setup() {
             install_mango_core || warn "MangoWC dotfiles не применены."
         fi
     fi
+    if [[ -d "${CONFIGS_DIR:-}/end4" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/end4" ]]; }; then
+        echo
+        if confirm "Установить/применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
+            install_end4_core || warn "end-4 конфиг не применён."
+        fi
+    fi
 
     echo
     ok "Полная установка завершена! Рекомендуется перезагрузка."
@@ -2274,9 +2349,10 @@ main_menu() {
         echo -e "  ${GREEN}14)${NC} Настроить файрвол (ufw / firewalld)"
         echo -e "  ${GREEN}15)${NC} Установить консольные приколы (игры, фетчи, визуализации, CLI...)"
         echo -e "  ${GREEN}16)${NC} MangoWC: зависимости + применить dotfiles"
+        echo -e "  ${GREEN}17)${NC} end-4 / illogical-impulse: зависимости + мой конфиг"
         echo -e "  ${RED}0)${NC} Выход"
         echo
-        read -rp "Номер пункта [0-16]: " choice
+        read -rp "Номер пункта [0-17]: " choice
 
         case "$choice" in
             1) full_setup ;;
@@ -2295,6 +2371,7 @@ main_menu() {
             14) configure_firewall ;;
             15) install_fun_tools ;;
             16) install_mango ;;
+            17) install_end4 ;;
             0) clear; echo "До связи!"; exit 0 ;;
             *) err "Неверный пункт меню"; sleep 1 ;;
         esac
