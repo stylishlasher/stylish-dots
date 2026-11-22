@@ -28,10 +28,13 @@ DEFAULT_CONFIG = {
     "username": os.environ.get("USER", "operator"),
     "hostname": os.uname().nodename if hasattr(os, "uname") else "localhost",
     "modules": [
-        "banner", "scan", "bruteforce", "decrypt", "download", "exploit", "exfil", "matrix"
+        "banner", "scan", "bruteforce", "decrypt", "download", "exploit", "exfil", "matrix",
+        "wifi", "trace", "sqlinject", "ddos", "bitcoin", "camera", "git", "docker",
+        "phishing", "wipe", "compile", "satellite", "firewall", "ssh_tunnel"
     ],
     "loop": True,
     "safe_mode": True,          # always true; cosmetic flag in UI only
+    "show_disclaimer": True,    # show fake/simulation notices
     "matrix_lines": 18,
     "download_files": [
         "mainframe_dump.db", "secrets.zip", "blackmail.txt", "definitely_not_a_virus.bin",
@@ -98,6 +101,7 @@ class UI:
         self.theme = cfg.get("theme", "green")
         self.speed = max(0.05, float(cfg.get("speed", 1.0)))
         self.width = shutil.get_terminal_size((80, 24)).columns
+        self.show_disclaimer = bool(cfg.get("show_disclaimer", True))
 
     def c(self, text: str, kind: str = "main") -> str:
         if not self.color:
@@ -180,8 +184,9 @@ def module_banner(ui: UI, rng: random.Random):
     for line in art:
         ui.line(line, "bold")
         ui.sleep(0.03)
-    ui.line("  [ SIMULATION MODE ]  No real hacking. Just cinematic nonsense.", "dim")
-    ui.line(f"  theme={ui.cfg.get('theme')} speed={ui.cfg.get('speed')} modules={','.join(ui.cfg.get('modules', []))}", "dim")
+    if ui.show_disclaimer:
+        ui.line("  [ SIMULATION MODE ]  No real hacking. Just cinematic nonsense.", "dim")
+    ui.line(f"  theme={ui.cfg.get('theme')} speed={ui.cfg.get('speed')} modules={len(ui.cfg.get('modules', []))}", "dim")
     ui.line()
 
 
@@ -196,7 +201,11 @@ def module_scan(ui: UI, rng: random.Random):
         state = rng.choice(["open", "open", "filtered"])
         ui.line(f"{p:5d}/tcp  {state:<8}  {svc:<12}  fingerprint={rand_hex(8)}", "main")
         ui.sleep(0.08)
-    ui.line(f"Scan complete: {len(set(ports))} ports checked, 0 laws broken.", "bright")
+    msg = f"Scan complete: {len(set(ports))} ports checked"
+    if ui.show_disclaimer:
+        msg += ", 0 laws broken"
+    msg += "."
+    ui.line(msg, "bright")
     ui.line()
 
 
@@ -210,8 +219,12 @@ def module_bruteforce(ui: UI, rng: random.Random):
         ui.line(f"[ATTEMPT] {user}:{pw:<24} -> ACCESS DENIED", "dim")
         ui.sleep(0.04)
     win = rng.choice(ui.cfg.get("wordlist", DEFAULT_CONFIG["wordlist"])) + "!"
-    ui.line(f"[ATTEMPT] {user}:{win:<24} -> ACCESS GRANTED (fake)", "bright")
-    ui.line("Password cracked in 0.00s because this is a movie.", "dim")
+    granted = "ACCESS GRANTED" + (" (fake)" if ui.show_disclaimer else "")
+    ui.line(f"[ATTEMPT] {user}:{win:<24} -> {granted}", "bright")
+    if ui.show_disclaimer:
+        ui.line("Password cracked in 0.00s because this is a movie.", "dim")
+    else:
+        ui.line("Password hash matched. Session token issued.", "dim")
     ui.line()
 
 
@@ -223,7 +236,8 @@ def module_decrypt(ui: UI, rng: random.Random):
         if STOP: return
         ui.line(f"block {rand_hex(4)}:{rand_hex(4)}  key={rand_hex(16)}  status=OK", "dim")
         ui.sleep(0.05)
-    ui.line("Decryption complete. Contents: [REDACTED] (and also nonsense).", "bright")
+    msg = "Decryption complete. Contents: [REDACTED]" + (" (and also nonsense)." if ui.show_disclaimer else ".")
+    ui.line(msg, "bright")
     ui.line()
 
 
@@ -233,7 +247,8 @@ def module_download(ui: UI, rng: random.Random):
     size = rng.randint(10, 999)
     ui.type_line(ui.prompt(), f"curl -O https://{host}/loot/{fname}")
     ui.progress(f"downloading {fname} ({size}MB)", total=34, delay=0.03)
-    ui.line(f"saved {fname} -> /tmp/{fname} (not really)", "bright")
+    suffix = " (not really)" if ui.show_disclaimer else ""
+    ui.line(f"saved {fname} -> /tmp/{fname}{suffix}", "bright")
     ui.line()
 
 
@@ -244,13 +259,16 @@ def module_exploit(ui: UI, rng: random.Random):
     steps = [
         "fingerprinting target...", "checking vulnerable version...", "crafting payload...",
         "bypassing firewall with dramatic typing...", "spraying heap with glitter...",
-        "getting shell... just kidding, simulation shell", "cleaning traces (there are none)",
+        "getting shell... " + ("just kidding, simulation shell" if ui.show_disclaimer else "interactive session opened"), "cleaning traces" + (" (there are none)" if ui.show_disclaimer else "..."),
     ]
     for s in steps:
         if STOP: return
         ui.line(f"[*] {s}", "main")
         ui.sleep(0.12)
-    ui.line(f"[+] {target} is now 73% more hacked-looking. ({cve})", "bright")
+    if ui.show_disclaimer:
+        ui.line(f"[+] {target} is now 73% more hacked-looking. ({cve})", "bright")
+    else:
+        ui.line(f"[+] Session established on {target}. ({cve})", "bright")
     ui.line()
 
 
@@ -261,7 +279,8 @@ def module_exfil(ui: UI, rng: random.Random):
         if STOP: return
         ui.line(f"chunk {i+1}/{chunks}  {rand_hex(24)}.{rand_hex(8)}.exfil.fake  sent", "dim")
         ui.sleep(0.07)
-    ui.line("Exfiltration complete. Sent 0 bytes to real hosts.", "bright")
+    msg = "Exfiltration complete." + (" Sent 0 bytes to real hosts." if ui.show_disclaimer else f" {chunks} chunks transferred.")
+    ui.line(msg, "bright")
     ui.line()
 
 
@@ -278,6 +297,204 @@ def module_matrix(ui: UI, rng: random.Random):
     ui.line()
 
 
+
+def module_wifi(ui: UI, rng: random.Random):
+    ssids = ["CorpWiFi", "Free_Public_WiFi", "FBI_Van_7", "Printer_5G", "Mainframe_AP"]
+    ssid = rng.choice(ssids)
+    bssid = ":".join(rand_hex(2) for _ in range(6))
+    ui.type_line(ui.prompt(), f"airodump-ng --bssid {bssid} --channel {rng.randint(1,11)} wlan0mon")
+    ui.line(f"[+] Target: {ssid} ({bssid}) CH:{rng.randint(1,11)} ENC:WPA2", "bright")
+    for _ in range(rng.randint(5, 10)):
+        if STOP: return
+        ui.line(f"[handshake] station={':'.join(rand_hex(2) for _ in range(6))} signal=-{rng.randint(30,80)}dBm", "dim")
+        ui.sleep(0.08)
+    ui.progress("capturing handshake", total=24, delay=0.04)
+    ui.line("[+] WPA handshake captured. Cracking with wordlist...", "bright")
+    ui.line()
+
+
+def module_trace(ui: UI, rng: random.Random):
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"traceroute --cloak {target}")
+    hops = rng.randint(6, 12)
+    for i in range(1, hops + 1):
+        if STOP: return
+        ip = rand_ip(rng)
+        ms = [round(rng.uniform(1, 80) + i*3, 2) for _ in range(3)]
+        loc = rng.choice(["Frankfurt, DE", "Amsterdam, NL", "Reykjavik, IS", "Unknown", "Orbit, SPACE", "Cabinet, HOME"])
+        ui.line(f"{i:2d}  {ip:<15}  {ms[0]:>6} ms  {ms[1]:>6} ms  {ms[2]:>6} ms  {loc}", "main")
+        ui.sleep(0.09)
+    ui.line(f"Trace complete: {hops} hops, route obfuscated.", "bright")
+    ui.line()
+
+
+def module_sqlinject(ui: UI, rng: random.Random):
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"sqlmap -u https://{target}/login?id=1 --batch --dbs")
+    ui.line("[*] testing connection to the target URL", "dim")
+    payloads = ["' OR 1=1--", "' UNION SELECT NULL--", "admin'--", "1; DROP TABLE users; --"]
+    for pld in payloads:
+        if STOP: return
+        ui.line(f"[PAYLOAD] {pld}", "dim")
+        ui.sleep(0.1)
+        ui.line(f"[INFO] parameter 'id' appears {'injectable' if rng.random()>0.3 else 'clean'}", "main")
+    ui.progress("dumping database schema", total=20, delay=0.05)
+    for db in ["users", "secrets", "payments", "memes"]:
+        ui.line(f"[DB] found table: {db} ({rng.randint(10,9999)} rows)", "bright")
+        ui.sleep(0.05)
+    ui.line()
+
+
+def module_ddos(ui: UI, rng: random.Random):
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"stress-test --target {target} --threads {rng.randint(100,999)} --visual-only")
+    if ui.show_disclaimer:
+        ui.line("[!] Visual simulation only. No traffic is sent.", "dim")
+    for i in range(rng.randint(8, 14)):
+        if STOP: return
+        rps = rng.randint(10000, 999999)
+        bw = rng.randint(1, 99)
+        ui.line(f"[BOTNET] node-{rng.randint(10,99)} -> {target} | {rps:,} req/s | {bw}.{rng.randint(0,9)} Gbps", "main")
+        ui.sleep(0.07)
+    ui.line(f"[+] Stress test visualization complete. Target feelings: hurt.", "bright")
+    ui.line()
+
+
+def module_bitcoin(ui: UI, rng: random.Random):
+    ui.type_line(ui.prompt(), "crypto-miner --coin BTC --mode cinematic --gpu=all")
+    wallet = "bc1q" + "".join(rng.choice(string.ascii_lowercase + string.digits) for _ in range(24))
+    ui.line(f"[WALLET] {wallet}", "dim")
+    for _ in range(rng.randint(8, 15)):
+        if STOP: return
+        rate = round(rng.uniform(10, 999), 2)
+        accepted = rng.randint(0, 3)
+        ui.line(f"[GPU-{rng.randint(0,3)}] {rate:>7} MH/s | shares accepted={accepted} rejected=0 temp={rng.randint(45,78)}C", "main")
+        ui.sleep(0.09)
+    btc = round(rng.uniform(0.000001, 0.0009), 8)
+    ui.line(f"[+] Mined {btc} BTC. Enough for approximately nothing.", "bright")
+    ui.line()
+
+
+def module_camera(ui: UI, rng: random.Random):
+    cams = ["CAM-LOBBY", "CAM-PARKING", "CAM-SERVER-ROOM", "CAM-TOASTER"]
+    cam = rng.choice(cams)
+    ip = rand_ip(rng)
+    ui.type_line(ui.prompt(), f"cam-connect --ip {ip} --feed {cam}")
+    ui.progress(f"connecting to {cam}", total=20, delay=0.04)
+    for _ in range(6):
+        if STOP: return
+        frame = "".join(rng.choice(" .:-=+*#%@") for _ in range(min(ui.width-10, 50)))
+        ui.line(f"[{cam}] |{frame}|", "dim")
+        ui.sleep(0.08)
+    msg = "[+] Feed accessed" + (" (simulated static noise)." if ui.show_disclaimer else ".")
+    ui.line(msg, "bright")
+    ui.line()
+
+
+def module_git(ui: UI, rng: random.Random):
+    repo = rng.choice(["secret-sauce", "infra", "do-not-open", "prod-config", "passwords"])
+    ui.type_line(ui.prompt(), f"git clone git@{rng.choice(ui.cfg.get('targets', DEFAULT_CONFIG['targets']))}:{repo}.git")
+    ui.progress(f"cloning {repo}", total=26, delay=0.03)
+    files = ["README.md", ".env", "deploy.yml", "id_rsa.bak", "secrets.json", "todo.txt"]
+    for f in rng.sample(files, k=rng.randint(3, 5)):
+        if STOP: return
+        ui.line(f"[LEAK] found interesting file: {f}", "main")
+        ui.sleep(0.07)
+    ui.line(f"[+] Repository cloned. {rng.randint(1,99)} commits, {rng.randint(1,20)} contributors, 1 bad decision.", "bright")
+    ui.line()
+
+
+def module_docker(ui: UI, rng: random.Random):
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"docker --host tcp://{target}:2375 ps -a")
+    containers = ["redis", "postgres", "nginx", "totally-legit-miner", "backend", "secrets-vault"]
+    for c in rng.sample(containers, k=rng.randint(3, 5)):
+        if STOP: return
+        status = rng.choice(["Up 3 days", "Exited (1)", "Up 42 hours"])
+        ui.line(f"{rand_hex(12)}  {c:<22}  {status:<12}  0.0.0.0:{rng.randint(1024,9999)}->80/tcp", "main")
+        ui.sleep(0.08)
+    ui.type_line(ui.prompt(), "docker exec -it totally-legit-miner /bin/sh")
+    ui.line("[+] Shell attached" + (" (cinematic)." if ui.show_disclaimer else "."), "bright")
+    ui.line()
+
+
+def module_phishing(ui: UI, rng: random.Random):
+    targets = ["ceo@corp.local", "admin@mainframe.local", "it-support@corp.local", "hr@corp.local"]
+    t = rng.choice(targets)
+    ui.type_line(ui.prompt(), f"mailcraft --to {t} --template invoice --urgency maximum")
+    ui.line("[*] crafting highly believable email...", "dim")
+    ui.sleep(0.1)
+    ui.line(f"From: billing@c0rp-secure.fake", "main")
+    ui.line(f"To:   {t}", "main")
+    ui.line("Subj: URGENT: Invoice #4831 overdue!!!", "main")
+    ui.sleep(0.1)
+    ui.progress("adding dramatic urgency", total=16, delay=0.04)
+    ui.line("[+] Email drafted" + (" (never sent, simulation only)." if ui.show_disclaimer else "."), "bright")
+    ui.line()
+
+
+def module_wipe(ui: UI, rng: random.Random):
+    target = rng.choice(["/tmp/evidence", "/var/log/suspicious", "~/.bash_history", "C:\\evidence"])
+    ui.type_line(ui.prompt(), f"secure-wipe --target {target} --passes {rng.randint(3,7)}")
+    if ui.show_disclaimer:
+        ui.line("[!] Simulation only - no files are touched.", "dim")
+    ui.progress(f"wiping {target}", total=30, delay=0.03)
+    ui.line(f"[+] {target}: overwritten with {rng.choice(['zeros','random','dramatic music'])}.", "bright")
+    ui.line()
+
+
+def module_compile(ui: UI, rng: random.Random):
+    proj = rng.choice(["backdoor", "kernel-module", "exploit-kit", "hacktool", "totally-benign-app"])
+    ui.type_line(ui.prompt(), f"make -j{rng.randint(2,16)} {proj}")
+    files = ["main.c", "payload.c", "crypto.c", "net.c", "ui.c", "obfuscate.c"]
+    for f in rng.sample(files, k=rng.randint(4, 6)):
+        if STOP: return
+        warns = rng.randint(0, 3)
+        ui.line(f"[CC] {f:<18}  OK  ({warns} warnings)", "main")
+        ui.sleep(0.08)
+    ui.line(f"[LD] linking {proj}...", "dim")
+    ui.sleep(0.15)
+    ui.line(f"[+] Built ./{proj} successfully. Don't actually run it." if ui.show_disclaimer else f"[+] Built ./{proj} successfully.", "bright")
+    ui.line()
+
+
+def module_satellite(ui: UI, rng: random.Random):
+    sat = rng.choice(["SAT-7", "MOON-BASE-2", "GPS-III-9", "ORBITAL-LASER-LOL"])
+    ui.type_line(ui.prompt(), f"sat-uplink --target {sat} --freq {rng.randint(1200,5800)}MHz")
+    ui.progress(f"aligning dish to {sat}", total=22, delay=0.05)
+    for _ in range(5):
+        if STOP: return
+        ui.line(f"[UPLINK] signal={rng.randint(60,99)}% latency={rng.randint(200,900)}ms packet={rand_hex(8)}", "dim")
+        ui.sleep(0.08)
+    ui.line(f"[+] {sat}: connection established" + (" (in your imagination)." if ui.show_disclaimer else "."), "bright")
+    ui.line()
+
+
+def module_firewall(ui: UI, rng: random.Random):
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"fw-bypass --target {target} --technique fragmentation")
+    rules = ["DROP 22/tcp", "ALLOW 443/tcp", "DROP ICMP", "ALLOW 8080/tcp", "DROP *"]
+    for r in rules:
+        if STOP: return
+        ui.line(f"[RULE] {r:<16} -> probing...", "dim")
+        ui.sleep(0.07)
+        ui.line(f"       {'bypassed' if rng.random()>0.4 else 'blocked'} via segment {rand_hex(4)}", "main")
+    ui.line("[+] Firewall mapped. Found dramatic gap in rule #3.", "bright")
+    ui.line()
+
+
+def module_ssh_tunnel(ui: UI, rng: random.Random):
+    hop1 = rand_ip(rng)
+    hop2 = rand_ip(rng)
+    target = rng.choice(ui.cfg.get("targets", DEFAULT_CONFIG["targets"]))
+    ui.type_line(ui.prompt(), f"ssh -J {hop1},{hop2} root@{target}")
+    ui.line(f"[*] establishing hop 1: {hop1}", "dim"); ui.sleep(0.1)
+    ui.line(f"[*] establishing hop 2: {hop2}", "dim"); ui.sleep(0.1)
+    ui.line(f"[*] connecting to {target}", "dim"); ui.sleep(0.1)
+    ui.progress("negotiating encrypted tunnel", total=18, delay=0.04)
+    ui.line(f"[+] Tunnel up: localhost:1337 -> {hop1} -> {hop2} -> {target}:22", "bright")
+    ui.line()
+
 MODULES = {
     "banner": module_banner,
     "scan": module_scan,
@@ -287,6 +504,20 @@ MODULES = {
     "exploit": module_exploit,
     "exfil": module_exfil,
     "matrix": module_matrix,
+    "wifi": module_wifi,
+    "trace": module_trace,
+    "sqlinject": module_sqlinject,
+    "ddos": module_ddos,
+    "bitcoin": module_bitcoin,
+    "camera": module_camera,
+    "git": module_git,
+    "docker": module_docker,
+    "phishing": module_phishing,
+    "wipe": module_wipe,
+    "compile": module_compile,
+    "satellite": module_satellite,
+    "firewall": module_firewall,
+    "ssh_tunnel": module_ssh_tunnel,
 }
 
 
@@ -306,6 +537,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--seed", type=int, help="Random seed", default=None)
     p.add_argument("--once", action="store_true", help="Run selected modules once (no loop)")
     p.add_argument("--loop", action="store_true", help="Loop modules until Ctrl+C/duration")
+    p.add_argument("--no-disclaimer", action="store_true", help="Hide simulation/fake disclaimer messages")
+    p.add_argument("--disclaimer", action="store_true", help="Show simulation/fake disclaimer messages")
     return p.parse_args()
 
 
@@ -340,6 +573,10 @@ def main() -> int:
         cfg["loop"] = False
     if args.loop:
         cfg["loop"] = True
+    if args.no_disclaimer:
+        cfg["show_disclaimer"] = False
+    if args.disclaimer:
+        cfg["show_disclaimer"] = True
 
     rng = random.Random(cfg.get("seed"))
     ui = UI(cfg)
@@ -369,7 +606,10 @@ def main() -> int:
 
     if ui.color:
         sys.stdout.write(RESET)
-    print("\n[hackerlarp] Simulation ended. No systems were harmed.")
+    if ui.show_disclaimer:
+        print("\n[hackerlarp] Simulation ended. No systems were harmed.")
+    else:
+        print("\n[hackerlarp] Session ended.")
     return 0
 
 

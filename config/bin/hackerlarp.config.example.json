@@ -6,7 +6,30 @@
   "theme": "green",
   "username": "operator",
   "hostname": "localhost",
-  "modules": ["banner", "scan", "bruteforce", "decrypt", "download", "exploit", "exfil", "matrix"],
+  "modules": [
+    "banner",
+    "scan",
+    "bruteforce",
+    "decrypt",
+    "download",
+    "exploit",
+    "exfil",
+    "matrix",
+    "wifi",
+    "trace",
+    "sqlinject",
+    "ddos",
+    "bitcoin",
+    "camera",
+    "git",
+    "docker",
+    "phishing",
+    "wipe",
+    "compile",
+    "satellite",
+    "firewall",
+    "ssh_tunnel"
+  ],
   "loop": true,
   "safe_mode": true,
   "matrix_lines": 18,
@@ -25,5 +48,6 @@
     "password",
     "hunter2",
     "correcthorsebatterystaple"
-  ]
+  ],
+  "show_disclaimer": true
 }

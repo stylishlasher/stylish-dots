@@ -214,15 +214,17 @@ C-фетчи перенесены в `config/fetches/unstable/`: `keyfetch`, `tr
 
 `config/bin/hackerlarp` — настраиваемый rofl/larp Hollywood-симулятор в терминале. **Никакого реального взлома**: только фейковые анимации/вывод.
 
-- Модули: `banner`, `scan`, `bruteforce`, `decrypt`, `download`, `exploit`, `exfil`, `matrix`
-- Настройка: `~/.config/hackerlarp/config.json` (скорость, тема, модули, цели, wordlist, файлы, loop/duration/seed)
+- Модули: `banner`, `scan`, `bruteforce`, `decrypt`, `download`, `exploit`, `exfil`, `matrix`, `wifi`, `trace`, `sqlinject`, `ddos`, `bitcoin`, `camera`, `git`, `docker`, `phishing`, `wipe`, `compile`, `satellite`, `firewall`, `ssh_tunnel`
+- Настройка: `~/.config/hackerlarp/config.json` (скорость, тема, модули, цели, wordlist, файлы, loop/duration/seed, `show_disclaimer`)
+- Флаги: `--no-disclaimer` скрывает сообщения о симуляции/фейке, `--disclaimer` включает обратно
 - Пример конфига: `config/bin/hackerlarp.config.example.json`
 
 Запуск локально:
 
 ```bash
 python3 config/bin/hackerlarp --write-config
-python3 config/bin/hackerlarp --theme amber --speed 1.2 --modules banner,scan,bruteforce,download,matrix
+python3 config/bin/hackerlarp --theme amber --speed 1.2 --modules banner,scan,bruteforce,wifi,bitcoin,matrix
+python3 config/bin/hackerlarp --no-disclaimer --once
 ```
 
 Установка через мультитул: **Консольные приколы → LARP / кино-хакер (hackerlarp)**.
