@@ -9,6 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <script>
+    (function () {
+      var themes = ["lavender", "ocean", "sage", "peach", "rose", "amber"];
+      var pick = themes[Math.floor(Math.random() * themes.length)];
+      document.documentElement.dataset.theme = pick;
+    })();
+  </script>
 </head>
 <body>
   <div class="bg-shape bg-shape-a"></div>
@@ -17,7 +24,7 @@
 
   <header class="topbar wrap">
     <a class="brand" href="#top" aria-label="stylish-dots">
-      <span class="brand-mark"></span>
+      <span class="brand-mark" id="brand-mark" title="stylish-dots"></span>
       <span class="brand-name">stylish-dots</span>
     </a>
     <nav class="nav">
@@ -206,5 +213,39 @@ bash config/end4/install.sh</code></pre>
       <a href="https://github.com/ilyamiro/serpantinum">Serpantinum</a>
     </div>
   </footer>
+
+  <div class="strawwk-egg" id="strawwk-egg" aria-hidden="true">
+    <div class="strawwk-card">
+      <button class="strawwk-close" id="strawwk-close" type="button" aria-label="Закрыть">×</button>
+      <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Стравк из My Singing Monsters" loading="lazy">
+      <p class="strawwk-caption">Стравк одобряет этот сетап.</p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var mark = document.getElementById("brand-mark");
+      var egg = document.getElementById("strawwk-egg");
+      var close = document.getElementById("strawwk-close");
+      var clicks = 0;
+      var timer;
+      if (!mark || !egg) return;
+      mark.style.cursor = "pointer";
+      mark.addEventListener("click", function (e) {
+        e.preventDefault();
+        clicks += 1;
+        clearTimeout(timer);
+        timer = setTimeout(function () { clicks = 0; }, 900);
+        if (clicks >= 5) {
+          egg.classList.add("open");
+          clicks = 0;
+        }
+      });
+      function hide() { egg.classList.remove("open"); }
+      close && close.addEventListener("click", hide);
+      egg.addEventListener("click", function (e) { if (e.target === egg) hide(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
+    })();
+  </script>
 </body>
 </html>

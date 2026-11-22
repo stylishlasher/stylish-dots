@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme="lavender"] {
   --bg: #121318;
   --bg2: #1a1b21;
   --surface: #1e1f26;
@@ -13,29 +14,67 @@
   --secondary: #c5c4dd;
   --tertiary: #e8b9d5;
   --ok: #b7d394;
+  --glow-a: rgba(191,194,255,.18);
+  --glow-b: rgba(232,185,213,.12);
   --radius: 24px;
   --radius-sm: 14px;
   --shadow: 0 1px 2px rgba(0,0,0,.2), 0 24px 60px rgba(0,0,0,.28);
+}
+[data-theme="ocean"] {
+  --bg: #0f141b; --bg2: #151b24; --surface: #19202b; --surface2: #222b38; --surface3: #2d3848;
+  --text: #dfe3ea; --muted: #bcc7d6; --outline: #3f4b5d;
+  --primary: #9ccaff; --on-primary: #003258; --primary-container: #00497d;
+  --secondary: #b8c8da; --tertiary: #d0bfe8; --ok: #95d5a7;
+  --glow-a: rgba(156,202,255,.18); --glow-b: rgba(208,191,232,.10);
+}
+[data-theme="sage"] {
+  --bg: #111411; --bg2: #171c17; --surface: #1c211c; --surface2: #262d26; --surface3: #303a31;
+  --text: #e1e4dc; --muted: #c2c9bd; --outline: #434a42;
+  --primary: #a8d5a0; --on-primary: #153718; --primary-container: #2c4f2d;
+  --secondary: #bccbb4; --tertiary: #a0cfd0; --ok: #b7d394;
+  --glow-a: rgba(168,213,160,.16); --glow-b: rgba(160,207,208,.10);
+}
+[data-theme="peach"] {
+  --bg: #171210; --bg2: #1f1815; --surface: #251d1a; --surface2: #312724; --surface3: #3d302c;
+  --text: #f0dfd8; --muted: #dcc1b6; --outline: #5a4942;
+  --primary: #ffb59d; --on-primary: #55200c; --primary-container: #71361f;
+  --secondary: #e7bdb0; --tertiary: #dec48c; --ok: #c4d18b;
+  --glow-a: rgba(255,181,157,.16); --glow-b: rgba(222,196,140,.10);
+}
+[data-theme="rose"] {
+  --bg: #181215; --bg2: #20181c; --surface: #261d22; --surface2: #32272d; --surface3: #3e3138;
+  --text: #efdfe4; --muted: #d7c1ca; --outline: #56424d;
+  --primary: #ffb0cf; --on-primary: #5d1139; --primary-container: #7a2950;
+  --secondary: #e2bdcb; --tertiary: #f2bb9a; --ok: #c2d59a;
+  --glow-a: rgba(255,176,207,.16); --glow-b: rgba(242,187,154,.10);
+}
+[data-theme="amber"] {
+  --bg: #15130d; --bg2: #1d1a12; --surface: #232017; --surface2: #2f2a1f; --surface3: #3b3528;
+  --text: #ebe2cf; --muted: #d2c5a7; --outline: #514a36;
+  --primary: #e4c46d; --on-primary: #3b2f00; --primary-container: #564500;
+  --secondary: #d1c6a1; --tertiary: #adcfae; --ok: #b7d394;
+  --glow-a: rgba(228,196,109,.16); --glow-b: rgba(173,207,174,.08);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
   color: var(--text);
-  background: radial-gradient(1200px 500px at 15% -10%, rgba(191,194,255,.18), transparent 60%),
-              radial-gradient(900px 500px at 90% 10%, rgba(232,185,213,.12), transparent 55%),
+  background: radial-gradient(1200px 500px at 15% -10%, var(--glow-a), transparent 60%),
+              radial-gradient(900px 500px at 90% 10%, var(--glow-b), transparent 55%),
               var(--bg);
   font-family: "Google Sans", "Space Grotesk", system-ui, sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
+  transition: background .35s ease, color .25s ease;
 }
 a { color: inherit; text-decoration: none; }
 code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; }
 .wrap { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
 
 .bg-shape { position: fixed; border-radius: 50%; filter: blur(2px); pointer-events: none; z-index: -2; }
-.bg-shape-a { width: 420px; height: 420px; top: -140px; right: -80px; background: rgba(191,194,255,.08); }
-.bg-shape-b { width: 320px; height: 320px; bottom: 10%; left: -120px; background: rgba(232,185,213,.06); }
+.bg-shape-a { width: 420px; height: 420px; top: -140px; right: -80px; background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.bg-shape-b { width: 320px; height: 320px; bottom: 10%; left: -120px; background: color-mix(in srgb, var(--tertiary) 8%, transparent); }
 .bg-grid {
   position: fixed; inset: 0; z-index: -3; pointer-events: none;
   background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
@@ -224,3 +263,30 @@ h1 {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
 }
+
+/* Strawwk easter egg */
+.brand-mark { transition: transform .15s ease, box-shadow .2s ease; }
+.brand-mark:active { transform: scale(.92); }
+.strawwk-egg {
+  position: fixed; inset: 0; display: none; place-items: center;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(8px); z-index: 100;
+  padding: 24px;
+}
+.strawwk-egg.open { display: grid; }
+.strawwk-card {
+  position: relative; width: min(420px, 100%); padding: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 12%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: 28px; box-shadow: var(--shadow);
+}
+.strawwk-card img { width: 100%; display: block; border-radius: 18px; background: #0c0d10; }
+.strawwk-caption {
+  margin: 14px 4px 2px; text-align: center; color: var(--muted);
+  font-size: .92rem; font-weight: 500;
+}
+.strawwk-close {
+  position: absolute; top: 10px; right: 10px; width: 34px; height: 34px;
+  border: 0; border-radius: 50%; cursor: pointer; font-size: 1.3rem; line-height: 1;
+  color: var(--text); background: rgba(0,0,0,.28);
+}
+.strawwk-close:hover { background: rgba(255,255,255,.1); }
