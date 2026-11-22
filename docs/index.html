@@ -226,6 +226,20 @@ bash config/mango/install_debian.sh</code></pre>
     </section>
   </main>
 
+  <section class="section wrap yawstrich-section" id="yawstrich">
+    <div class="yawstrich-card">
+      <div class="yawstrich-copy">
+        <p class="eyebrow">Пасхалка</p>
+        <h2>Yawstrich / Стравок</h2>
+        <p class="muted-p">Мой любимый монстр из My Singing Monsters. Нажми кнопку — он появится.</p>
+        <button class="btn btn-primary yawstrich-btn" id="yawstrich-toggle" type="button">Показать Стравка</button>
+      </div>
+      <div class="yawstrich-media" id="yawstrich-media" hidden>
+        <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich (Стравок) из My Singing Monsters" loading="lazy">
+      </div>
+    </div>
+  </section>
+
   <footer class="footer wrap">
     <div>© stylishlasher · stylish-dots</div>
     <div class="footer-links">
@@ -235,37 +249,21 @@ bash config/mango/install_debian.sh</code></pre>
     </div>
   </footer>
 
-  <div class="strawwk-egg" id="strawwk-egg" aria-hidden="true">
-    <div class="strawwk-card">
-      <button class="strawwk-close" id="strawwk-close" type="button" aria-label="Закрыть">×</button>
-      <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Стравок из My Singing Monsters" loading="lazy">
-      <p class="strawwk-caption">Стравок одобряет этот сетап.</p>
-    </div>
-  </div>
-
   <script>
     (function () {
-      var mark = document.getElementById("brand-mark");
-      var egg = document.getElementById("strawwk-egg");
-      var close = document.getElementById("strawwk-close");
-      var clicks = 0;
-      var timer;
-      if (!mark || !egg) return;
-      mark.style.cursor = "pointer";
-      mark.addEventListener("click", function (e) {
-        e.preventDefault();
-        clicks += 1;
-        clearTimeout(timer);
-        timer = setTimeout(function () { clicks = 0; }, 900);
-        if (clicks >= 5) {
-          egg.classList.add("open");
-          clicks = 0;
+      var btn = document.getElementById("yawstrich-toggle");
+      var media = document.getElementById("yawstrich-media");
+      if (!btn || !media) return;
+      btn.addEventListener("click", function () {
+        var show = media.hasAttribute("hidden");
+        if (show) {
+          media.removeAttribute("hidden");
+          btn.textContent = "Скрыть Стравка";
+        } else {
+          media.setAttribute("hidden", "");
+          btn.textContent = "Показать Стравка";
         }
       });
-      function hide() { egg.classList.remove("open"); }
-      close && close.addEventListener("click", hide);
-      egg.addEventListener("click", function (e) { if (e.target === egg) hide(); });
-      document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
     })();
   </script>
 </body>

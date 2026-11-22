@@ -264,29 +264,22 @@ h1 {
   *, *::before, *::after { transition: none !important; }
 }
 
-/* Strawwk easter egg */
-.brand-mark { transition: transform .15s ease, box-shadow .2s ease; }
-.brand-mark:active { transform: scale(.92); }
-.strawwk-egg {
-  position: fixed; inset: 0; display: none; place-items: center;
-  background: rgba(0,0,0,.45); backdrop-filter: blur(8px); z-index: 100;
-  padding: 24px;
+/* Yawstrich section */
+.yawstrich-section { padding-top: 0; }
+.yawstrich-card {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%), var(--surface);
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: var(--radius); padding: 28px;
 }
-.strawwk-egg.open { display: grid; }
-.strawwk-card {
-  position: relative; width: min(420px, 100%); padding: 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 12%, var(--surface)), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
-  border-radius: 28px; box-shadow: var(--shadow);
+.yawstrich-copy h2 { margin: 0; font-family: "Space Grotesk", "Google Sans", sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -0.03em; }
+.yawstrich-copy .muted-p { margin-bottom: 20px; }
+.yawstrich-btn { cursor: pointer; border: 0; }
+.yawstrich-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.yawstrich-media { display: grid; place-items: center; min-height: 220px; }
+.yawstrich-media[hidden] { display: none !important; }
+.yawstrich-media img {
+  width: min(100%, 360px); border-radius: 20px; display: block;
+  background: rgba(0,0,0,.15); border: 1px solid rgba(255,255,255,.06);
 }
-.strawwk-card img { width: 100%; display: block; border-radius: 18px; background: #0c0d10; }
-.strawwk-caption {
-  margin: 14px 4px 2px; text-align: center; color: var(--muted);
-  font-size: .92rem; font-weight: 500;
-}
-.strawwk-close {
-  position: absolute; top: 10px; right: 10px; width: 34px; height: 34px;
-  border: 0; border-radius: 50%; cursor: pointer; font-size: 1.3rem; line-height: 1;
-  color: var(--text); background: rgba(0,0,0,.28);
-}
-.strawwk-close:hover { background: rgba(255,255,255,.1); }
+@media (max-width: 980px) { .yawstrich-card { grid-template-columns: 1fr; } }
