@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>stylish-dots — Material You dotfiles</title>
+  <meta name="description" content="Arch Linux dotfiles: end-4 / illogical-impulse, fish, LazyVim, themes, multitool.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+  <div class="bg-grid"></div>
+
+  <header class="topbar wrap">
+    <a class="brand" href="#top" aria-label="stylish-dots">
+      <span class="brand-mark"></span>
+      <span class="brand-name">stylish-dots</span>
+    </a>
+    <nav class="nav">
+      <a href="#profiles">Профили</a>
+      <a href="#stack">Стек</a>
+      <a href="#install">Установка</a>
+      <a href="https://github.com/stylishlasher/stylish-dots" class="nav-gh">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">Arch Linux · Wayland · Material You</p>
+        <h1>Dotfiles, которые<br><span class="accent">не мешают работать.</span></h1>
+        <p class="lead">Личный сетап для <strong>end-4 / illogical-impulse</strong>: Hyprland, Quickshell, fish, LazyVim, темы и мультитул. Конфиги лежат в репо, ставятся выборочно, бэкапятся перед заменой.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#install">Установить</a>
+          <a class="btn btn-ghost" href="https://github.com/stylishlasher/stylish-dots">Исходники</a>
+        </div>
+        <div class="meta-row">
+          <div class="meta"><span class="meta-k">Shell</span><span class="meta-v">Quickshell ii</span></div>
+          <div class="meta"><span class="meta-k">WM</span><span class="meta-v">Hyprland</span></div>
+          <div class="meta"><span class="meta-k">Editor</span><span class="meta-v">LazyVim / Casual</span></div>
+        </div>
+      </div>
+      <div class="hero-panel" aria-hidden="true">
+        <div class="panel-window">
+          <div class="panel-title">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="panel-title-text">arch_multitool.sh</span>
+          </div>
+          <div class="panel-body">
+            <div class="line"><span class="p">$</span> bash arch_multitool.sh</div>
+            <div class="line muted">  1) Полная установка</div>
+            <div class="line muted">  4) Dotfiles профиль</div>
+            <div class="line pick">     → end-4 / illogical-impulse</div>
+            <div class="line pick">     → serpantinum</div>
+            <div class="line pick">     → stylish-dots</div>
+            <div class="line muted">  6) Neovim пресет</div>
+            <div class="line pick">     → lazyvim-stylish</div>
+            <div class="line pick dim">     → super-easy-casual</div>
+            <div class="line muted"> 17) end-4: мой конфиг</div>
+            <div class="line ok">✓ config applied · backup saved</div>
+          </div>
+        </div>
+        <div class="chip chip-a">Material You</div>
+        <div class="chip chip-b">no secrets in repo</div>
+      </div>
+    </section>
+
+    <section id="profiles" class="section wrap">
+      <div class="section-head">
+        <p class="eyebrow">Профили</p>
+        <h2>Три пути, один репозиторий.</h2>
+        <p>Мультитул не навязывает один стек — выбираешь профиль и то, что реально нужно.</p>
+      </div>
+      <div class="cards">
+        <article class="card card-featured">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M8 20h8M9 9h6M9 13h4"/></svg>
+          </div>
+          <h3>end-4 / illogical-impulse</h3>
+          <p>Действующий конфиг: Hyprland overrides, Quickshell <code>config.json</code>, бинды Print, курсор Bibata, GTK/env. API-ключи не в репо — в keyring.</p>
+          <ul class="list">
+            <li>top bar always, bottom dock hover</li>
+            <li>ru layout, 180Hz, NVIDIA env</li>
+            <li>backup before apply</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          </div>
+          <h3>serpantinum</h3>
+          <p>Внешний установщик Serpantinum через мультитул. Для тех, кто хочет полноценное окружение и пресеты отдельно.</p>
+          <ul class="list">
+            <li>установка через install.serpantinum.dev</li>
+            <li>пресеты из <code>themes/</code></li>
+            <li>hypr kb layout patch</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3z"/></svg>
+          </div>
+          <h3>stylish-dots</h3>
+          <p>Мои дотсы из репо: fish, nvim пресет по выбору, end-4 конфиг. Удобно, когда нужно быстро поднять своё окружение.</p>
+          <ul class="list">
+            <li>fish + starship + aliases</li>
+            <li>nvim preset chooser</li>
+            <li>end-4 config optional</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="stack" class="section wrap">
+      <div class="split">
+        <div>
+          <p class="eyebrow">Стек</p>
+          <h2>Что внутри.</h2>
+          <p class="muted-p">Без лишней магии: обычные файлы конфигов, скрипты установки и явные точки входа.</p>
+          <div class="stack-grid">
+            <div class="stack-item"><span class="stack-k">Hyprland</span><span class="stack-v">custom overrides, keybinds</span></div>
+            <div class="stack-item"><span class="stack-k">Quickshell</span><span class="stack-v">illogical-impulse config</span></div>
+            <div class="stack-item"><span class="stack-k">Fish</span><span class="stack-v">config, functions, conf.d</span></div>
+            <div class="stack-item"><span class="stack-k">Neovim</span><span class="stack-v">LazyVim preset + legacy</span></div>
+            <div class="stack-item"><span class="stack-k">Themes</span><span class="stack-v">presets in <code>themes/</code></span></div>
+            <div class="stack-item"><span class="stack-k">Fetches</span><span class="stack-v">unstable C toys in <code>fetches/unstable</code></span></div>
+          </div>
+        </div>
+        <div class="code-card">
+          <div class="code-head">
+            <span>Структура</span>
+            <span class="code-badge">repo</span>
+          </div>
+<pre><code>stylish-dots/
+├─ arch_multitool.sh
+├─ end4/                 # my active end-4 config
+│  ├─ hypr/custom/
+│  ├─ illogical-impulse/config.json
+│  └─ install.sh
+├─ fish/                 # active fish config
+├─ nvim/                 # active LazyVim config
+├─ nvim-presets/
+│  ├─ lazyvim-stylish/
+│  └─ super-easy-casual/
+├─ themes/               # Serpantinum presets
+├─ fetches/unstable/     # abandoned C fetches
+└─ docs/                 # GitHub Pages</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="section wrap">
+      <div class="section-head">
+        <p class="eyebrow">Установка</p>
+        <h2>Быстрый старт.</h2>
+      </div>
+      <div class="install-grid">
+        <div class="install-card">
+          <h3>Мультитул</h3>
+          <p>Интерактивное меню: профиль dotfiles, nvim пресет, зависимости, применение конфигов.</p>
+          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
+bash arch_multitool.sh</code></pre>
+        </div>
+        <div class="install-card">
+          <h3>Только end-4 конфиг</h3>
+          <p>Применить мой текущий конфиг поверх уже установленного dots-hyprland.</p>
+          <pre><code>cd stylish-dots
+bash end4/install.sh</code></pre>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring. Кастомные 3D-фетчи помечены как <code>UNSTABLE/BETA, kind of abandoned</code> и вынесены в <code>fetches/unstable/</code>.
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <div>© stylishlasher · stylish-dots</div>
+    <div class="footer-links">
+      <a href="https://github.com/stylishlasher/stylish-dots">GitHub</a>
+      <a href="https://github.com/end-4/dots-hyprland">end-4</a>
+    </div>
+  </footer>
+</body>
+</html>

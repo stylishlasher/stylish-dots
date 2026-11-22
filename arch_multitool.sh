@@ -48,12 +48,11 @@ FREESM_PKG="freesmlauncher-bin"
 GREETING_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/arch_multitool"
 GREETING_FILE="$GREETING_DIR/greeting.fish"
 
-# Анимированные 3D-фетчи. Каждый — отдельный <name>.c в корне репозитория;
-# fish-функция-обёртка (fish/functions/<name>.fish) собирает его через _animfetch.
-# Порядок в массиве = порядок пунктов в меню выбора приветствия.
+# Анимированные 3D-фетчи (UNSTABLE/BETA, kind of abandoned).
+# Исходники лежат в fetches/unstable/<name>.c; fish-обёртка собирает через _animfetch.
 ANIM_FETCHES=(keyfetch treefetch tomatofetch stoolfetch skeletonfetch)
-# У каких фетчей есть второй (акцентный) цвет — флаг -a/--accent.
 ANIM_FETCH_ACCENT=(treefetch tomatofetch stoolfetch skeletonfetch)
+ANIM_FETCHES_UNSTABLE=1
 
 # --- Прочее ---
 DOTFILES=(hypr kitty fish nvim neovide serpantinum gpu-screen-recorder nwg-look)
@@ -629,7 +628,7 @@ resolve_configs() {
     # 1. Ищем локальные конфиги рядом со скриптом или в текущем каталоге
     local d
     for d in "$SCRIPT_DIR" "$PWD"; do
-        if [[ -d "$d/fish" || -d "$d/nvim" || -f "$d/glass.json" ]]; then
+        if [[ -d "$d/fish" || -d "$d/nvim" || -d "$d/themes" || -d "$d/end4" || -f "$d/glass.json" ]]; then
             CONFIGS_DIR="$d"; CONFIGS_READY=1
             info "Использую локальные конфиги: $CONFIGS_DIR"
             return 0
@@ -980,26 +979,43 @@ install_aur_helper_menu() {
 }
 
 # ------------------------------------------------------------------------------
-# 4. DOTFILES (SERPANTINUM)
+# 4. DOTFILES ПРОФИЛИ (end-4 / serpantinum / stylish-dots)
 # ------------------------------------------------------------------------------
-install_dotfiles_core() {
+DOTFILES_PROFILE="stylish-dots" # end-4 | serpantinum | stylish-dots
+
+choose_dotfiles_profile() {
+    info "=== Выбор профиля dotfiles ==="
+    echo "1) end-4 / illogical-impulse — мой текущий конфиг (Hyprland + Quickshell ii)"
+    echo "2) serpantinum — окружение Serpantinum (Hyprland/Quickshell, внешний установщик)"
+    echo "3) stylish-dots — мои дотсы из этого репо (fish + nvim + end-4 конфиг)"
+    echo "0) Оставить: $DOTFILES_PROFILE"
+    local c
+    read -rp "Выберите [0-3]: " c
+    case "$c" in
+        1) DOTFILES_PROFILE="end-4" ;;
+        2) DOTFILES_PROFILE="serpantinum" ;;
+        3) DOTFILES_PROFILE="stylish-dots" ;;
+        0|"") ;;
+        *) warn "Неверный выбор, оставляю $DOTFILES_PROFILE" ;;
+    esac
+    ok "Профиль dotfiles: $DOTFILES_PROFILE"
+}
+
+install_serpantinum_core() {
     info "=== Установка dotfiles (Serpantinum) ==="
     echo
     warn "Будет установлено окружение Serpantinum (Hyprland, Quickshell и т.д.)."
 
-    # Serpantinum умеет собрать yay-bin сам, но по требованиям нужен AUR-хелпер.
     local helper; helper=$(aur_helper)
     if [[ -z "$helper" ]]; then
         info "AUR-хелпер (yay/paru) не найден — установщик Serpantinum соберёт yay-bin сам."
-        if confirm "Поставить AUR-хелпер заранее (быстрее, чем ждать установщик)?"; then
+        if confirm "Поставить AUR-хелпер заранее?"; then
             install_aur_helper_core "$(choose_helper)" || warn "Не удалось поставить заранее — Serpantinum соберёт yay-bin сам."
-            helper=$(aur_helper)
         fi
     fi
 
     ensure_sudo || return 1
 
-    # Команда установки: из локального install.txt, иначе — стандартная
     local cmd="$DOTFILES_CMD"
     if resolve_configs >/dev/null 2>&1 && [[ -f "$CONFIGS_DIR/install.txt" ]]; then
         local raw line
@@ -1012,24 +1028,57 @@ install_dotfiles_core() {
 
     echo
     info "Команда установки: ${BOLD}$cmd${NC}"
-    confirm "Запустить установщик dotfiles?" || { warn "Отменено."; return 1; }
+    confirm "Запустить установщик Serpantinum?" || { warn "Отменено."; return 1; }
 
-    # Запускаем в подоболочке, чтобы installer не утянул за собой наш скрипт
     if bash -c "$cmd"; then
-        ok "Dotfiles установлены."
-        # После установки правим раскладку клавиатуры в конфиге Hyprland
+        ok "Serpantinum установлен."
         configure_hypr_kb_layout
     else
-        err "Установщик dotfiles завершился с ошибкой."
+        err "Установщик Serpantinum завершился с ошибкой."
         return 1
     fi
+}
+
+apply_stylish_dots() {
+    info "=== Применение stylish-dots (мои дотсы) ==="
+    resolve_configs || return 1
+    local ok_any=0
+
+    if confirm "Применить fish конфиг?"; then
+        apply_fish_config && ok_any=1 || warn "fish конфиг не применён."
+    fi
+    if confirm "Применить Neovim конфиг? (выбор пресета)"; then
+        choose_nvim_preset
+        apply_nvim_config "$NVIM_PRESET" && ok_any=1 || warn "Neovim конфиг не применён."
+    fi
+    if [[ -d "$CONFIGS_DIR/end4" ]]; then
+        if confirm "Применить мой end-4 / illogical-impulse конфиг (без API ключей, keyring отдельно)?"; then
+            apply_end4_config && ok_any=1 || warn "end-4 конфиг не применён."
+        fi
+    fi
+    if [[ -d "$CONFIGS_DIR/mango" ]]; then
+        if confirm "Применить MangoWC dotfiles (опционально)?"; then
+            apply_mango_config && ok_any=1 || warn "MangoWC не применён."
+        fi
+    fi
+    (( ok_any )) || warn "Ничего не применено."
+}
+
+install_dotfiles_core() {
+    case "$DOTFILES_PROFILE" in
+        end-4) install_end4_core ;;
+        serpantinum) install_serpantinum_core ;;
+        stylish-dots) apply_stylish_dots ;;
+        *) err "Неизвестный профиль: $DOTFILES_PROFILE"; return 1 ;;
+    esac
 }
 
 install_dotfiles() {
     clear
     gpu_drivers_notice
+    choose_dotfiles_profile
     install_dotfiles_core
-    apply_archy_themes
+    [[ "$DOTFILES_PROFILE" == "serpantinum" ]] && apply_archy_themes
     pause
 }
 
@@ -1044,13 +1093,21 @@ apply_archy_themes() {
     local -a presets=() names=()
     local f
     shopt -s nullglob
-    for f in "$CONFIGS_DIR"/*.json; do
-        presets+=("$f")
+    for f in "$CONFIGS_DIR/themes"/*.json "$CONFIGS_DIR"/*.json; do
+        [[ -f "$f" ]] && presets+=("$f")
     done
     shopt -u nullglob
+    # dedupe by basename
+    local -A seen=(); local -a uniq=()
+    for f in "${presets[@]}"; do
+        local bname; bname=$(basename "$f")
+        [[ -n "${seen[$bname]:-}" ]] && continue
+        seen[$bname]=1; uniq+=("$f")
+    done
+    presets=("${uniq[@]}")
 
     if (( ${#presets[@]} == 0 )); then
-        warn "Пресеты Serpantinum (*.json) не найдены в конфигах."
+        warn "Пресеты Serpantinum (*.json) не найдены в конфигах (themes/)."
         return 1
     fi
 
@@ -1118,7 +1175,7 @@ apply_fish_config() {
     local f srcf
     for f in "${ANIM_FETCHES[@]}"; do
         srcf=""
-        for srcf in "$CONFIGS_DIR/$f.c" "$src/$f.c" "$src/functions/$f.c"; do
+        for srcf in "$CONFIGS_DIR/fetches/unstable/$f.c" "$CONFIGS_DIR/fetches/$f.c" "$CONFIGS_DIR/$f.c" "$src/$f.c" "$src/functions/$f.c"; do
             [[ -f "$srcf" ]] && break
         done
         if [[ -f "$srcf" ]]; then
@@ -1326,7 +1383,13 @@ build_anim_fetches() {
     local f src
     for f in "${ANIM_FETCHES[@]}"; do
         src="$HOME/.config/fish/$f.c"
-        [[ -f "$src" ]] && { srcs+=("$src"); names+=("$f"); }
+        [[ -f "$src" ]] || src=""
+        if [[ -z "$src" ]]; then
+            for src in "$CONFIGS_DIR/fetches/unstable/$f.c" "$CONFIGS_DIR/fetches/$f.c" "$CONFIGS_DIR/$f.c"; do
+                [[ -f "$src" ]] && break; src=""
+            done
+        fi
+        [[ -n "$src" && -f "$src" ]] && { srcs+=("$src"); names+=("$f"); }
     done
     (( ${#srcs[@]} )) || return 0
 
@@ -1351,10 +1414,43 @@ install_fish() { clear; install_fish_core; pause; }
 # ------------------------------------------------------------------------------
 # 7. NEOVIM + NEOVIDE
 # ------------------------------------------------------------------------------
+NVIM_PRESET="lazyvim-stylish" # lazyvim-stylish | super-easy-casual
+
+choose_nvim_preset() {
+    info "=== Выбор конфига Neovim ==="
+    echo "1) lazyvim-stylish (новый, LazyVim, проработанный)"
+    echo "2) super-easy-casual (старый конфиг из прошлого коммита)"
+    echo "0) Оставить: $NVIM_PRESET"
+    local c
+    read -rp "Выберите [0-2]: " c
+    case "$c" in
+        1) NVIM_PRESET="lazyvim-stylish" ;;
+        2) NVIM_PRESET="super-easy-casual" ;;
+        0|"") ;;
+        *) warn "Неверный выбор, оставляю $NVIM_PRESET" ;;
+    esac
+    ok "Выбран Neovim пресет: $NVIM_PRESET"
+}
+
 apply_nvim_config() {
     resolve_configs || return 1
-    local src="$CONFIGS_DIR/nvim"
-    [[ -d "$src" ]] || { err "Каталог nvim/ не найден в конфигах."; return 1; }
+    local preset="${1:-$NVIM_PRESET}"
+    local src=""
+
+    case "$preset" in
+        lazyvim-stylish)
+            [[ -d "$CONFIGS_DIR/nvim-presets/lazyvim-stylish" ]] && src="$CONFIGS_DIR/nvim-presets/lazyvim-stylish"
+            [[ -z "$src" && -d "$CONFIGS_DIR/nvim" ]] && src="$CONFIGS_DIR/nvim"
+            ;;
+        super-easy-casual)
+            [[ -d "$CONFIGS_DIR/nvim-presets/super-easy-casual" ]] && src="$CONFIGS_DIR/nvim-presets/super-easy-casual"
+            ;;
+        *)
+            [[ -d "$CONFIGS_DIR/nvim-presets/$preset" ]] && src="$CONFIGS_DIR/nvim-presets/$preset"
+            ;;
+    esac
+
+    [[ -n "$src" && -d "$src" ]] || { err "Neovim пресет '$preset' не найден в $CONFIGS_DIR/nvim-presets."; return 1; }
 
     local dst="$HOME/.config/nvim"
     stash_dir "$dst"
@@ -1369,7 +1465,7 @@ apply_nvim_config() {
     fi
 
     normalize_paths "$dst"
-    ok "Конфиг Neovim (LazyVim) применён → $dst"
+    ok "Конфиг Neovim ($preset) применён → $dst"
 }
 
 apply_neovide_config() {
@@ -1392,6 +1488,8 @@ install_neovim_core() {
     ensure_sudo || return 1
     pacman_busy && return 1
 
+    choose_nvim_preset
+
     warn "Установка neovim, wl-clipboard и Nerd Font..."
     pac_install neovim wl-clipboard ttf-jetbrains-mono-nerd \
         || { err "Не удалось установить базовые пакеты Neovim."; return 1; }
@@ -1410,9 +1508,9 @@ install_neovim_core() {
         fi
     fi
 
-    apply_nvim_config || warn "Конфиг Neovim не применён."
+    apply_nvim_config "$NVIM_PRESET" || warn "Конфиг Neovim не применён."
     apply_neovide_config
-    ok "Neovim / Neovide готовы."
+    ok "Neovim готов ($NVIM_PRESET)."
 }
 
 install_neovim() { clear; install_neovim_core; pause; }
@@ -2232,7 +2330,7 @@ full_setup() {
     echo "Будет выполнено:"
     echo "  1. Обновление системы"
     echo "  2. Установка AUR-хелпера (yay/paru)"
-    echo "  3. Установка dotfiles (Serpantinum) + раскладка us,ru"
+    echo "  3. Dotfiles профиль (end-4 / serpantinum / stylish-dots)"
     echo "  4. Установка Fish + плагины + конфиг"
     echo "  5. Установка Neovim + Neovide + конфиг"
     echo "  6. Установка mpv"
@@ -2261,10 +2359,16 @@ full_setup() {
 
     install_aur_helper_core "$(choose_helper)" || warn "AUR-хелпер не установлен — часть шагов может не сработать."
 
-    if ! install_dotfiles_core; then
-        warn "Dotfiles не установлены."
-        # Если апгрейд был пропущен, а Serpantinum так и не отработал — обновляемся сами.
-        [[ -f "$SERPANTINUM_STATE_DIR/version" ]] || update_system_core
+    choose_dotfiles_profile
+    if [[ "$DOTFILES_PROFILE" == "serpantinum" ]]; then
+        if ! install_serpantinum_core; then
+            warn "Serpantinum не установлен."
+            [[ -f "$SERPANTINUM_STATE_DIR/version" ]] || update_system_core
+        fi
+    elif [[ "$DOTFILES_PROFILE" == "end-4" ]]; then
+        install_end4_core || warn "end-4 конфиг не применён."
+    else
+        info "Профиль stylish-dots: применю fish/nvim/end-4 после установки пакетов."
     fi
 
     install_fish_core
@@ -2289,17 +2393,27 @@ full_setup() {
     fi
 
     configure_firewall
-    apply_archy_themes
+    if [[ "$DOTFILES_PROFILE" == "serpantinum" ]]; then
+        apply_archy_themes
+    fi
+    if [[ "$DOTFILES_PROFILE" == "stylish-dots" ]]; then
+        echo
+        if confirm "Применить stylish-dots (fish/nvim/end-4 из репо)?"; then
+            apply_stylish_dots || warn "stylish-dots не применены полностью."
+        fi
+    fi
     if [[ -d "${CONFIGS_DIR:-}/mango" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/mango" ]]; }; then
         echo
         if confirm "Установить/применить MangoWC dotfiles из репозитория?"; then
             install_mango_core || warn "MangoWC dotfiles не применены."
         fi
     fi
-    if [[ -d "${CONFIGS_DIR:-}/end4" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/end4" ]]; }; then
-        echo
-        if confirm "Установить/применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
-            install_end4_core || warn "end-4 конфиг не применён."
+    if [[ "$DOTFILES_PROFILE" != "end-4" && "$DOTFILES_PROFILE" != "stylish-dots" ]]; then
+        if [[ -d "${CONFIGS_DIR:-}/end4" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/end4" ]]; }; then
+            echo
+            if confirm "Установить/применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
+                install_end4_core || warn "end-4 конфиг не применён."
+            fi
         fi
     fi
 
@@ -2336,10 +2450,10 @@ main_menu() {
         echo -e "  ${GREEN}2)${NC} Инструменты системы (аудит, очистка, бэкап...)"
         echo -e "  ${CYAN}--------------------------------------------------${NC}"
         echo -e "  ${GREEN}3)${NC} Установить AUR-хелпер (yay / paru)"
-        echo -e "  ${GREEN}4)${NC} Установить dotfiles (Serpantinum) + темы"
+        echo -e "  ${GREEN}4)${NC} Установить dotfiles (выбор: end-4 / serpantinum / stylish-dots)"
         echo -e "  ${GREEN}5)${NC} Установить Fish + плагины + конфиг"
-        echo -e "  ${GREEN}6)${NC} Установить Neovim + Neovide + конфиг"
-        echo -e "  ${GREEN}7)${NC} Применить мои конфиги (fish / nvim / темы)"
+        echo -e "  ${GREEN}6)${NC} Установить Neovim + Neovide (выбор: lazyvim / super-easy-casual)"
+        echo -e "  ${GREEN}7)${NC} Применить мои конфиги (fish / nvim / end-4 / темы)"
         echo -e "  ${GREEN}8)${NC} Установить ПО (вкладки: базовое / приложения / приколы / фетчи)"
         echo -e "  ${GREEN}9)${NC} Установить Flatpak + Flathub (+ Sober)"
         echo -e "  ${GREEN}10)${NC} Установить mpv"
