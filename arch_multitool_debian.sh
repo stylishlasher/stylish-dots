@@ -70,6 +70,7 @@ ESSENTIALS_MENU=(
 
 # Приложения: всё необязательное — браузеры, мессенджеры, игры и т.д.
 APPS_MENU=(
+    "cloudflare-warp|Cloudflare WARP (VPN/сетевой сервис)|off"
     "firefox|Браузер Firefox|on"
     "chromium|Браузер Chromium|off"
     "librewolf|Браузер LibreWolf (приватный)|off"
@@ -1697,6 +1698,46 @@ apply_all_configs() {
     pause
 }
 
+
+# ------------------------------------------------------------------------------
+# CLOUDFLARE WARP
+# ------------------------------------------------------------------------------
+install_warp_core() {
+    info "=== Cloudflare WARP ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    if has warp-cli; then
+        ok "warp-cli уже установлен."
+    else
+        info "Установка Cloudflare WARP (официальный apt репозиторий)..."
+        local codename
+        codename=$(. /etc/os-release && echo "${VERSION_CODENAME:-bookworm}")
+        ensure_tools curl gpg || { err "Нужны curl и gpg."; return 1; }
+        sudo install -d -m 0755 /usr/share/keyrings
+        curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ ${codename} main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list >/dev/null
+        sudo apt-get update -y || { err "apt update после добавления WARP repo не удался."; return 1; }
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cloudflare-warp || { err "Не удалось установить cloudflare-warp."; return 1; }
+    fi
+
+    sudo systemctl enable --now warp-svc.service || { err "Не удалось запустить warp-svc."; return 1; }
+
+    if ! warp-cli --accept-tos registration show >/dev/null 2>&1; then
+        warn "Регистрация WARP (warp-cli registration new)..."
+        warp-cli --accept-tos registration new || warn "Регистрация WARP не выполнена (можно сделать вручную: warp-cli --accept-tos registration new)."
+    fi
+
+    warp-cli --accept-tos mode warp >/dev/null 2>&1 || true
+    if ! warp-cli --accept-tos connect; then
+        warn "Не удалось подключить WARP автоматически. Попробуй: warp-cli --accept-tos connect"
+    fi
+
+    ok "Cloudflare WARP установлен и настроен (service: warp-svc)."
+    info "Проверка: warp-cli status | Команды: warp-cli connect / disconnect"
+}
+
+install_warp() { clear; install_warp_core; pause; }
 # ------------------------------------------------------------------------------
 # 9. УСТАНОВКА ПО (вкладки + галочки)
 # ------------------------------------------------------------------------------
@@ -1705,15 +1746,26 @@ software_install_pkgs() {
     local -a pkgs=("$@")
     (( ${#pkgs[@]} == 0 )) && { warn "Ничего не выбрано."; return 1; }
 
-    if printf '%s\n' "${pkgs[@]}" | grep -qx steam; then
+    local -a normal=() want_warp=0 p
+    for p in "${pkgs[@]}"; do
+        if [[ "$p" == "cloudflare-warp-bin" || "$p" == "cloudflare-warp" ]]; then want_warp=1; else normal+=("$p"); fi
+    done
+
+    if printf '%s\n' "${normal[@]}" | grep -qx steam; then
         enable_multilib || warn "Без [multilib] steam не установится."
     fi
 
-    echo
-    info "К установке: ${pkgs[*]}"
-    pkg_install "${pkgs[@]}" \
-        || { err "Установка завершилась с ошибкой (см. вывод выше)."; return 1; }
-    ok "Установка ПО завершена!"
+    local rc=0
+    if (( ${#normal[@]} )); then
+        echo
+        info "К установке: ${normal[*]}"
+        pkg_install "${normal[@]}" || rc=1
+    fi
+    if (( want_warp )); then
+        install_warp_core || rc=1
+    fi
+    (( rc == 0 )) && ok "Установка ПО завершена!"
+    return $rc
 }
 
 # Выбор пакетов чек-листами. Результат — в массиве ESSENTIALS_PKGS.

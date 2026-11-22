@@ -29,22 +29,24 @@ ALIAS = {
 "void":"void","mint":"mint","linuxmint":"mint","alpine":"alpine","kali":"kali","kalilinux":"kali"
 }
 
+# (os, kernel, pkgmgr, env_label, env_name, wm_name, shell, terminal, cpu, gpu)
+# env_label: "DE" or "WM" depending on whether it's a desktop environment or window manager setup
 DISTRO_INFO = {
-"arch": ("Arch Linux","6.9.7-arch1-1","pacman","Hyprland","fish","kitty","AMD Ryzen 7","NVIDIA RTX 4070"),
-"endeavouros": ("EndeavourOS","6.9.7-arch1-1","pacman","Hyprland","fish","foot","AMD Ryzen 5","Radeon RX 6800"),
-"ubuntu": ("Ubuntu 24.04 LTS","6.8.0-35-generic","apt","GNOME","bash","gnome-terminal","Intel i7","Intel Iris Xe"),
-"debian": ("Debian GNU/Linux 12","6.1.0-21-amd64","apt","GNOME","bash","xterm","Intel i5","Intel UHD"),
-"fedora": ("Fedora Linux 40","6.9.5-200.fc40.x86_64","dnf","GNOME","zsh","ptyxis","AMD Ryzen 7","AMD Radeon"),
-"manjaro": ("Manjaro Linux","6.6.32-1-MANJARO","pacman","KDE Plasma","zsh","konsole","Intel i7","NVIDIA GTX 1660"),
-"nixos": ("NixOS 24.05","6.6.32","nix","Hyprland","fish","kitty","AMD Ryzen 9","NVIDIA RTX 4080"),
-"gentoo": ("Gentoo","6.6.30-gentoo","emerge","i3","zsh","urxvt","Intel i9","AMD Radeon"),
-"windows": ("Windows 11 Pro","10.0.22631","winget","Explorer","powershell","Windows Terminal","Intel i7","NVIDIA RTX 3060"),
-"macos": ("macOS Sonoma 14.5","23.5.0","brew","Aqua","zsh","Terminal.app","Apple M3","Apple M3"),
-"linux": ("Linux","6.8.0-generic","pkg","WM","sh","tty","CPU","GPU"),
-"void": ("Void Linux","6.6.31_1","xbps","sway","bash","foot","Intel i5","Intel UHD"),
-"mint": ("Linux Mint 22","6.8.0-35-generic","apt","Cinnamon","bash","gnome-terminal","AMD Ryzen 5","AMD Radeon"),
-"alpine": ("Alpine Linux v3.20","6.6.31-0-lts","apk","sway","ash","foot","Intel N100","Intel UHD"),
-"kali": ("Kali Linux","6.8.11-amd64","apt","Xfce","zsh","qterminal","Intel i7","NVIDIA GTX 1650"),
+"arch": ("Arch Linux","6.9.7-arch1-1","pacman","WM","Hyprland","Hyprland","fish","kitty","AMD Ryzen 7","NVIDIA RTX 4070"),
+"endeavouros": ("EndeavourOS","6.9.7-arch1-1","pacman","WM","Hyprland","Hyprland","fish","foot","AMD Ryzen 5","Radeon RX 6800"),
+"ubuntu": ("Ubuntu 24.04 LTS","6.8.0-35-generic","apt","DE","GNOME","Mutter","bash","gnome-terminal","Intel i7","Intel Iris Xe"),
+"debian": ("Debian GNU/Linux 12","6.1.0-21-amd64","apt","DE","GNOME","Mutter","bash","xterm","Intel i5","Intel UHD"),
+"fedora": ("Fedora Linux 40","6.9.5-200.fc40.x86_64","dnf","DE","GNOME","Mutter","zsh","ptyxis","AMD Ryzen 7","AMD Radeon"),
+"manjaro": ("Manjaro Linux","6.6.32-1-MANJARO","pacman","DE","KDE Plasma","KWin","zsh","konsole","Intel i7","NVIDIA GTX 1660"),
+"nixos": ("NixOS 24.05","6.6.32","nix","WM","Hyprland","Hyprland","fish","kitty","AMD Ryzen 9","NVIDIA RTX 4080"),
+"gentoo": ("Gentoo","6.6.30-gentoo","emerge","WM","i3","i3","zsh","urxvt","Intel i9","AMD Radeon"),
+"windows": ("Windows 11 Pro","10.0.22631","winget","DE","Explorer","DWM","powershell","Windows Terminal","Intel i7","NVIDIA RTX 3060"),
+"macos": ("macOS Sonoma 14.5","23.5.0","brew","DE","Aqua","Quartz Compositor","zsh","Terminal.app","Apple M3","Apple M3"),
+"linux": ("Linux","6.8.0-generic","pkg","WM","WM","WM","sh","tty","CPU","GPU"),
+"void": ("Void Linux","6.6.31_1","xbps","WM","sway","sway","bash","foot","Intel i5","Intel UHD"),
+"mint": ("Linux Mint 22","6.8.0-35-generic","apt","DE","Cinnamon","Muffin","bash","gnome-terminal","AMD Ryzen 5","AMD Radeon"),
+"alpine": ("Alpine Linux v3.20","6.6.31-0-lts","apk","WM","sway","sway","ash","foot","Intel N100","Intel UHD"),
+"kali": ("Kali Linux","6.8.11-amd64","apt","DE","Xfce","Xfwm4","zsh","qterminal","Intel i7","NVIDIA GTX 1650"),
 }
 
 COLORS = {
@@ -68,8 +70,8 @@ def get_logo(key):
     return [f"  [{key}]  ", "  ??????  ", "  ??????  ", "  ??????  "]
 
 def fake_info(key):
-    d = DISTRO_INFO.get(key, (key.title()+" Linux","6.8.0-generic","pkg","WM","sh","terminal","CPU","GPU"))
-    osn, kern, pkgmgr, wm, shell, term, cpu, gpu = d
+    d = DISTRO_INFO.get(key, (key.title()+" Linux","6.8.0-generic","pkg","WM","WM","WM","sh","terminal","CPU","GPU"))
+    osn, kern, pkgmgr, env_label, env_name, wm_name, shell, term, cpu, gpu = d
     mem_total = random.choice([8,16,32,64])
     mem_used = round(random.uniform(1.5, mem_total-1.5),1)
     up_h = random.randint(0,72); up_m=random.randint(0,59)
@@ -77,14 +79,14 @@ def fake_info(key):
     res = random.choice(["1920x1080","2560x1440","3840x2160","3440x1440"])
     return {
         "os": osn, "kernel": kern, "uptime": f"{up_h}h {up_m}m", "packages": f"{pkgs} ({pkgmgr})",
-        "shell": shell, "wm": wm, "terminal": term, "cpu": cpu, "gpu": gpu,
+        "shell": shell, "env_label": env_label, "de": env_name, "wm": wm_name, "terminal": term, "cpu": cpu, "gpu": gpu,
         "memory": f"{mem_used}GiB / {mem_total}GiB", "resolution": res,
         "host": random.choice(["ThinkPad","Desktop","Laptop","VirtualBox","Custom PC"]),
         "user": os.environ.get("USER","user"),
     }
 
 def render_original(info, logo, color, color_on):
-    labels = [("OS","os"),("Kernel","kernel"),("Uptime","uptime"),("Packages","packages"),("Shell","shell"),("WM","wm"),("Terminal","terminal"),("Memory","memory")]
+    labels = [("OS","os"),("Kernel","kernel"),("Uptime","uptime"),("Packages","packages"),("Shell","shell"),(info["env_label"],"de"),("WM","wm"),("Terminal","terminal"),("Memory","memory")]
     lines = [f"{c(BOLD+info['user']+'@'+info['host'].lower().replace(' ','-')+RESET, color, color_on)}", "-"*30]
     for lab,key in labels:
         lines.append(f"{c(lab+':', color, color_on):<18} {info[key]}")
@@ -92,14 +94,18 @@ def render_original(info, logo, color, color_on):
 
 def render_stylish(info, logo, color, color_on):
     # matches user's current fastfetch: small logo, key padding, separator space
-    labels = [("os      ","os"),("kernel  ","kernel"),("uptime  ","uptime"),("pkgs    ","packages"),("shell   ","shell"),("wm      ","wm"),("term    ","terminal"),("mem     ","memory")]
+    de_lab = "de      " if info["env_label"] == "DE" else "wm      "
+    labels = [("os      ","os"),("kernel  ","kernel"),("uptime  ","uptime"),("pkgs    ","packages"),("shell   ","shell"),(de_lab,"de"),("wm      ","wm"),("term    ","terminal"),("mem     ","memory")]
     lines = []
     for lab,key in labels:
+        # avoid duplicate when DE==WM name for pure WMs? keep wm row as compositor
+        if lab.strip() == "wm" and info["env_label"] == "WM" and info["de"] == info["wm"]:
+            continue
         lines.append(f"{c(lab, color, color_on)} {info[key]}")
-    return side_by_side(logo[:8], lines, color, color_on)
+    return side_by_side(logo[:9], lines, color, color_on)
 
 def render_box(info, logo, color, color_on):
-    pairs = [("OS",info["os"]),("Kernel",info["kernel"]),("Uptime",info["uptime"]),("Pkgs",info["packages"]),("WM",info["wm"]),("Shell",info["shell"]),("Term",info["terminal"]),("Mem",info["memory"])]
+    pairs = [("OS",info["os"]),("Kernel",info["kernel"]),("Uptime",info["uptime"]),("Pkgs",info["packages"]),(info["env_label"],info["de"]),("WM",info["wm"]),("Shell",info["shell"]),("Term",info["terminal"]),("Mem",info["memory"])]
     w = max(len(f"{k}: {v}") for k,v in pairs) + 2
     lines=[c("┌"+"─"*w+"┐",color,color_on)]
     for k,v in pairs:
@@ -110,17 +116,24 @@ def render_box(info, logo, color, color_on):
 
 def render_mini(info, logo, color, color_on):
     # logo right/left small, compact key values
-    pairs = [("os",info["os"]),("kr",info["kernel"]),("up",info["uptime"]),("pk",info["packages"]),("wm",info["wm"]),("sh",info["shell"]),("mm",info["memory"])]
-    lines = [f"{c(k,color,color_on)} {v}" for k,v in pairs]
-    return side_by_side(logo[:6], lines, color, color_on)
+    envk = "de" if info["env_label"] == "DE" else "wm"
+    pairs = [("os",info["os"]),("kr",info["kernel"]),("up",info["uptime"]),("pk",info["packages"]),(envk,info["de"]),("wm",info["wm"]),("sh",info["shell"]),("mm",info["memory"])]
+    lines = []
+    for k,v in pairs:
+        if k == "wm" and info["env_label"] == "WM" and info["de"] == info["wm"]:
+            continue
+        lines.append(f"{c(k,color,color_on)} {v}")
+    return side_by_side(logo[:7], lines, color, color_on)
 
 def render_ultra(info, logo, color, color_on):
     # no logo, tiny
-    pairs = [("os",info["os"]),("kernel",info["kernel"]),("pkgs",info["packages"]),("wm",info["wm"]),("mem",info["memory"])]
+    envk = "de" if info["env_label"] == "DE" else "wm"
+    pairs = [("os",info["os"]),("kernel",info["kernel"]),("pkgs",info["packages"]),(envk,info["de"]),("mem",info["memory"])]
     return "\n".join(f"{c(k,color,color_on)}  {v}" for k,v in pairs) + "\n"
 
 def render_neon(info, logo, color, color_on):
-    labels = [("󰣇 OS","os"),("󰒋 Kernel","kernel"),("󰅐 Uptime","uptime"),("󰏖 Packages","packages"),("󰆍 Shell","shell"),("󰖲 WM","wm"),("󰆍 Term","terminal"),("󰍛 Memory","memory"),("󰹑 GPU","gpu")]
+    env_icon = "󰧨 DE" if info["env_label"] == "DE" else "󰖲 WM"
+    labels = [("󰣇 OS","os"),("󰒋 Kernel","kernel"),("󰅐 Uptime","uptime"),("󰏖 Packages","packages"),("󰆍 Shell","shell"),(env_icon,"de"),("󰖲 WM","wm"),("󰆍 Term","terminal"),("󰍛 Memory","memory"),("󰹑 GPU","gpu")]
     userline = c(f"╭─ {info['user']}@{info['host'].lower().replace(' ','-')}", color, color_on)
     lines = [userline]
     for lab,key in labels:
