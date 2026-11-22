@@ -14,7 +14,7 @@
 #include <getopt.h>
 #include <math.h>
 #include <pwd.h>
-#include <signal. если я один вимвоо ой символ поменяю ничего не будет>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
