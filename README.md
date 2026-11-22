@@ -6,9 +6,10 @@
 
 Репозиторий самодостаточный: конфиги можно применить вручную или через мультитул. Скрипт умеет брать конфиги из локальной папки репозитория или скачать их из GitHub.
 
-- **Repo:** https://github.com/stylishlasher/stylish-dots
+- **Repo:** https://github.com/stylishlasher/stylish-dots/
 - **GitHub Pages:** https://stylishlasher.github.io/stylish-dots/
-
+- **Bio:**
+https://lislash.vercel.app/
 ---
 
 ## Содержание
