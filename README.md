@@ -279,4 +279,3 @@ python3 config/bin/hackerlarp --no-disclaimer --once
 ## Лицензия
 
 Этот репозиторий распространяется под лицензией **GNU AGPL-3.0** (см. [LICENSE.md](LICENSE.md)).
-
