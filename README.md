@@ -2,6 +2,8 @@
 
 Личные dotfiles и установщик для Arch Linux: **end-4 / illogical-impulse** (Hyprland + Quickshell), **fish**, **Neovim presets**, темы Serpantinum, MangoWC и универсальный `arch_multitool.sh`.
 
+> **Авторство end-4:** профиль `end4/` — это моя персональная конфигурация/надстройки поверх [**end-4/dots-hyprland** (illogical-impulse)](https://github.com/end-4/dots-hyprland). Оригинальный проект, базовая shell/архитектура и заслуга за dots-hyprland принадлежат [end-4](https://github.com/end-4).
+
 Репозиторий самодостаточный: конфиги можно применить вручную или через мультитул. Скрипт умеет брать конфиги из локальной папки репозитория или скачать их из GitHub.
 
 - **Repo:** https://github.com/stylishlasher/stylish-dots
@@ -149,6 +151,8 @@ stylish-dots/
 ---
 
 ## end-4 / illogical-impulse
+
+**Credits:** [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) by [end-4](https://github.com/end-4) — оригинальный проект. `end4/` в этом репозитории содержит **мои** пользовательские оверрайды/конфиг поверх него, а не замену оригинала.
 
 Мой действующий конфиг лежит в `end4/` и ставится отдельно:
 
