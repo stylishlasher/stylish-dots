@@ -6,16 +6,16 @@
 # Все аргументы пробрасываются в мультитул (например, -f или -a).
 #
 # Быстрый запуск:
-#   curl -fsSL https://raw.githubusercontent.com/stylishlasher/my-config/main/install/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
 #
 # Полная установка без меню:
-#   curl -fsSL https://raw.githubusercontent.com/stylishlasher/my-config/main/install/install.sh | bash -s -- -f
+#   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -f
 # ==============================================================================
 
 set -euo pipefail
 
 # ------------------------------- Настройки -----------------------------------
-REPO_SLUG="${REPO_SLUG:-stylishlasher/my-config}"
+REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 RAW_BASE="https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}"
 

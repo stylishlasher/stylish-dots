@@ -22,7 +22,7 @@ CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/arch_multitool.conf"
 
 # --- Личные конфиги ---
 # Репозиторий с конфигами: fish/, nvim/, neovide/, *.json (темы), install.txt
-REPO_SLUG="stylishlasher/my-config"
+REPO_SLUG="stylishlasher/stylish-dots"
 REPO_BRANCH="main"
 CONFIG_TARBALL="https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${REPO_BRANCH}"
 
@@ -2435,7 +2435,8 @@ usage() {
   -h   показать справку
 Конфигурация (необязательно): $CONFIG_FILE
 Лог операций: $LOG_FILE
-Репозиторий конфигов: https://github.com/$REPO_SLUG
+Репозиторий: https://github.com/$REPO_SLUG
+GitHub Pages: https://stylishlasher.github.io/stylish-dots/
 USAGE
 }
 

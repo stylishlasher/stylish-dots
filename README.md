@@ -1,240 +1,132 @@
-# my-config
+# stylish-dots
 
-Мои личные конфиги для Arch Linux: **MangoWC** (Wayland) + окружение/утилиты **Serpantinum** + универсальный скрипт установки и обслуживания системы.
+Личные dotfiles и установщик для Arch Linux: **end-4 / illogical-impulse** (Hyprland + Quickshell), **fish**, **Neovim presets**, темы Serpantinum, MangoWC и универсальный `arch_multitool.sh`.
 
-Репозиторий самодостаточный: конфиги можно применить вручную или через мультитул, который сам скачает актуальную версию из GitHub и поможет с установкой зависимостей.
+Репозиторий самодостаточный: конфиги можно применить вручную или через мультитул. Скрипт умеет брать конфиги из локальной папки репозитория или скачать их из GitHub.
+
+- **Repo:** https://github.com/stylishlasher/stylish-dots
+- **GitHub Pages:** https://stylishlasher.github.io/stylish-dots/
 
 ---
 
 ## Содержание
 
-- [MangoWC dotfiles](#mangowc-dotfiles)
-  - [Что внутри](#что-внутри)
-  - [Быстрая установка MangoWC-конфигов](#быстрая-установка-mangowc-конфигов)
-  - [Зависимости](#зависимости-mangowc)
-  - [Горячие клавиши](#горячие-клавиши-mangowc)
-  - [Настройки (GUI) и режимы цвета](#настройки-gui-и-режимы-цвета)
-  - [Панель Waybar: интерактивные модули](#панель-waybar-интерактивные-модули)
-- [Arch Multitool](#arch-multitool)
-- [Быстрый старт (мультитул)](#быстрый-старт-мультитул)
+- [Что внутри](#что-внутри)
+- [Быстрый старт](#быстрый-старт)
+- [Профили dotfiles](#профили-dotfiles)
+- [Neovim presets](#neovim-presets)
 - [Структура репозитория](#структура-репозитория)
 - [Куда применяются конфиги](#куда-применяются-конфиги)
-- [Благодарности](#благодарности)
+- [end-4 / illogical-impulse](#end-4--illogical-impulse)
+- [MangoWC](#mangowc)
+- [Кастомные фетчи](#кастомные-фетчи)
+- [GitHub Pages](#github-pages)
 - [Лицензия](#лицензия)
 
 ---
 
-## MangoWC dotfiles
+## Что внутри
 
-В репозитории лежат готовые, «живые» дотфайлы для **MangoWC**: конфиг композитора, Waybar, foot, fuzzel, mako, matugen и скрипты/утилиты.
+- **`end4/`** — мой текущий конфиг для end-4/dots-hyprland (illogical-impulse): Hyprland custom overrides, патченный `hyprland/keybinds.lua`, Quickshell `illogical-impulse/config.json`, cursor/GTK/env.
+- **`fish/`** — актуальный конфиг fish.
+- **`nvim/`** — активный Neovim конфиг (LazyVim, `lazyvim-stylish`).
+- **`nvim-presets/`** — выбор пресета Neovim:
+  - `lazyvim-stylish/` — новый проработанный LazyVim;
+  - `super-easy-casual/` — старый лёгкий конфиг из прошлого коммита.
+- **`themes/`** — JSON-пресеты Serpantinum/темы.
+- **`fetches/unstable/`** — кастомные C-фетчи, помечены как **UNSTABLE/BETA, kind of abandoned**.
+- **`mango/`, `waybar/`, `foot/`, `fuzzel/`, `mako/`, `matugen/`, `bin/`** — MangoWC/Wayland dotfiles и утилиты.
+- **`docs/`** — кастомный сайт GitHub Pages в стиле Material You.
+- **`arch_multitool.sh`** — интерактивный установщик/мультитул.
 
-### Что внутри
+---
 
-- **`mango/`** — основной конфиг MangoWC (`config.conf`), пользовательские настройки (`settings.env`), скрипты (`scripts/`) и локальный установщик (`mango/install.sh`).
-  - Автозапуск: обои, `mako`, `waybar`, история буфера (`cliphist`), polkit-агент (если найден), опционально док/ночной свет (`wlsunset`/`gammastep`)/автоблокировка (`swayidle`).
-  - Удобные правила окон (floating для настроек/микшера/сетей/калькулятора/PiP и т.д.).
-  - Улучшенные бинды: навигация, ресайз, скриншоты, медиа/громкость/яркость, обзор, меню питания, обои, буфер обмена.
-- **`waybar/`** — компактная настраиваемая панель (Catppuccin-совместимая палитра, прозрачность/«таблетки», кликабельные модули).
-- **`foot/`**, **`fuzzel/`**, **`mako/`** — терминал, лаунчер и уведомления в едином стиле.
-- **`matugen/`** — конфиг и шаблоны Matugen для генерации цветов из обоев (`waybar/colors.css`, `fuzzel`, `foot`, `mako`, акцент для MangoWC).
-- **`bin/mango-settings`** — TUI-настройки на `fzf` (открываются по `Super+S`, повторно — закрыть).
+## Быстрый старт
 
-### Быстрая установка MangoWC-конфигов
-
-#### Вариант 1: локальный установщик (из этого репозитория)
-
-```bash
-git clone https://github.com/stylishlasher/my-config.git
-cd my-config
-bash mango/install.sh
-```
-
-Установщик:
-- делает бэкап существующих `~/.config/{mango,waybar,foot,fuzzel,mako,matugen}` в `~/.config-backup-<timestamp>/`;
-- копирует свежие конфиги;
-- устанавливает `~/.local/bin/mango-settings`;
-- **сохраняет ваши прежние настройки/обои/акцент** из `settings.env` (новые ключи добавляются);
-- пытается сразу применить изменения в текущей Wayland-сессии.
-
-Повторный запуск безопасен.
-
-#### Вариант 2: через Arch Multitool
-
-Мультитул умеет установить зависимости и применить MangoWC dotfiles из этого репозитория:
+### Мультитул (интерактивно)
 
 ```bash
+git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
 bash arch_multitool.sh
-# пункт 16) MangoWC: зависимости + применить dotfiles
-# или пункт 7) Применить мои конфиги (в т.ч. MangoWC, если есть)
 ```
 
-При полной установке (`-f`) мультитул также предложит применить MangoWC-конфиги, если они присутствуют.
-
-### Зависимости (MangoWC)
-
-Базово нужны (Arch Linux):
+### Bootstrap-установщик
 
 ```bash
-sudo pacman -S --needed \
-  fuzzel fzf mako libnotify swaybg waybar \
-  grim slurp wl-clipboard cliphist \
-  brightnessctl playerctl pavucontrol foot swaylock \
-  python networkmanager
-```
-
-Опционально:
-
-- **`matugen`** (`matugen-bin` из AUR) — генерация палитры/акцента из текущих обоев.
-- **`satty`** — редактор/аннотации скриншотов (открывается по `Super+Print`).
-- **`swayidle`** — автоблокировка/сон по таймерам (`IDLE_LOCK`/`IDLE_SUSPEND` в `~/.config/mango/settings.env`, секунды; `0` = выкл.).
-- **`wlsunset`** или **`gammastep`** — ночной свет (`NIGHT_LIGHT=1`, `NIGHT_TEMP` в `~/.config/mango/settings.env`).
-- polkit-агент (например `polkit-kde-agent` / `polkit-gnome`) — для GUI-запросов прав; `autostart.sh` попытается запустить найденный агент автоматически.
-- `wl-paste`/`wl-copy` уже входят в `wl-clipboard`; для истории буфера нужен `cliphist`.
-- `nmtui` входит в пакет `networkmanager` (используется для быстрого открытия настроек сети из Waybar/дока).
-- шрифты с иконками: например `ttf-jetbrains-mono-nerd` (для корректных иконок в Waybar/foot/fuzzel).
-
-> Точный набор зависимостей можно выбрать чек-листом в мультитуле (пункт 16).
-
-### Горячие клавиши (MangoWC)
-
-| Клавиши | Действие |
-|---|---|
-| `Super + Enter` | Терминал |
-| `Super + D` | Лаунчер (`fuzzel`) |
-| `Super + F` | Браузер |
-| `Super + E` | Файловый менеджер |
-| `Super + S` | Настройки `mango-settings` (повторно — закрыть) |
-| `Super + W` | Выбор обоев |
-| `Super + Shift + W` | Случайные обои |
-| `Super + B` | Меню питания |
-| `Super + L` | Блокировка экрана (`swaylock`/`swaylock-effects`) |
-| `Super + C` | История буфера обмена |
-| `Super + Shift + C` | Очистить историю буфера |
-| `Super + Q` | Закрыть окно |
-| `Super + Shift + F` | Плавающий режим окна |
-| `Super + M` | Полноэкранный режим |
-| `Super + ←/→/↑/↓` | Фокус окна |
-| `Super + Shift + ←/→/↑/↓` | Поменять окна местами |
-| `Super + Ctrl + ←/→/↑/↓` | Изменить размер |
-| `Super + Ctrl + Shift + ←/→/↑/↓` | Переместить плавающее окно |
-| `Super + 1..9` | Перейти на рабочий стол 1..9 |
-| `Super + Shift + 1..9` | **Переместить активное окно на рабочий стол 1..9** |
-| `Super + 0` | Обзор окон |
-| `Super + \`` | Переключить раскладку **scroller/tile** |
-| `Super + Shift + R` | Перезагрузить конфиг MangoWC |
-| `Super + Shift + B` | Показать/скрыть Waybar |
-| `Super + Shift + D` | Показать/скрыть док (если настроен) |
-| `Print` | Скриншот области (файл + буфер) |
-| `Super + Print` | Скриншот области → открыть в **satty** (редактор/аннотации) |
-| `Shift + Print` | Скриншот всего экрана |
-| `XF86Audio* / XF86MonBrightness*` | Громкость, медиа, яркость |
-
-> Приложения по умолчанию (браузер/терминал/файлы) настраиваются в `Super+S → Приложения по умолчанию` и сохраняются в `~/.config/mango/settings.env`.
-
-### Настройки (GUI) и режимы цвета
-
-Запуск: `Super + S` (или `~/.local/bin/mango-settings`). Интерфейс построен на `fzf` (в терминале) и позволяет быстро менять параметры без ручного редактирования конфигов:
-
-- **Тема и цвет** — два режима:
-  - **Matugen (из обоев)** — палитра/акцент генерируются из текущих обоев (waybar, fuzzel, foot, mako, акцент MangoWC).
-  - **Ручной акцент** — фиксированный акцент (пресеты Catppuccin/свой HEX), Matugen не перезаписывает цвета при смене обоев.
-  - Переключение режима, генерация «сейчас», выбор dark/light, типа схемы и контраста Matugen.
-- **Окна** — отступы, рамки, скругления, прозрачность, smart gaps, цвета рамок.
-- **Эффекты и анимации** — пресеты/скорость/типы/кривые, блюр, тени.
-- **Панель Waybar** — положение, высота, прозрачность/скругление, пресеты, показать/скрыть, перезапуск, **интерактивная настройка модулей**.
-- **Обои** — выбор из папки, случайные, режим подгонки, цвет фона, интеграция с Matugen.
-- **Терминал** — прозрачность, шрифт, отступы (foot).
-- **Клавиатура/тачпад/поведение/тайлинг** — раскладки и переключение, repeat, тап/скролл, фокус, snap, размеры и т.д.
-- **Файлы конфигов** — быстрый доступ к редактированию.
-
-Настройки сохраняются в `~/.config/mango/settings.env` и/или применяются к соответствующим конфигам; многие изменения применяются сразу (reload/сигналы).
-
-### Панель Waybar: интерактивные модули
-
-В `Super+S → Панель Waybar → Модули панели (интерактивно)…` можно:
-
-- **добавлять** модули (лаунчер, воркспейсы, часы, звук, сеть, батарея, трей, CPU, память, яркость, Bluetooth, медиа/MPRIS, антисон, температура, диск, настройки, питание);
-- **убирать** модули;
-- **менять порядок** в зонах слева/по центру/справа;
-- **сбрасывать** раскладку модулей к умолчанию.
-
-Для модулей, которых нет в текущем `config.jsonc`, при добавлении автоматически подставляются разумные дефолты (чтобы панель оставалась рабочей без ручной правки JSON).
-
----
-
-## Arch Multitool
-
-**Arch Multitool** (`arch_multitool.sh`) — универсальный инструмент для чистой установки, настройки и обслуживания Arch Linux.
-
-**Установка и настройка:**
-- полная установка окружения одной командой;
-- AUR-хелпер (`yay` / `paru`);
-- dotfiles **Serpantinum** (Hyprland/Quickshell-окружение) + темы/пресеты;
-- **MangoWC dotfiles** из этого репозитория (зависимости + применение конфигов, пункт 16);
-- раскладка клавиатуры `us,ru` в Hyprland (автопатч `settings.lua`);
-- `fish` + плагины (`fisher`, `tide`) и выбор приветствия (fastfetch / анимированные 3D-фетчи);
-- `neovim` + `neovide` + Nerd Font;
-- `mpv`, GPU Screen Recorder, утилиты для архивов (Xarchiver и др.);
-- `flatpak` + Flathub, Sober/FreeSM по выбору;
-- установка ПО по чек-листам (базовое, приложения, консольные приколы/игры/CLI/фетчи);
-- файрвол (`ufw` / `firewalld`).
-
-**Обслуживание системы:**
-- аудит и оценка системы (отчёт в файл);
-- обновление (`pacman` + AUR), очистка/оптимизация, бэкапы, ремонт ключей, зеркала (`reflector`);
-- утилиты Hyprland / Wayland / Audio.
-
-Каждый компонент можно ставить отдельно из меню.
-
----
-
-## Быстрый старт (мультитул)
-
-Скачать и запустить интерактивное меню:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/my-config/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
 ```
 
 Полная установка без меню:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/my-config/main/install/install.sh | bash -s -- -f
+curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -f
 ```
 
-Только аудит и оценка системы:
+Только аудит системы:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/my-config/main/install/install.sh | bash -s -- -a
+curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -a
 ```
 
-> Требуется Arch Linux или производный дистрибутив (нужен `pacman`). Запускать от обычного пользователя — `sudo` запрашивается по необходимости.
+> Требуется Arch Linux/производный дистрибутив с `pacman`. Запускать от обычного пользователя; `sudo` запрашивается по необходимости.
+
+---
+
+## Профили dotfiles
+
+Мультитул (пункт **4**) и полная установка поддерживают выбор профиля:
+
+| Профиль | Что делает |
+|---|---|
+| **end-4 / illogical-impulse** | Применяет мой текущий конфиг из `end4/` поверх установленного dots-hyprland. |
+| **serpantinum** | Запускает внешний установщик Serpantinum, патчит раскладку Hyprland, применяет темы из `themes/`. |
+| **stylish-dots** | Применяет мои дотсы из этого репо: fish, выбранный Neovim preset, опционально end-4/MangoWC. |
+
+В полном сценарии профиль выбирается до установки пакетов; после установки fish/nvim/end-4 применяются в соответствии с выбором.
+
+---
+
+## Neovim presets
+
+При установке Neovim (пункт **6**) или в профиле `stylish-dots` можно выбрать пресет:
+
+| Preset | Описание |
+|---|---|
+| **lazyvim-stylish** | Новый проработанный LazyVim: Snacks UI, noice, neo-tree, treesitter extras, тема `dots` (Material You из quickshell), RU langmap, шпаргалка. |
+| **super-easy-casual** | Старый простой конфиг из прошлого коммита, один `init.lua`. |
+
+Шпаргалка: `nvim/cheatsheet.md`, в Neovim — `F1`, `<leader>H` или `:Cheat`.
 
 ---
 
 ## Структура репозитория
 
 ```text
-my-config/
-├── arch_multitool.sh      # универсальный мультитул
+stylish-dots/
+├── arch_multitool.sh        # основной мультитул
 ├── install/
-│   └── install.sh         # bootstrap (curl | bash)
-├── install.txt            # команда установки Serpantinum (читается мультитулом)
-├── mango/                 # MangoWC: config.conf, settings.env, scripts/, install.sh
-├── waybar/                # Waybar: config.jsonc, style.css, colors.css
-├── foot/                  # терминал foot
-├── fuzzel/                # лаунчер fuzzel
-├── mako/                  # уведомления mako
-├── matugen/               # Matugen: config.toml + templates/
-├── bin/
-│   └── mango-settings     # TUI-настройки MangoWC (fzf)
-├── fish/                  # конфиг fish
-├── nvim/                  # конфиг Neovim
-├── placeholders/          # скриншоты пресетов
-├── *.json                 # пресеты Serpantinum (автопоиск мультитулом)
-├── *.c                    # исходники анимированных фетчей
+│   └── install.sh           # bootstrap (curl | bash)
+├── end4/                    # мой текущий end-4 / illogical-impulse конфиг
+│   ├── hypr/
+│   ├── illogical-impulse/
+│   ├── gtk-3.0/ gtk-4.0/
+│   ├── environment.d/
+│   └── install.sh
+├── fish/                    # активный fish конфиг
+├── nvim/                    # активный LazyVim конфиг
+├── nvim-presets/
+│   ├── lazyvim-stylish/     # новый LazyVim preset
+│   └── super-easy-casual/   # старый конфиг из прошлого коммита
+├── themes/                  # JSON-пресеты/темы Serpantinum
+├── fetches/
+│   └── unstable/            # UNSTABLE/BETA C-фетчи (kind of abandoned)
+├── mango/                   # MangoWC конфиги
+├── waybar/ foot/ fuzzel/ mako/ matugen/ bin/
+├── docs/                    # GitHub Pages (Material You)
+├── install.txt              # команда установки Serpantinum (опционально)
 ├── README.md
-└── LICENSE.md             # GNU AGPL-3.0
+└── LICENSE.md
 ```
 
 ---
@@ -243,37 +135,69 @@ my-config/
 
 | Что | Куда |
 |---|---|
-| MangoWC | `~/.config/mango/` (+ `~/.local/bin/mango-settings`) |
-| Waybar | `~/.config/waybar/` |
-| foot | `~/.config/foot/` |
-| fuzzel | `~/.config/fuzzel/` |
-| mako | `~/.config/mako/` |
-| matugen | `~/.config/matugen/` |
+| end-4 / illogical-impulse | `~/.config/hypr/custom/`, `~/.config/hypr/hyprland/keybinds.lua`, `~/.config/illogical-impulse/config.json`, `~/.config/environment.d/`, GTK/cursor files |
 | fish | `~/.config/fish/` |
-| neovim | `~/.config/nvim/` |
-| пресеты Serpantinum | `~/.local/state/serpantinum/presets/` |
+| Neovim preset | `~/.config/nvim/` |
+| MangoWC | `~/.config/mango/`, `~/.config/waybar/`, `~/.config/foot/`, `~/.config/fuzzel/`, `~/.config/mako/`, `~/.config/matugen/`, `~/.local/bin/mango-settings` |
+| Темы Serpantinum | `~/.local/state/serpantinum/presets/` |
+| Приветствие терминала | `~/.config/arch_multitool/greeting.fish` |
 
-> Пресеты Serpantinum после копирования нужно включить вручную: **Serpantinum → Настройки → Presets (Пресеты)**.
+> Перед заменой существующих конфигов мультитул/скрипты делают бэкап (`*.bak.<timestamp>` или backup dir).
 
-> [!WARNING]
-> Скрипты/мультитул **не устанавливают драйверы GPU автоматически**. Установите драйверы под свою видеокарту до перезагрузки (NVIDIA/AMD/Intel), иначе Wayland-сессия может не запуститься.
+> **Важно:** API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring.
 
 ---
 
-## Благодарности
+## end-4 / illogical-impulse
 
-Окружение **Serpantinum** (Wayland-шелл, темы/пресеты и т.д.) — отдельный проект:
-
-- **Автор:** Illia Miroshnichenko ([@ilyamiro](https://github.com/ilyamiro))
-- **Репозиторий:** https://github.com/ilyamiro/serpantinum
-- **Сайт:** https://serpantinum.dev
-- **Лицензия:** GNU AGPL-3.0
-
-Установка Serpantinum:
+Мой действующий конфиг лежит в `end4/` и ставится отдельно:
 
 ```bash
-curl -fsSL install.serpantinum.dev | bash
+cd stylish-dots
+bash end4/install.sh
 ```
+
+Или через мультитул: пункт **17** или профиль **end-4 / stylish-dots**.
+
+Что включает:
+- `hypr/custom/*.lua` — monitor/layout/env/rules/execs;
+- `hypr/hyprland/keybinds.lua` — патч Print/скриншотов;
+- `illogical-impulse/config.json` — shell/AI prefs (без API ключей);
+- Bibata cursor, GTK settings, `environment.d/10-cursor.conf`.
+
+> Перед применением должен быть установлен сам [dots-hyprland / illogical-impulse](https://github.com/end-4/dots-hyprland).
+
+---
+
+## MangoWC
+
+MangoWC dotfiles остались в репо и ставятся через пункт **16** мультитула или `mango/install.sh`.
+
+```bash
+cd stylish-dots
+bash mango/install.sh
+```
+
+---
+
+## Кастомные фетчи
+
+C-фетчи перенесены в `fetches/unstable/`: `keyfetch`, `treefetch`, `tomatofetch`, `stoolfetch`, `skeletonfetch`.
+
+Статус: **UNSTABLE/BETA, kind of abandoned**. В мультитуле они не предлагаются как обычный дефолт — их нужно явно включить в выборе приветствия терминала.
+
+---
+
+## GitHub Pages
+
+Сайт лежит в `docs/` и деплоится GitHub Pages из ветки `main`, папка `/docs`.
+
+Включение:
+1. Repo **Settings → Pages**
+2. **Build and deployment → Source: Deploy from a branch**
+3. **Branch: `main` / Folder: `/docs`**
+
+Сайт: https://stylishlasher.github.io/stylish-dots/
 
 ---
 
