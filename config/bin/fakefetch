@@ -5,21 +5,353 @@ import argparse, os, random, shutil, sys, subprocess
 
 # Small simple logos by key
 LOGOS = {
-"arch": [r"      /\      ",r"     /  \     ",r"    /\   \    ",r"   /      \   ",r"  /   ,,   \  ",r" /   |  |  -\ ",r"/_-''    ''-_\\"],
-"endeavouros": [r"      /\      ",r"    //  \\    ",r"   //    \ \  ",r" / /     _) ) ",r"/_/___-- __-  ",r" /____--      "],
-"ubuntu": [r"         _  ",r"     ---(_) ",r" _/  ---  \ ",r"(_) |   |   ",r"  \  --- _/ ",r"     ---(_) "],
-"debian": [r"  ____  ",r" /  _ \ ",r"|  / ) |",r"|  \_/  ",r" \____  ",r"        "],
-"fedora": [r"  _____ ",r" /   __|",r"|  |  _ ",r"|  |_| |",r" \____| "],
-"manjaro": [r"||||||||| ||||",r"||||||||| ||||",r"||||      ||||",r"|||| |||| ||||",r"|||| |||| ||||"],
-"nixos": [r"  \\  \\ //  ",r" ==\\__\\/ //",r"   //   \\// ",r"==//     //==",r" //\\___//   ",r"// /\\  \\==  "],
-"gentoo": [r" _-----_ ",r"(       \\",r"\    0   \\",r" \        )",r" /      _/",r"(     _-  ",r"\____-    "],
-"windows": [r"################  ################",r"################  ################",r"################  ################",r"################  ################",r"                                ",r"################  ################",r"################  ################",r"################  ################",r"################  ################"],
-"macos": [r"       .:'   ",r"    _ :'_    ",r" .`_`-'_``.  ",r":________.-' ",r":_______:    ",r" :_______`-; ",r"  `._.-._.'  "],
-"linux": [r"    ___    ",r"   (.. |   ",r"   (<> |   ",r"  / __  \  ",r" ( /  \ /| ",r"_/\ __)/_) ",r"\/-____\/  "],
-"void": [r"    _______ ",r" _ \______ -",r"| \  ___  \ |",r"| | /   \ | |",r"| | \___/ | |",r"| \______ \_|",r" -_______\   "],
-"mint": [r" ___________ ",r"|_          \\",r"  | | _____ |",r"  | | | | | |",r"  | | |_| | |",r"  | \_____/ |",r"  \_________/"],
-"alpine": [r"    /\    ",r"   /  \   ",r"  / /\ \  ",r" / /  \ \ ",r"/_/    \_\\"],
-"kali": [r"      ..   ",r"     .:.   ",r"    .:::.  ",r"   .:::::. ",r"  .::::::. ",r" .::::::::."],
+  "arch": {
+    "small": [
+      r"      /\\",
+      r"     /  \\",
+      r"    /    \\",
+      r"   /      \\",
+      r"  /   ,,   \\",
+      r" /   |  |   \\",
+      r"/_-''    ''-_\\",
+    ],
+    "big": [
+      r"      /\\",
+      r"     /  \\",
+      r"    /    \\",
+      r"   /      \\",
+      r"  /   ,,   \\",
+      r" /   |  |   \\",
+      r"/_-''    ''-_\\",
+    ],
+  },
+  "endeavouros": {
+    "small": [
+      r"          /o.",
+      r"        /sssso-",
+      r"      /ossssssso:",
+      r"    /ssssssssssso+",
+      r"  /ssssssssssssssso+",
+      r"//osssssssssssssso+-",
+      r" `+++++++++++++++-`",
+    ],
+    "big": [
+      r"          /o.",
+      r"        /sssso-",
+      r"      /ossssssso:",
+      r"    /ssssssssssso+",
+      r"  /ssssssssssssssso+",
+      r"//osssssssssssssso+-",
+      r" `+++++++++++++++-`",
+    ],
+  },
+  "ubuntu": {
+    "small": [
+      r"       ..;,; .,;,.",
+      r"    .,lool: .ooooo,",
+      r"   ;oo;:    .coool.",
+      r" ....         ''' ,l;",
+      r":oooo,            'oo.",
+      r"looooc            :oo'",
+      r" '::'             ,oo:",
+      r"   ,.,       .... co,",
+      r"    lo:;.   :oooo; .",
+      r"     ':ooo; cooooc",
+      r"        '''  ''''",
+    ],
+    "big": [
+      r"       ..;,; .,;,.",
+      r"    .,lool: .ooooo,",
+      r"   ;oo;:    .coool.",
+      r" ....         ''' ,l;",
+      r":oooo,            'oo.",
+      r"looooc            :oo'",
+      r" '::'             ,oo:",
+      r"   ,.,       .... co,",
+      r"    lo:;.   :oooo; .",
+      r"     ':ooo; cooooc",
+      r"        '''  ''''",
+    ],
+  },
+  "debian": {
+    "small": [
+      r"  _____",
+      r" /  __ \\",
+      r"|  /    |",
+      r"|  \\___-",
+      r"-_",
+      r"  --_",
+    ],
+    "big": [
+      r"  _____",
+      r" /  __ \\",
+      r"|  /    |",
+      r"|  \\___-",
+      r"-_",
+      r"  --_",
+    ],
+  },
+  "fedora": {
+    "small": [
+      r"        ,'''''.",
+      r"       |   ,.  |",
+      r"       |  |  '_'",
+      r"  ,....|  |..",
+      r".'  ,_;|   ..'",
+      r"|  |   |  |",
+      r"|  ',_,'  |",
+      r" '.     ,'",
+      r"   '''''",
+    ],
+    "big": [
+      r"        ,'''''.",
+      r"       |   ,.  |",
+      r"       |  |  '_'",
+      r"  ,....|  |..",
+      r".'  ,_;|   ..'",
+      r"|  |   |  |",
+      r"|  ',_,'  |",
+      r" '.     ,'",
+      r"   '''''",
+    ],
+  },
+  "manjaro": {
+    "small": [
+      r"||||||||| ||||",
+      r"||||||||| ||||",
+      r"||||      ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+    ],
+    "big": [
+      r"||||||||| ||||",
+      r"||||||||| ||||",
+      r"||||      ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+      r"|||| |||| ||||",
+    ],
+  },
+  "nixos": {
+    "small": [
+      r"  \u2597\u2584   \u2597\u2584 \u2584\u2596",
+      r" \u2584\u2584\ud83e\udf38\u2588\u2584\u2584\u2584\ud83e\udf38\u2588\u259b \u2583",
+      r"   \u259f\u259b    \u259c\u2583\u259f\ud83e\udf15",
+      r"\ud83e\udf0b\ud83e\udf0b\ud83e\udf2b\u2588      \u2588\ud83e\udf1b\ud83e\udf0b\ud83e\udf0b",
+      r" \ud83e\udf37\u259b\ud83e\udf83\u2599    \u259f\u259b",
+      r" \ud83e\udf83 \u259f\u2588\ud83e\udf34\u2580\u2580\u2580\u2588\ud83e\udf34\u2580\u2580",
+      r"  \u259d\u2580 \u2580\u2598   \u2580\u2598",
+    ],
+    "big": [
+      r"  \u2597\u2584   \u2597\u2584 \u2584\u2596",
+      r" \u2584\u2584\ud83e\udf38\u2588\u2584\u2584\u2584\ud83e\udf38\u2588\u259b \u2583",
+      r"   \u259f\u259b    \u259c\u2583\u259f\ud83e\udf15",
+      r"\ud83e\udf0b\ud83e\udf0b\ud83e\udf2b\u2588      \u2588\ud83e\udf1b\ud83e\udf0b\ud83e\udf0b",
+      r" \ud83e\udf37\u259b\ud83e\udf83\u2599    \u259f\u259b",
+      r" \ud83e\udf83 \u259f\u2588\ud83e\udf34\u2580\u2580\u2580\u2588\ud83e\udf34\u2580\u2580",
+      r"  \u259d\u2580 \u2580\u2598   \u2580\u2598",
+    ],
+  },
+  "gentoo": {
+    "small": [
+      r" _-----_",
+      r"(       \\",
+      r"\\    0   \\",
+      r" \\        )",
+      r" /      _/",
+      r"(     _-",
+      r"\\____-",
+    ],
+    "big": [
+      r" _-----_",
+      r"(       \\",
+      r"\\    0   \\",
+      r" \\        )",
+      r" /      _/",
+      r"(     _-",
+      r"\\____-",
+    ],
+  },
+  "windows": {
+    "small": [
+      r"                     ./o.",
+      r"                   ./sssso-",
+      r"                 `:osssssss+-",
+      r"               `:+sssssssssso/.",
+      r"             `-/ossssssssssssso/.",
+      r"           `-/+sssssssssssssssso+:`",
+      r"         `-:/+sssssssssssssssssso+/.",
+      r"       `.://osssssssssssssssssssso++-",
+      r"      .://+ssssssssssssssssssssssso++:",
+      r"    .:///ossssssssssssssssssssssssso++:",
+      r"  `:////ssssssssssssssssssssssssssso+++.",
+      r"`-////+ssssssssssssssssssssssssssso++++-",
+      r" `..-+oosssssssssssssssssssssssso+++++/`",
+      r"   ./++++++++++++++++++++++++++++++/:.",
+      r"  `:::::::::::::::::::::::::------``",
+    ],
+    "big": [
+      r"                     ./o.",
+      r"                   ./sssso-",
+      r"                 `:osssssss+-",
+      r"               `:+sssssssssso/.",
+      r"             `-/ossssssssssssso/.",
+      r"           `-/+sssssssssssssssso+:`",
+      r"         `-:/+sssssssssssssssssso+/.",
+      r"       `.://osssssssssssssssssssso++-",
+      r"      .://+ssssssssssssssssssssssso++:",
+      r"    .:///ossssssssssssssssssssssssso++:",
+      r"  `:////ssssssssssssssssssssssssssso+++.",
+      r"`-////+ssssssssssssssssssssssssssso++++-",
+      r" `..-+oosssssssssssssssssssssssso+++++/`",
+      r"   ./++++++++++++++++++++++++++++++/:.",
+      r"  `:::::::::::::::::::::::::------``",
+    ],
+  },
+  "macos": {
+    "small": [
+      r"        .:'",
+      r"    __ :'__",
+      r" .'`__`-'__``.",
+      r":__________.-'",
+      r":_________:",
+      r" :_________`-;",
+      r"  `.__.-.__.'",
+    ],
+    "big": [
+      r"        .:'",
+      r"    __ :'__",
+      r" .'`__`-'__``.",
+      r":__________.-'",
+      r":_________:",
+      r" :_________`-;",
+      r"  `.__.-.__.'",
+    ],
+  },
+  "linux": {
+    "small": [
+      r"    ___",
+      r"   (.. \\",
+      r"   (<> |",
+      r"  //  \\ \\",
+      r" ( |  | /|",
+      r"_/\\ __)/_)",
+      r"\\/-____\\/",
+    ],
+    "big": [
+      r"    ___",
+      r"   (.. \\",
+      r"   (<> |",
+      r"  //  \\ \\",
+      r" ( |  | /|",
+      r"_/\\ __)/_)",
+      r"\\/-____\\/",
+    ],
+  },
+  "void": {
+    "small": [
+      r"    ____",
+      r"  'pfPfp.%",
+      r"//  _._  \\\\",
+      r"UU |===| UU",
+      r"\\\\  ^~^  //",
+      r" `0PpppP'",
+      r"   `````",
+    ],
+    "big": [
+      r"    ____",
+      r"  'pfPfp.%",
+      r"//  _._  \\\\",
+      r"UU |===| UU",
+      r"\\\\  ^~^  //",
+      r" `0PpppP'",
+      r"   `````",
+    ],
+  },
+  "mint": {
+    "small": [
+      r" ____________________",
+      r"|                    \\",
+      r"|_  |   ___________   |",
+      r"  | |  /  __   __  \\  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  \\_/  \\_/  | |  |",
+      r"  | \\____________/_/  |",
+      r"  \\___________________/",
+    ],
+    "big": [
+      r" ____________________",
+      r"|                    \\",
+      r"|_  |   ___________   |",
+      r"  | |  /  __   __  \\  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  | |  | |  | |  |",
+      r"  | |  \\_/  \\_/  | |  |",
+      r"  | \\____________/_/  |",
+      r"  \\___________________/",
+    ],
+  },
+  "alpine": {
+    "small": [
+      r"   /\\ /\\",
+      r"  // \\  \\",
+      r" //   \\  \\",
+      r"///    \\  \\",
+      r"//      \\  \\",
+      r"         \\",
+    ],
+    "big": [
+      r"   /\\ /\\",
+      r"  // \\  \\",
+      r" //   \\  \\",
+      r"///    \\  \\",
+      r"//      \\  \\",
+      r"         \\",
+    ],
+  },
+  "kali": {
+    "small": [
+      r"     -#. #",
+      r"      @###",
+      r"  -######",
+      r" @#########",
+      r"=##.  .#####",
+      r"##      ## ##",
+      r"##       ## #",
+      r"##       @###",
+      r"##.        ###",
+      r" ##%       ##-",
+      r"  -##%    -*",
+      r"   :*##+",
+      r"     :*#*",
+      r"       -#",
+      r"        @",
+      r"        :",
+    ],
+    "big": [
+      r"                     ./o.",
+      r"                   ./sssso-",
+      r"                 `:osssssss+-",
+      r"               `:+sssssssssso/.",
+      r"             `-/ossssssssssssso/.",
+      r"           `-/+sssssssssssssssso+:`",
+      r"         `-:/+sssssssssssssssssso+/.",
+      r"       `.://osssssssssssssssssssso++-",
+      r"      .://+ssssssssssssssssssssssso++:",
+      r"    .:///ossssssssssssssssssssssssso++:",
+      r"  `:////ssssssssssssssssssssssssssso+++.",
+      r"`-////+ssssssssssssssssssssssssssso++++-",
+      r" `..-+oosssssssssssssssssssssssso+++++/`",
+      r"   ./++++++++++++++++++++++++++++++/:.",
+      r"  `:::::::::::::::::::::::::------``",
+    ],
+  },
 }
 
 ALIAS = {
@@ -64,9 +396,12 @@ def normalize(name):
     k2 = k.replace(" ","")
     return ALIAS.get(k, ALIAS.get(k2, k2))
 
-def get_logo(key):
-    if key in LOGOS: return LOGOS[key][:]
-    # try fastfetch --print-logos logic? fallback generate
+def get_logo(key, size="small"):
+    if key in LOGOS:
+        val = LOGOS[key]
+        if isinstance(val, dict):
+            return list(val.get(size) or val.get("small") or val.get("big") or [])
+        return list(val)
     return [f"  [{key}]  ", "  ??????  ", "  ??????  ", "  ??????  "]
 
 def fake_info(key):
@@ -89,6 +424,8 @@ def render_original(info, logo, color, color_on):
     labels = [("OS","os"),("Kernel","kernel"),("Uptime","uptime"),("Packages","packages"),("Shell","shell"),(info["env_label"],"de"),("WM","wm"),("Terminal","terminal"),("Memory","memory")]
     lines = [f"{c(BOLD+info['user']+'@'+info['host'].lower().replace(' ','-')+RESET, color, color_on)}", "-"*30]
     for lab,key in labels:
+        if lab == "WM" and info["env_label"] == "WM" and info["de"] == info["wm"]:
+            continue
         lines.append(f"{c(lab+':', color, color_on):<18} {info[key]}")
     return side_by_side(logo, lines, color, color_on)
 
@@ -106,6 +443,8 @@ def render_stylish(info, logo, color, color_on):
 
 def render_box(info, logo, color, color_on):
     pairs = [("OS",info["os"]),("Kernel",info["kernel"]),("Uptime",info["uptime"]),("Pkgs",info["packages"]),(info["env_label"],info["de"]),("WM",info["wm"]),("Shell",info["shell"]),("Term",info["terminal"]),("Mem",info["memory"])]
+    if info["env_label"] == "WM" and info["de"] == info["wm"]:
+        pairs = [x for x in pairs if not (x[0]=="WM")]
     w = max(len(f"{k}: {v}") for k,v in pairs) + 2
     lines=[c("┌"+"─"*w+"┐",color,color_on)]
     for k,v in pairs:
@@ -137,6 +476,8 @@ def render_neon(info, logo, color, color_on):
     userline = c(f"╭─ {info['user']}@{info['host'].lower().replace(' ','-')}", color, color_on)
     lines = [userline]
     for lab,key in labels:
+        if lab == "󰖲 WM" and info["env_label"] == "WM" and info["de"] == info["wm"]:
+            continue
         lines.append(f"{c('├─',color,color_on)} {c(lab,color,color_on)}  {info[key]}")
     lines.append(c("╰──────────────────────────", color, color_on))
     return side_by_side(logo, lines, color, color_on)
@@ -163,10 +504,12 @@ def main():
         print("\n".join(sorted(LOGOS.keys())))
         return
     key = normalize(args.distro)
-    logo = get_logo(key)
     info = fake_info(key)
     color_on = not args.no_color and sys.stdout.isatty()
     color = COLORS.get(key, "\033[36m")
+    # pick fastfetch real logo size: small for compact styles, big for original/neon/box
+    size = "big" if args.style in ("original", "neon", "box") else "small"
+    logo = get_logo(key, size=size)
     if args.style == "original": sys.stdout.write(render_original(info, logo, color, color_on))
     elif args.style == "stylish": sys.stdout.write(render_stylish(info, logo, color, color_on))
     elif args.style == "mini": sys.stdout.write(render_mini(info, logo, color, color_on))
