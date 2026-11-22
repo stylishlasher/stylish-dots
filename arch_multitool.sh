@@ -21,7 +21,7 @@ set -uo pipefail
 CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/arch_multitool.conf"
 
 # --- Личные конфиги ---
-# Репозиторий с конфигами: fish/, nvim/, neovide/, *.json (темы), install.txt
+# Репозиторий с конфигами: config/ (fish, nvim, nvim-presets, themes, fetches, end4, mango, ...)
 REPO_SLUG="stylishlasher/stylish-dots"
 REPO_BRANCH="main"
 CONFIG_TARBALL="https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${REPO_BRANCH}"
@@ -620,17 +620,24 @@ gpu_drivers_notice() {
 # ------------------------------------------------------------------------------
 # ИСТОЧНИК КОНФИГОВ (локально или из GitHub)
 # ------------------------------------------------------------------------------
+REPO_ROOT=""
 CONFIGS_DIR=""
 CONFIGS_READY=0
 resolve_configs() {
     (( CONFIGS_READY )) && return 0
 
-    # 1. Ищем локальные конфиги рядом со скриптом или в текущем каталоге
+    # 1. Ищем локальные конфиги рядом со скриптом или в текущем каталоге.
+    #    Предпочитаем структуру config/, но поддерживаем legacy-корень.
     local d
     for d in "$SCRIPT_DIR" "$PWD"; do
-        if [[ -d "$d/fish" || -d "$d/nvim" || -d "$d/themes" || -d "$d/end4" || -f "$d/glass.json" ]]; then
-            CONFIGS_DIR="$d"; CONFIGS_READY=1
+        if [[ -d "$d/config/fish" || -d "$d/config/nvim" || -d "$d/config/end4" || -d "$d/config/themes" ]]; then
+            REPO_ROOT="$d"; CONFIGS_DIR="$d/config"; CONFIGS_READY=1
             info "Использую локальные конфиги: $CONFIGS_DIR"
+            return 0
+        fi
+        if [[ -d "$d/fish" || -d "$d/nvim" || -d "$d/themes" || -d "$d/end4" || -f "$d/glass.json" ]]; then
+            REPO_ROOT="$d"; CONFIGS_DIR="$d"; CONFIGS_READY=1
+            info "Использую локальные конфиги (legacy): $CONFIGS_DIR"
             return 0
         fi
     done
@@ -652,7 +659,12 @@ resolve_configs() {
     local root
     for root in "$WORK_DIR"/configs/*/; do
         [[ -d "$root" ]] || continue
-        CONFIGS_DIR="${root%/}"
+        REPO_ROOT="${root%/}"
+        if [[ -d "$REPO_ROOT/config" ]]; then
+            CONFIGS_DIR="$REPO_ROOT/config"
+        else
+            CONFIGS_DIR="$REPO_ROOT"
+        fi
         break
     done
     [[ -n "$CONFIGS_DIR" ]] || { err "Архив конфигов пуст."; return 1; }
@@ -1017,9 +1029,15 @@ install_serpantinum_core() {
     ensure_sudo || return 1
 
     local cmd="$DOTFILES_CMD"
-    if resolve_configs >/dev/null 2>&1 && [[ -f "$CONFIGS_DIR/install.txt" ]]; then
+    local install_txt=""
+    if resolve_configs >/dev/null 2>&1; then
+        for install_txt in "$CONFIGS_DIR/install.txt" "${REPO_ROOT:-}/install.txt"; do
+            [[ -f "$install_txt" ]] && break; install_txt=""
+        done
+    fi
+    if [[ -n "$install_txt" ]]; then
         local raw line
-        raw=$(tr -d '\r' < "$CONFIGS_DIR/install.txt")
+        raw=$(tr -d '\r' < "$install_txt")
         while IFS= read -r line; do
             [[ -n "${line//[[:space:]]/}" ]] && { cmd="$line"; break; }
         done <<< "$raw"

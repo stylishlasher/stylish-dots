@@ -127,8 +127,8 @@
             <div class="stack-item"><span class="stack-k">Quickshell</span><span class="stack-v">illogical-impulse config</span></div>
             <div class="stack-item"><span class="stack-k">Fish</span><span class="stack-v">config, functions, conf.d</span></div>
             <div class="stack-item"><span class="stack-k">Neovim</span><span class="stack-v">LazyVim preset + legacy</span></div>
-            <div class="stack-item"><span class="stack-k">Themes</span><span class="stack-v">presets in <code>themes/</code></span></div>
-            <div class="stack-item"><span class="stack-k">Fetches</span><span class="stack-v">unstable C toys in <code>fetches/unstable</code></span></div>
+            <div class="stack-item"><span class="stack-k">Themes</span><span class="stack-v">presets in <code>config/themes/</code></span></div>
+            <div class="stack-item"><span class="stack-k">Fetches</span><span class="stack-v">unstable C toys in <code>config/fetches/unstable</code></span></div>
           </div>
         </div>
         <div class="code-card">
@@ -138,18 +138,19 @@
           </div>
 <pre><code>stylish-dots/
 ├─ arch_multitool.sh
-├─ end4/                 # my active end-4 config
-│  ├─ hypr/custom/
-│  ├─ illogical-impulse/config.json
-│  └─ install.sh
-├─ fish/                 # active fish config
-├─ nvim/                 # active LazyVim config
-├─ nvim-presets/
-│  ├─ lazyvim-stylish/
-│  └─ super-easy-casual/
-├─ themes/               # Serpantinum presets
-├─ fetches/unstable/     # abandoned C fetches
-└─ docs/                 # GitHub Pages</code></pre>
+├─ config/
+│  ├─ end4/              # my active end-4 config
+│  │  ├─ hypr/custom/
+│  │  ├─ illogical-impulse/config.json
+│  │  └─ install.sh
+│  ├─ fish/              # active fish config
+│  ├─ nvim/              # active LazyVim config
+│  ├─ nvim-presets/
+│  │  ├─ lazyvim-stylish/
+│  │  └─ super-easy-casual/
+│  ├─ themes/            # Serpantinum presets
+│  └─ fetches/unstable/  # abandoned C fetches
+├─ docs/                 # GitHub Pages</code></pre>
         </div>
       </div>
     </section>
@@ -171,11 +172,11 @@ bash arch_multitool.sh</code></pre>
           <h3>Только end-4 конфиг</h3>
           <p>Применить мой текущий конфиг поверх уже установленного dots-hyprland.</p>
           <pre><code>cd stylish-dots
-bash end4/install.sh</code></pre>
+bash config/end4/install.sh</code></pre>
         </div>
       </div>
       <div class="note">
-        <strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring. Кастомные 3D-фетчи помечены как <code>UNSTABLE/BETA, kind of abandoned</code> и вынесены в <code>fetches/unstable/</code>.
+        <strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring. Кастомные 3D-фетчи помечены как <code>UNSTABLE/BETA, kind of abandoned</code> и вынесены в <code>config/fetches/unstable/</code>.
       </div>
     </section>
 
@@ -187,7 +188,7 @@ bash end4/install.sh</code></pre>
       <div class="cards">
         <article class="card">
           <h3>end-4 / dots-hyprland</h3>
-          <p><a href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a> by <a href="https://github.com/end-4">end-4</a> — оригинальный illogical-impulse / dots-hyprland. Мой <code>end4/</code> — пользовательские оверрайды и конфиг поверх него.</p>
+          <p><a href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a> by <a href="https://github.com/end-4">end-4</a> — оригинальный illogical-impulse / dots-hyprland. Мой <code>config/end4/</code> — пользовательские оверрайды и конфиг поверх него.</p>
         </article>
         <article class="card">
           <h3>Serpantinum</h3>

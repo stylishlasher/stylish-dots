@@ -5,12 +5,13 @@ set -euo pipefail
 
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_PATH/.." && pwd)"
-# If run from repo root
-if [ -d "$SCRIPT_PATH/end4" ]; then
-  ROOT="$SCRIPT_PATH"
-  SRC="$ROOT/end4"
-elif [ -d "$SCRIPT_PATH/hypr" ] && [ -d "$SCRIPT_PATH/illogical-impulse" ]; then
+# Locate payload: script in config/end4, or repo root with config/end4 or end4
+if [ -d "$SCRIPT_PATH/hypr" ] && [ -d "$SCRIPT_PATH/illogical-impulse" ]; then
   SRC="$SCRIPT_PATH"
+elif [ -d "$SCRIPT_PATH/config/end4" ]; then
+  ROOT="$SCRIPT_PATH"; SRC="$ROOT/config/end4"
+elif [ -d "$SCRIPT_PATH/end4" ]; then
+  ROOT="$SCRIPT_PATH"; SRC="$ROOT/end4"
 else
   echo "Cannot locate end4 config payload." >&2
   exit 1

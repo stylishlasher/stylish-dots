@@ -5,14 +5,16 @@ set -euo pipefail
 
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)"
 
-# Определяем корень с конфигами: mango/install.sh -> родитель; или запуск из корня.
-if [ -d "$SCRIPT_PATH/../mango" ] && [ -d "$SCRIPT_PATH/../waybar" ]; then
+# Определяем корень с конфигами: config/mango/install.sh, mango/install.sh, или запуск из корня.
+if [ -d "$SCRIPT_PATH/scripts" ] && [ -f "$SCRIPT_PATH/config.conf" ]; then
+  # запущено из каталога mango/
   ROOT="$(cd "$SCRIPT_PATH/.." && pwd)"
+elif [ -d "$SCRIPT_PATH/../mango" ] && [ -d "$SCRIPT_PATH/../waybar" ]; then
+  ROOT="$(cd "$SCRIPT_PATH/.." && pwd)"
+elif [ -d "$SCRIPT_PATH/config/mango" ] && [ -d "$SCRIPT_PATH/config/waybar" ]; then
+  ROOT="$SCRIPT_PATH/config"
 elif [ -d "$SCRIPT_PATH/mango" ] && [ -d "$SCRIPT_PATH/waybar" ]; then
   ROOT="$SCRIPT_PATH"
-elif [ -d "$SCRIPT_PATH/scripts" ] && [ -f "$SCRIPT_PATH/config.conf" ]; then
-  # запущено из каталога mango/, но конфиги лежат на уровень выше? маловероятно
-  ROOT="$(cd "$SCRIPT_PATH/.." && pwd)"
 else
   echo "Не найдены конфиги (ожидаются каталоги mango/, waybar/, foot/, fuzzel/, mako/, matugen/ рядом с репозиторием)." >&2
   exit 1

@@ -30,15 +30,15 @@
 
 ## Что внутри
 
-- **`end4/`** — мой текущий конфиг для end-4/dots-hyprland (illogical-impulse): Hyprland custom overrides, патченный `hyprland/keybinds.lua`, Quickshell `illogical-impulse/config.json`, cursor/GTK/env.
-- **`fish/`** — актуальный конфиг fish.
-- **`nvim/`** — активный Neovim конфиг (LazyVim, `lazyvim-stylish`).
-- **`nvim-presets/`** — выбор пресета Neovim:
+- **`config/end4/`** — мой текущий конфиг для end-4/dots-hyprland (illogical-impulse): Hyprland custom overrides, патченный `hyprland/keybinds.lua`, Quickshell `illogical-impulse/config.json`, cursor/GTK/env.
+- **`config/fish/`** — актуальный конфиг fish.
+- **`config/nvim/`** — активный Neovim конфиг (LazyVim, `lazyvim-stylish`).
+- **`config/nvim-presets/`** — выбор пресета Neovim:
   - `lazyvim-stylish/` — новый проработанный LazyVim;
   - `super-easy-casual/` — старый лёгкий конфиг из прошлого коммита.
-- **`themes/`** — JSON-пресеты Serpantinum/темы.
-- **`fetches/unstable/`** — кастомные C-фетчи, помечены как **UNSTABLE/BETA, kind of abandoned**.
-- **`mango/`, `waybar/`, `foot/`, `fuzzel/`, `mako/`, `matugen/`, `bin/`** — MangoWC/Wayland dotfiles и утилиты.
+- **`config/themes/`** — JSON-пресеты Serpantinum/темы.
+- **`config/fetches/unstable/`** — кастомные C-фетчи, помечены как **UNSTABLE/BETA, kind of abandoned**.
+- **`config/mango/`, `config/waybar/`, `config/foot/`, `config/fuzzel/`, `config/mako/`, `config/matugen/`, `config/bin/`** — MangoWC/Wayland dotfiles и утилиты.
 - **`docs/`** — кастомный сайт GitHub Pages в стиле Material You.
 - **`arch_multitool.sh`** — интерактивный установщик/мультитул.
 
@@ -109,25 +109,26 @@ curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/ins
 stylish-dots/
 ├── arch_multitool.sh        # основной мультитул
 ├── install/
-│   └── install.sh           # bootstrap (curl | bash)
-├── end4/                    # мой текущий end-4 / illogical-impulse конфиг
-│   ├── hypr/
-│   ├── illogical-impulse/
-│   ├── gtk-3.0/ gtk-4.0/
-│   ├── environment.d/
-│   └── install.sh
-├── fish/                    # активный fish конфиг
-├── nvim/                    # активный LazyVim конфиг
-├── nvim-presets/
-│   ├── lazyvim-stylish/     # новый LazyVim preset
-│   └── super-easy-casual/   # старый конфиг из прошлого коммита
-├── themes/                  # JSON-пресеты/темы Serpantinum
-├── fetches/
-│   └── unstable/            # UNSTABLE/BETA C-фетчи (kind of abandoned)
-├── mango/                   # MangoWC конфиги
-├── waybar/ foot/ fuzzel/ mako/ matugen/ bin/
+│   │   └── install.sh           # bootstrap (curl | bash)
+├── config/                  # все конфиги/ресурсы (чтобы не захламлять корень)
+│   ├── end4/                # мой текущий end-4 / illogical-impulse конфиг
+│   │   ├── hypr/
+│   │   ├── illogical-impulse/
+│   │   ├── gtk-3.0/ gtk-4.0/
+│   │   ├── environment.d/
+│   │   └── install.sh
+│   ├── fish/                # активный fish конфиг
+│   ├── nvim/                # активный LazyVim конфиг
+│   ├── nvim-presets/
+│   │   ├── lazyvim-stylish/
+│   │   └── super-easy-casual/
+│   ├── themes/              # JSON-пресеты/темы Serpantinum
+│   ├── fetches/
+│   │   └── unstable/        # UNSTABLE/BETA C-фетчи (kind of abandoned)
+│   ├── mango/               # MangoWC конфиги
+│   ├── waybar/ foot/ fuzzel/ mako/ matugen/ bin/
 ├── docs/                    # GitHub Pages (Material You)
-├── install.txt              # команда установки Serpantinum (опционально)
+│   └── install.txt          # команда установки Serpantinum (опционально)
 ├── README.md
 └── LICENSE.md
 ```
@@ -153,13 +154,13 @@ stylish-dots/
 
 ## end-4 / illogical-impulse
 
-**Credits:** [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) by [end-4](https://github.com/end-4) — оригинальный проект. `end4/` в этом репозитории содержит **мои** пользовательские оверрайды/конфиг поверх него, а не замену оригинала.
+**Credits:** [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) by [end-4](https://github.com/end-4) — оригинальный проект. `config/end4/` в этом репозитории содержит **мои** пользовательские оверрайды/конфиг поверх него, а не замену оригинала.
 
-Мой действующий конфиг лежит в `end4/` и ставится отдельно:
+Мой действующий конфиг лежит в `config/end4/` и ставится отдельно:
 
 ```bash
 cd stylish-dots
-bash end4/install.sh
+bash config/end4/install.sh
 ```
 
 Или через мультитул: пункт **17** или профиль **end-4 / stylish-dots**.
@@ -180,14 +181,14 @@ MangoWC dotfiles остались в репо и ставятся через п�
 
 ```bash
 cd stylish-dots
-bash mango/install.sh
+bash config/mango/install.sh
 ```
 
 ---
 
 ## Кастомные фетчи
 
-C-фетчи перенесены в `fetches/unstable/`: `keyfetch`, `treefetch`, `tomatofetch`, `stoolfetch`, `skeletonfetch`.
+C-фетчи перенесены в `config/fetches/unstable/`: `keyfetch`, `treefetch`, `tomatofetch`, `stoolfetch`, `skeletonfetch`.
 
 Статус: **UNSTABLE/BETA, kind of abandoned**. В мультитуле они не предлагаются как обычный дефолт — их нужно явно включить в выборе приветствия терминала.
 
@@ -208,7 +209,7 @@ C-фетчи перенесены в `fetches/unstable/`: `keyfetch`, `treefetch
 
 ## Благодарности
 
-- **[end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)** by [end-4](https://github.com/end-4) — оригинальный проект illogical-impulse / dots-hyprland, базовая shell-архитектура и огромная работа над экосистемой. Мой `end4/` — это пользовательские оверрайды поверх него.
+- **[end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)** by [end-4](https://github.com/end-4) — оригинальный проект illogical-impulse / dots-hyprland, базовая shell-архитектура и огромная работа над экосистемой. Мой `config/end4/` — это пользовательские оверрайды поверх него.
 - **[Serpantinum](https://github.com/ilyamiro/serpantinum)** by [Illia Miroshnichenko (@ilyamiro)](https://github.com/ilyamiro) — Wayland-окружение/пресеты/темы, которые использует профиль `serpantinum` и часть theme/preset flow в мультитуле. Сайт: https://serpantinum.dev.
 
 ---
