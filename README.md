@@ -23,6 +23,7 @@
 - [MangoWC](#mangowc)
 - [Кастомные фетчи](#кастомные-фетчи)
 - [GitHub Pages](#github-pages)
+- [Благодарности](#благодарности)
 - [Лицензия](#лицензия)
 
 ---
@@ -202,6 +203,13 @@ C-фетчи перенесены в `fetches/unstable/`: `keyfetch`, `treefetch
 3. **Branch: `main` / Folder: `/docs`**
 
 Сайт: https://stylishlasher.github.io/stylish-dots/
+
+---
+
+## Благодарности
+
+- **[end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)** by [end-4](https://github.com/end-4) — оригинальный проект illogical-impulse / dots-hyprland, базовая shell-архитектура и огромная работа над экосистемой. Мой `end4/` — это пользовательские оверрайды поверх него.
+- **[Serpantinum](https://github.com/ilyamiro/serpantinum)** by [Illia Miroshnichenko (@ilyamiro)](https://github.com/ilyamiro) — Wayland-окружение/пресеты/темы, которые использует профиль `serpantinum` и часть theme/preset flow в мультитуле. Сайт: https://serpantinum.dev.
 
 ---
 
