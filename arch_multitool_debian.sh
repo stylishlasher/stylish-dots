@@ -1053,6 +1053,7 @@ install_serpantinum_core() {
 }
 
 apply_stylish_dots() {
+    create_home_readme || true
     info "=== Применение stylish-dots (мои дотсы) ==="
     resolve_configs || return 1
     local ok_any=0
@@ -1633,6 +1634,29 @@ install_end4_core() {
 install_end4() { clear; install_end4_core; pause; }
 
 
+
+create_home_readme() {
+    local f="$HOME/README.md"
+    if [[ -e "$f" ]]; then
+        local bk="${f}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp -a "$f" "$bk"
+        info "Существующий ~/README.md сохранён: $bk"
+    fi
+    cat > "$f" <<'MD'
+# Полезные ссылки
+
+## Обои
+- [Wallpaper Pack 25 (TMS Wallpapers) — 4K 3840x2160](https://forums.tms.sx/threads/wallpaper-pack-25-tms-wallpapers-4k-3840x2160-1-1000.40932/)
+
+## Firefox расширения
+- [Dark Reader](https://addons.mozilla.org/ru/firefox/addon/darkreader/)
+- [uBlock Origin](https://addons.mozilla.org/ru/firefox/addon/ublock-origin/)
+- [DuckDuckGo Privacy Essentials](https://addons.mozilla.org/ru/firefox/addon/duckduckgo-for-firefox/)
+- [Privacy Badger](https://addons.mozilla.org/ru/firefox/addon/privacy-badger17/)
+- [SponsorBlock](https://addons.mozilla.org/ru/firefox/addon/sponsorblock/)
+MD
+    ok "Создан ~/README.md с ссылками на обои и расширения."
+}
 # ------------------------------------------------------------------------------
 # 8. ПРИМЕНИТЬ МОИ КОНФИГИ (без установки пакетов)
 # ------------------------------------------------------------------------------
@@ -2327,6 +2351,8 @@ full_setup() {
             fi
         fi
     fi
+
+    create_home_readme || true
 
     echo
     ok "Полная установка завершена! Рекомендуется перезагрузка."

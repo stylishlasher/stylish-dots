@@ -206,6 +206,10 @@ bash config/mango/install_debian.sh</code></pre>
       <div class="note">
         <strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring. Кастомные 3D-фетчи помечены как <code>UNSTABLE/BETA, kind of abandoned</code> и вынесены в <code>config/fetches/unstable/</code>.
       </div>
+
+      <div class="note" style="margin-top:14px">
+        <strong>Рекомендую:</strong> пак обоев <a href="https://forums.tms.sx/threads/wallpaper-pack-25-tms-wallpapers-4k-3840x2160-1-1000.40932/" target="_blank" rel="noopener noreferrer">Wallpaper Pack 25 (TMS Wallpapers) — 4K</a>.
+      </div>
     </section>
 
     <section id="credits" class="section wrap">
@@ -230,12 +234,20 @@ bash config/mango/install_debian.sh</code></pre>
     <div class="yawstrich-card">
       <div class="yawstrich-copy">
         <p class="eyebrow">Пасхалка</p>
-        <h2>Yawstrich / Стравок</h2>
-        <p class="muted-p">Мой любимый монстр из My Singing Monsters. Нажми кнопку — он появится.</p>
-        <button class="btn btn-primary yawstrich-btn" id="yawstrich-toggle" type="button">Показать Стравка</button>
+        <h2>MSM монстры</h2>
+        <p class="muted-p">Любимые монстры из My Singing Monsters. Нажми кнопку — появится гифка.</p>
+        <div class="monster-actions">
+          <button class="btn btn-primary yawstrich-btn" id="yawstrich-toggle" type="button">Yawstrich / Стравок</button>
+          <button class="btn btn-ghost yawstrich-btn" id="pixolotl-toggle" type="button">Pixolotl / Пиксолотль</button>
+        </div>
       </div>
-      <div class="yawstrich-media" id="yawstrich-media" hidden>
-        <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich (Стравок) из My Singing Monsters" loading="lazy">
+      <div class="yawstrich-media">
+        <div id="yawstrich-media" hidden>
+          <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich (Стравок) из My Singing Monsters" loading="lazy">
+        </div>
+        <div id="pixolotl-media" hidden>
+          <img src="https://s15.gifyu.com/images/bcR8O.gif" alt="Pixolotl (Пиксолотль) из My Singing Monsters" loading="lazy">
+        </div>
       </div>
     </div>
   </section>
@@ -251,19 +263,23 @@ bash config/mango/install_debian.sh</code></pre>
 
   <script>
     (function () {
-      var btn = document.getElementById("yawstrich-toggle");
-      var media = document.getElementById("yawstrich-media");
-      if (!btn || !media) return;
-      btn.addEventListener("click", function () {
-        var show = media.hasAttribute("hidden");
-        if (show) {
-          media.removeAttribute("hidden");
-          btn.textContent = "Скрыть Стравка";
-        } else {
-          media.setAttribute("hidden", "");
-          btn.textContent = "Показать Стравка";
-        }
-      });
+      function setupToggle(btnId, mediaId, showText, hideText) {
+        var btn = document.getElementById(btnId);
+        var media = document.getElementById(mediaId);
+        if (!btn || !media) return;
+        btn.addEventListener("click", function () {
+          var show = media.hasAttribute("hidden");
+          if (show) {
+            media.removeAttribute("hidden");
+            btn.textContent = hideText;
+          } else {
+            media.setAttribute("hidden", "");
+            btn.textContent = showText;
+          }
+        });
+      }
+      setupToggle("yawstrich-toggle", "yawstrich-media", "Yawstrich / Стравок", "Скрыть Стравка");
+      setupToggle("pixolotl-toggle", "pixolotl-media", "Pixolotl / Пиксолотль", "Скрыть Пиксолотля");
     })();
   </script>
 </body>

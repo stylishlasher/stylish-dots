@@ -276,8 +276,9 @@ h1 {
 .yawstrich-copy .muted-p { margin-bottom: 20px; }
 .yawstrich-btn { cursor: pointer; border: 0; }
 .yawstrich-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.yawstrich-media { display: grid; place-items: center; min-height: 220px; }
-.yawstrich-media[hidden] { display: none !important; }
+.monster-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.yawstrich-media { display: grid; gap: 14px; place-items: center; min-height: 220px; }
+.yawstrich-media [hidden] { display: none !important; }
 .yawstrich-media img {
   width: min(100%, 360px); border-radius: 20px; display: block;
   background: rgba(0,0,0,.15); border: 1px solid rgba(255,255,255,.06);
