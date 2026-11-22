@@ -46,7 +46,7 @@
 
 ## Быстрый старт
 
-### Мультитул (интерактивно)
+### Arch Linux (основной)
 
 ```bash
 git clone https://github.com/stylishlasher/stylish-dots.git
@@ -54,25 +54,29 @@ cd stylish-dots
 bash arch_multitool.sh
 ```
 
-### Bootstrap-установщик
+Bootstrap:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
 ```
 
-Полная установка без меню:
+### Debian / Ubuntu-based (адаптированная версия)
+
+Для Debian/Ubuntu есть отдельная версия мультитула и bootstrap: пакетные операции идут через `apt` (без AUR/pacman-specific flow). Лучше всего подходит для переноса конфигов/fish/nvim/MangoWC dotfiles.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -f
+git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
+bash arch_multitool_debian.sh
 ```
 
-Только аудит системы:
+Bootstrap Debian:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -a
+curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash
 ```
 
-> Требуется Arch Linux/производный дистрибутив с `pacman`. Запускать от обычного пользователя; `sudo` запрашивается по необходимости.
+> Arch-версия рассчитана на Arch/pacman. Debian-версия — best-effort для Debian/Ubuntu-based: AUR/Serpantinum/end-4 могут требовать ручной установки зависимостей.
 
 ---
 

@@ -1,0 +1,2422 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# LINUX MULTITOOL (Debian-based) — установщик и обслуживание Debian/Ubuntu-based систем
+# ==============================================================================
+# Что умеет:
+#   1) Полная установка и настройка окружения одной командой
+#   2) Инструменты обслуживания системы (аудит, обновление, очистка и т.д.)
+#   3) Отдельная установка/настройка любого компонента из пункта 1
+#
+# Скрипт самодостаточен: личные конфиги (fish, neovim, neovide, темы Serpantinum)
+# берутся из папки рядом со скриптом, а если её нет — скачиваются из GitHub.
+#
+# Запуск от обычного пользователя (sudo запрашивается по необходимости).
+#   -h  справка   |   -a  только аудит   |   -f  полная установка без меню
+# ==============================================================================
+
+set -uo pipefail
+
+# ------------------------------- Конфигурация --------------------------------
+# Необязательный файл конфигурации (обычный bash-синтаксис).
+CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/arch_multitool.conf"
+
+# --- Личные конфиги ---
+# Репозиторий с конфигами: config/ (fish, nvim, nvim-presets, themes, fetches, end4, mango, ...)
+REPO_SLUG="stylishlasher/stylish-dots"
+REPO_BRANCH="main"
+CONFIG_TARBALL="https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${REPO_BRANCH}"
+
+# Команда установки dotfiles (используется, если нет локального install.txt)
+DOTFILES_CMD="curl -fsSL install.serpantinum.dev | bash"
+
+# Пресеты Serpantinum (archy) определяются автоматически: функция
+# apply_archy_themes сама находит все *.json с полем "palette" в каталоге
+# репозитория и копирует их в presets — новые темы подхватываются сами.
+# Каталог состояния Serpantinum и подкаталог для пресетов (archy)
+SERPANTINUM_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/serpantinum"
+THEME_DIR="$SERPANTINUM_STATE_DIR/presets"
+# Плагины fish (для fisher)
+FISH_PLUGINS=(jorgebucaran/fisher ilancosman/tide@v6)
+# Flatpak: репозиторий Flathub и Sober (Roblox на Linux)
+FLATPAK_REMOTE_URL="https://dl.flathub.org/repo/flathub.flatpakrepo"
+SOBER_APP="org.vinegarhq.Sober"
+# FreeSM Launcher (Minecraft, может быть недоступен в apt)
+FREESM_PKG="freesmlauncher-bin"
+
+# Настройки приветствия терминала (fastfetch / анимированный 3D-фетч / ничего).
+# Файл в fish-синтаксисе, его читает функция fish_greeting; пишет configure_greeting.
+GREETING_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/arch_multitool"
+GREETING_FILE="$GREETING_DIR/greeting.fish"
+
+# Анимированные 3D-фетчи (UNSTABLE/BETA, kind of abandoned).
+# Исходники лежат в fetches/unstable/<name>.c; fish-обёртка собирает через _animfetch.
+ANIM_FETCHES=(keyfetch treefetch tomatofetch stoolfetch skeletonfetch)
+ANIM_FETCH_ACCENT=(treefetch tomatofetch stoolfetch skeletonfetch)
+ANIM_FETCHES_UNSTABLE=1
+
+# --- Прочее ---
+DOTFILES=(hypr kitty fish nvim neovide serpantinum gpu-screen-recorder nwg-look)
+
+# --- ПО, выбираемое галочками (см. select_packages) ---
+# Формат строки: "пакет|описание|on|off"  ("on" — отмечено по умолчанию).
+#
+# Базовый набор: системные утилиты, которые обычно нужны всем.
+ESSENTIALS_MENU=(
+    "gpu-screen-recorder|Запись экрана GPU (движок)|on"
+    "gpu-screen-recorder-ui|Запись экрана GPU (оверлей UI)|on"
+    "btop|Системный монитор btop|on"
+    "mpv|Медиаплеер mpv|on"
+)
+
+# Приложения: всё необязательное — браузеры, мессенджеры, игры и т.д.
+APPS_MENU=(
+    "firefox|Браузер Firefox|on"
+    "chromium|Браузер Chromium|off"
+    "librewolf|Браузер LibreWolf (приватный)|off"
+    "brave-browser|Браузер Brave (может отсутствовать в apt)|off"
+    "telegram-desktop|Мессенджер Telegram|on"
+    "vesktop|Discord + Vencord (может отсутствовать в apt)|on"
+    "discord|Клиент Discord (официальный)|off"
+    "element-desktop|Matrix-клиент Element|off"
+    "signal-desktop|Мессенджер Signal|off"
+    "thunderbird|Почта Thunderbird|off"
+    "spotify-client|Музыка Spotify (может отсутствовать в apt)|on"
+    "vlc|Медиаплеер VLC|off"
+    "obs-studio|Запись/стриминг OBS Studio|off"
+    "gimp|Редактор изображений GIMP|off"
+    "qbittorrent|Торрент-клиент qBittorrent|off"
+    "steam|Игры Steam ((на Arch нужен multilib; на Debian — i386))|off"
+    "lutris|Запуск игр Lutris|off"
+    "heroic|Epic/GOG Heroic Launcher (может отсутствовать в apt)|off"
+    "prismlauncher|Minecraft Prism Launcher|off"
+    "bottles|Запуск Windows-программ Bottles (может отсутствовать в apt)|off"
+    "libreoffice-fresh|Офисный пакет LibreOffice|off"
+    "keepassxc|Менеджер паролей KeePassXC|off"
+)
+
+
+# --- MangoWC (Wayland-композитор Mango) — зависимости для дотфайлов из этого репо ---
+MANGO_MENU=(
+    "fuzzel|Лаунчер приложений (нужен для меню/обоев)|on"
+    "fzf|TUI/меню для mango-settings и bar-menu (Super+S)|on"
+    "mako|Уведомления|on"
+    "libnotify|notify-send для скриптов|on"
+    "swaybg|Установка обоев|on"
+    "waybar|Панель|on"
+    "grim|Скриншоты (экран)|on"
+    "slurp|Выделение области для скриншотов|on"
+    "wl-clipboard|Буфер обмена Wayland|on"
+    "cliphist|История буфера обмена|on"
+    "brightnessctl|Управление яркости|on"
+    "playerctl|Управление медиаплеером (клавиши)|on"
+    "pavucontrol|Микшер звука (GUI)|on"
+    "foot|Терминал по умолчанию в конфиге|on"
+    "swaylock|Блокировка экрана (Super+L)|on"
+    "python|Нужен для mango-settings/скриптов дока и Matugen-хелперов|on"
+    "networkmanager|Сеть (в т.ч. nmtui, используется в Waybar/доке)|on"
+    "swayidle|Автоблокировка/сон по таймеру (опционально)|off"
+    "wlsunset|Ночной свет (опционально, альтернатива gammastep)|off"
+    "satty|Редактор скриншотов (Super+Print, опционально)|off"
+    "matugen|Цвета из обоев (Matugen, AUR, опционально)|off"
+)
+
+# --- end-4 / dots-hyprland (illogical-impulse) — пользовательский конфиг из этого репо ---
+END4_MENU=(
+    "hyprland|Композитор Hyprland|on"
+    "quickshell|Quickshell shell (ii), AUR|on"
+    "hyprshot|Скриншоты (используются биндами Print/Shift+Print)|on"
+    "grim|Скриншот экрана (CLI)|on"
+    "slurp|Выделение области|on"
+    "wl-clipboard|Буфер обмена Wayland|on"
+    "jq|JSON/Hyprctl парсинг в биндах и скриптах|on"
+    "libnotify|Уведомления (notify-send)|on"
+    "bibata-cursor-theme|Курсор Bibata Modern Classic (может отсутствовать в apt)|on"
+    "foot|Терминал (используется конфигом)|off"
+    "ttf-jetbrains-mono-nerd|Шрифт Nerd Font|off"
+)
+
+# --- Консольные «приколы» (вкладка «Консольные приколы», пункт 8/15). AUR-пакеты помечены. ---
+# Все пункты по умолчанию ВЫКЛЮЧЕНЫ — ставятся только по явному выбору.
+
+# Приколы и визуализации
+FUN_TOOLS_MENU=(
+    "cava|Аудиовизуализатор в терминале|off"
+    "lavat|Анимация лавы в терминале (может отсутствовать в apt)|off"
+    "cbonsai|Растущий бонсай в терминале (может отсутствовать в apt)|off"
+    "tty-clock|Часы в терминале (может отсутствовать в apt)|off"
+    "cmatrix|«Матрица» из символов|off"
+    "unimatrix-git|Улучшенная «Матрица» (может отсутствовать в apt)|off"
+    "pipes.sh|Анимация труб (может отсутствовать в apt)|off"
+    "lolcat|Радужный вывод текста|off"
+    "figlet|Большой ASCII-текст|off"
+    "toilet|Цветной ASCII-текст|off"
+    "cowsay|Говорящая корова|off"
+    "ponysay|Говорящий пони|off"
+    "fortune-mod|Случайные цитаты (для cowsay)|off"
+    "asciinema|Запись терминальной сессии|off"
+    "chafa|Просмотр изображений в терминале|off"
+    "catimg|Картинки в терминале|off"
+    "viu|Просмотр картинок в терминале|off"
+    "timg|Картинки/видео в терминале (может отсутствовать в apt)|off"
+    "jp2a|JPEG/PNG в ASCII|off"
+    "glow|Чтение Markdown в терминале|off"
+    "boxes|Рамки вокруг текста (может отсутствовать в apt)|off"
+    "bb|ASCII-анимация (может отсутствовать в apt)|off"
+    "rain|Дождь из символов (может отсутствовать в apt)|off"
+    "terminal-parrot|Попугай в терминале (может отсутствовать в apt)|off"
+    "hollywood|«Хакерский» экран (может отсутствовать в apt)|off"
+    "genact|Фейковая бурная деятельность|off"
+    "asciiquarium|Аквариум в терминале|off"
+    "nyancat|Nyan Cat|off"
+    "peaclock|Часы-помодоро в терминале (может отсутствовать в apt)|off"
+    "sl|Паровозик (набери sl вместо ls)|off"
+    "aalib|ASCII-арт библиотека (aafire)|off"
+    "libcaca|Цветной ASCII-арт (cacafire)|off"
+)
+
+# Консольные игры
+FUN_GAMES_MENU=(
+    "nudoku|Судоку в терминале (может отсутствовать в apt)|off"
+    "tty-solitaire|Косынка в терминале|off"
+    "bastet|Тетрис «Bastard» (может отсутствовать в apt)|off"
+    "vitetris|Тетрис в терминале (может отсутствовать в apt)|off"
+    "ninvaders|Space Invaders в терминале (может отсутствовать в apt)|off"
+    "moon-buggy|Луноход (может отсутствовать в apt)|off"
+    "greed|Игра «Жадность» (может отсутствовать в apt)|off"
+    "myman|Пакман в терминале (может отсутствовать в apt)|off"
+    "pacman4console|Ещё один пакман (может отсутствовать в apt)|off"
+    "gnugo|Го (GNU Go)|off"
+    "gnuchess|Шахматы (GNU Chess)|off"
+    "nethack|Roguelike NetHack|off"
+    "crawl|Roguelike Dungeon Crawl Stone Soup (может отсутствовать в apt)|off"
+    "angband|Roguelike Angband|off"
+    "cataclysm-dda|Roguelike Cataclysm: DDA|off"
+)
+
+# Мониторы и системные утилиты
+FUN_MONITOR_MENU=(
+    "bottom|Системный монитор btm|off"
+    "glances|Монитор системы Glances|off"
+    "htop|Классический htop|off"
+    "nvtop|Монитор GPU (NVIDIA/AMD/Intel)|off"
+    "ncdu|Анализ занятого места (NCurses)|off"
+    "dust|Быстрый аналог du (Rust)|off"
+    "duf|Просмотр дисков (df) таблицей|off"
+    "procs|Современный ps|off"
+    "pv|Прогресс-бар для пайпов|off"
+    "gtop|Графический монитор в терминале|off"
+    "bandwhich|Сетевой трафик по процессам|off"
+    "nmon|Монитор ресурсов nmon|off"
+    "iftop|Сетевой трафик по соединениям|off"
+    "nethogs|Сетевой трафик по процессам|off"
+    "ttyplot|График значений из stdin (может отсутствовать в apt)|off"
+)
+
+# Музыка, медиа, браузеры в терминале
+FUN_MEDIA_MENU=(
+    "cmus|Музыкальный плеер в терминале|off"
+    "ncmpcpp|Клиент MPD в терминале|off"
+    "mpd|Сервер музыки MPD|off"
+    "yt-dlp|Скачивание видео/музыки (YouTube и др.)|off"
+    "aria2|Многопоточный загрузчик|off"
+    "w3m|Текстовый браузер w3m|off"
+    "lynx|Текстовый браузер Lynx|off"
+    "elinks|Текстовый браузер ELinks|off"
+    "browsh|Полноценный браузер в терминале (может отсутствовать в apt)|off"
+    "neomutt|Почтовый клиент в терминале|off"
+    "termusic|Музыкальный плеер (Rust)|off"
+)
+
+# Полезные CLI-утилиты
+CLI_TOOLS_MENU=(
+    "bat|cat с подсветкой синтаксиса|off"
+    "eza|Современный ls|off"
+    "fd|Современный find|off"
+    "ripgrep|Современный grep|off"
+    "fzf|Нечёткий поиск по спискам|off"
+    "zoxide|Умный cd (команда z)|off"
+    "jq|Обработка JSON|off"
+    "yq|Обработка YAML|off"
+    "tree|Дерево каталогов|off"
+    "tmux|Мультиплексор терминала|off"
+    "zellij|Современный мультиплексор (Rust)|off"
+    "mc|Файловый менеджер Midnight Commander|off"
+    "ranger|Файловый менеджер Ranger|off"
+    "yazi|Файловый менеджер Yazi (Rust)|off"
+    "lf|Файловый менеджер lf|off"
+    "nnn|Файловый менеджер nnn|off"
+    "tig|Просмотр git в терминале|off"
+    "lazygit|TUI для git|off"
+    "gitui|TUI для git (Rust)|off"
+    "calcurse|Календарь и задачи|off"
+    "task|Менеджер задач Taskwarrior|off"
+    "lsd|ls с иконками|off"
+)
+
+# Кастомные фетчи (пункт 15, категория «Кастомные фетчи»).
+# "areofyl-fetch" — маркер: ставится из AUR (fetch (source build)), иначе сборкой из исходников
+# (см. install_areofyl_fetch).
+CUSTOM_SRC_FETCH="areofyl-fetch"
+CUSTOM_FETCH_MENU=(
+    "fastfetch|Быстрый и гибкий fastfetch|off"
+    "uwufetch|UwU-фетч (uwufetch)|off"
+    "hyfetch|Hyfetch (neofetch с pride-флагами)|off"
+    "macchina|Macchina — настраиваемый фетч|off"
+    "cpufetch|Фетч про CPU|off"
+    "onefetch|Фетч для git-репозиториев|off"
+    "neofetch|Классический neofetch (может отсутствовать в apt)|off"
+    "pfetch|Минималистичный pfetch (может отсутствовать в apt)|off"
+    "afetch|Простой afetch (может отсутствовать в apt)|off"
+    "nerdfetch|Фетч с иконками Nerd Font (может отсутствовать в apt)|off"
+    "nitch|Крошечный nitch (может отсутствовать в apt)|off"
+    "bunnyfetch|Bunnyfetch (может отсутствовать в apt)|off"
+    "ramfetch|Фетч про оперативку (может отсутствовать в apt)|off"
+    "yafetch|Yafetch (может отсутствовать в apt)|off"
+    "archfetch|Archfetch (может отсутствовать в apt)|off"
+    "wfetch|Wfetch (может отсутствовать в apt)|off"
+    "newfetch|Newfetch (может отсутствовать в apt)|off"
+    "rainbowfetch|Rainbowfetch (может отсутствовать в apt)|off"
+    "paleofetch (source build)|Paleofetch на C (может отсутствовать в apt)|off"
+    "gfetch (source build)|Gfetch (может отсутствовать в apt)|off"
+    "fet.sh-git|Фетч на чистом shell (может отсутствовать в apt)|off"
+    "gpufetch|Фетч про GPU (может отсутствовать в apt)|off"
+    "${CUSTOM_SRC_FETCH}|areofyl/fetch — 3D-логотип (AUR: fetch-git)|off"
+)
+
+# Утилиты для работы с архивами (Xarchiver — GUI, остальное — консоль)
+ARCHIVE_TOOLS=(xarchiver tar zip unzip unrar 7zip zstd xz bzip2)
+PACCACHE_KEEP=2
+JOURNAL_MAX="100M"
+BACKUP_DIR="$HOME"
+BACKUP_KEEP=5
+REPORT_DIR="$HOME"
+LOG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/arch_multitool.log"
+
+# Каталог, где лежит сам скрипт (для поиска локальных конфигов)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck disable=SC1090
+[[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
+
+# --------------------------------- Цвета -------------------------------------
+if [[ -t 1 ]]; then
+    RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'
+    CYAN=$'\033[0;36m'; BOLD=$'\033[1m'; NC=$'\033[0m'
+else
+    RED=''; GREEN=''; YELLOW=''; CYAN=''; BOLD=''; NC=''
+fi
+
+# --------------------------------- Утилиты -----------------------------------
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
+
+log()  { printf '%s  %s\n' "$(date '+%F %T')" "$*" >> "$LOG_FILE" 2>/dev/null; }
+info() { echo -e "${CYAN}$*${NC}"; log "INFO  $*"; }
+warn() { echo -e "${YELLOW}$*${NC}"; log "WARN  $*"; }
+ok()   { echo -e "${GREEN}[✓] $*${NC}"; log "OK    $*"; }
+err()  { echo -e "${RED}[✗] $*${NC}" >&2; log "ERROR $*"; }
+
+pause() { echo; read -rp "${YELLOW}Нажмите Enter для продолжения...${NC}" _; }
+
+# Интерактивный ли запуск (есть реальный терминал на stdin/stdout)
+is_interactive() { [[ -t 0 && -t 1 ]]; }
+
+# confirm "вопрос" -> 0 если да (по умолчанию «нет»)
+confirm() {
+    local ans
+    read -rp "${YELLOW}$1 [y/N]: ${NC}" ans
+    [[ "$ans" =~ ^[YyДд]$ ]]
+}
+
+has() { command -v "$1" &>/dev/null; }
+
+# Однократный запрос sudo + поддержание тикета на время сессии
+SUDO_KEEPALIVE_PID=""
+WORK_DIR=""
+ensure_sudo() {
+    if [[ $EUID -eq 0 ]]; then
+        err "Не запускайте скрипт от root: некоторые операции требуют обычного пользователя."
+        return 1
+    fi
+    has sudo || { err "sudo не установлен."; return 1; }
+    sudo -v || return 1
+    if [[ -z "$SUDO_KEEPALIVE_PID" ]]; then
+        ( while true; do sudo -n true 2>/dev/null; sleep 50; kill -0 "$$" 2>/dev/null || exit; done ) &
+        SUDO_KEEPALIVE_PID=$!
+    fi
+}
+
+ensure_work_dir() { [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] || WORK_DIR=$(mktemp -d); }
+
+cleanup() {
+    [[ -n "$SUDO_KEEPALIVE_PID" ]] && kill "$SUDO_KEEPALIVE_PID" 2>/dev/null
+    [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"
+    return 0
+}
+trap cleanup EXIT
+trap 'echo; warn "Прервано пользователем."; exit 130' INT TERM
+
+require_debian() {
+    if ! has apt-get; then
+        err "apt-get не найден — эта версия скрипта предназначена для Debian/Ubuntu-based систем."
+        exit 1
+    fi
+}
+
+# Compatibility aliases (so rest of script needs minimal changes)
+require_debian() { require_debian; }
+aur_helper() { return 1; }
+pkg_manager_busy() {
+    if fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; then
+        err "apt/dpkg занят (lock). Дождись завершения другого менеджера пакетов."
+        return 0
+    fi
+    return 1
+}
+pacman_busy() { pkg_manager_busy; }
+
+APT_UPDATED=0
+apt_update_once() {
+    (( APT_UPDATED )) && return 0
+    ensure_sudo || return 1
+    sudo apt-get update -y && APT_UPDATED=1
+}
+
+# Map common Arch package names to Debian/Ubuntu names (best-effort)
+deb_pkg_map() {
+    case "$1" in
+        base-devel) echo "build-essential git" ;;
+        wl-clipboard) echo "wl-clipboard" ;;
+        ttf-jetbrains-mono-nerd) echo "fonts-jetbrains-mono" ;;
+        neovim) echo "neovim" ;;
+        fish) echo "fish" ;;
+        ffmpeg) echo "ffmpeg" ;;
+        mpv) echo "mpv" ;;
+        btop) echo "btop" ;;
+        git) echo "git" ;;
+        curl) echo "curl" ;;
+        gcc) echo "build-essential" ;;
+        make) echo "make" ;;
+        grim) echo "grim" ;;
+        slurp) echo "slurp" ;;
+        jq) echo "jq" ;;
+        swaybg) echo "swaybg" ;;
+        fuzzel) echo "fuzzel" ;;
+        mako-notifier|mako) echo "mako-notifier" ;;
+        foot) echo "foot" ;;
+        waybar) echo "waybar" ;;
+        brightnessctl) echo "brightnessctl" ;;
+        playerctl) echo "playerctl" ;;
+        pavucontrol) echo "pavucontrol" ;;
+        swaylock) echo "swaylock" ;;
+        python) echo "python3" ;;
+        networkmanager) echo "network-manager" ;;
+        libnotify) echo "libnotify-bin" ;;
+        cliphist) echo "cliphist" ;;
+        wl-clipboard) echo "wl-clipboard" ;;
+        bibata-cursor-theme) echo "bibata-cursor-theme" ;;
+        matugen) echo "matugen" ;;
+        hyprshot) echo "hyprshot" ;;
+        grim) echo "grim" ;;
+        gpu-screen-recorder) echo "gpu-screen-recorder" ;;
+        gpu-screen-recorder-ui) echo "gpu-screen-recorder-ui" ;;
+        xarchiver) echo "xarchiver" ;;
+        unzip) echo "unzip" ;;
+        zip) echo "zip" ;;
+        p7zip) echo "p7zip-full" ;;
+        unrar) echo "unrar" ;;
+        thunar) echo "thunar" ;;
+        thunar-archive-plugin) echo "thunar-archive-plugin" ;;
+        file-roller) echo "file-roller" ;;
+        nwg-look) echo "nwg-look" ;;
+        qt5ct) echo "qt5ct" ;;
+        qt6ct) echo "qt6ct" ;;
+        kitty) echo "kitty" ;;
+        neovide) echo "neovide" ;;
+        rofi) echo "rofi" ;;
+        wofi) echo "wofi" ;;
+        wl-clipboard) echo "wl-clipboard" ;;
+        *) echo "$1" ;;
+    esac
+}
+
+pac_install() {
+    ensure_sudo || return 1
+    apt_update_once || return 1
+    local -a mapped=() p m
+    for p in "$@"; do
+        for m in $(deb_pkg_map "$p"); do mapped+=("$m"); done
+    done
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${mapped[@]}"
+}
+
+pkg_install() {
+    ensure_sudo || return 1
+    apt_update_once || return 1
+    local -a ok=() bad=() p m
+    for p in "$@"; do
+        local -a mm=()
+        for m in $(deb_pkg_map "$p"); do mm+=("$m"); done
+        if apt-cache show "${mm[0]}" >/dev/null 2>&1; then
+            ok+=("${mm[@]}")
+        else
+            bad+=("$p")
+        fi
+    done
+    (( ${#bad[@]} )) && warn "Пропускаю недоступные/Arch-специфичные пакеты: ${bad[*]}"
+    (( ${#ok[@]} == 0 )) && { err "Нечего устанавливать из apt репозиториев."; return 1; }
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${ok[@]}"
+}
+
+# Выбор пакетов галочками.
+# Аргументы: строки вида "пакет|описание|on|off".
+# whiptail --checklist, а без whiptail — текстовый переключатель.
+# Результат кладётся в глобальный массив SELECTED_PACKAGES.
+SELECTED_PACKAGES=()
+select_packages() {
+    local title="$1"; shift
+    local -a items=("$@")
+    SELECTED_PACKAGES=()
+
+    if has whiptail && is_interactive; then
+        local -a args=() it pkg desc state
+        for it in "${items[@]}"; do
+            IFS='|' read -r pkg desc state <<< "$it"
+            args+=("$pkg" "$desc" "$state")
+        done
+        local out
+        out=$(whiptail --title "$title" \
+            --checklist "Пробел — отметить/снять, Enter — подтвердить:" \
+            22 80 14 "${args[@]}" 3>&1 1>&2 2>&3) || return 1
+        # whiptail возвращает список в кавычках: "pkg1" "pkg2"
+        SELECTED_PACKAGES=()
+        if [[ -n "$out" ]]; then
+            if command -v python3 >/dev/null 2>&1; then
+                mapfile -t SELECTED_PACKAGES < <(python3 -c 'import shlex,sys; [print(x) for x in shlex.split(sys.stdin.read())]' <<< "$out")
+            else
+                # fallback: shlex-подобный разбор недоступен без python3
+                # shellcheck disable=SC2206
+                eval "SELECTED_PACKAGES=($out)"
+            fi
+        fi
+        return 0
+    fi
+
+    # Текстовый режим (без whiptail): номера через пробел переключают галочку
+    local -a states=()
+    local i
+    for i in "${items[@]}"; do
+        states+=("$(cut -d'|' -f3 <<< "$i")")
+    done
+    while true; do
+        clear
+        echo -e "${BOLD}${CYAN}${title}${NC}"
+        echo "Введите номера через пробел, чтобы отметить/снять. Enter — готово."
+        echo
+        local n=0 pkg desc st mark
+        for i in "${items[@]}"; do
+            IFS='|' read -r pkg desc _ <<< "$i"
+            st="${states[$n]}"
+            mark="[ ]"; [[ "$st" == on ]] && mark="[x]"
+            printf '  %s %2d) %-26s %s\n' "$mark" "$((n + 1))" "$pkg" "$desc"
+            n=$((n + 1))
+        done
+        echo
+        local ans
+        read -rp "Номера (Enter — подтвердить, 'q' — отмена): " ans
+        [[ "$ans" == q || "$ans" == Q ]] && return 1
+        [[ -z "${ans//[[:space:]]/}" ]] && break
+        local tok
+        for tok in $ans; do
+            [[ "$tok" =~ ^[0-9]+$ ]] || continue
+            local idx=$((tok - 1))
+            (( idx >= 0 && idx < ${#items[@]} )) || continue
+            if [[ "${states[$idx]}" == on ]]; then states[$idx]=off; else states[$idx]=on; fi
+        done
+    done
+    local n=0
+    for i in "${items[@]}"; do
+        IFS='|' read -r pkg _ <<< "$i"
+        [[ "${states[$n]}" == on ]] && SELECTED_PACKAGES+=("$pkg")
+        n=$((n + 1))
+    done
+    return 0
+}
+
+# Меню-«вкладки»: выбор одного пункта.
+# Аргументы: заголовок, затем строки "id|описание".
+# Результат — в MENU_CHOICE; 0 при выборе, 1 при отмене.
+MENU_CHOICE=""
+menu_select() {
+    local title="$1"; shift
+    local -a items=("$@")
+    MENU_CHOICE=""
+
+    if has whiptail && is_interactive; then
+        local -a args=() it id desc
+        for it in "${items[@]}"; do
+            IFS='|' read -r id desc <<< "$it"
+            args+=("$id" "$desc")
+        done
+        local out
+        out=$(whiptail --title "$title" \
+            --menu "Стрелки — выбор, Enter — подтвердить:" \
+            22 80 14 "${args[@]}" 3>&1 1>&2 2>&3) || return 1
+        MENU_CHOICE="$out"
+        return 0
+    fi
+
+    # Текстовый режим
+    while true; do
+        clear
+        echo -e "${BOLD}${CYAN}${title}${NC}"
+        echo
+        local it id desc
+        for it in "${items[@]}"; do
+            IFS='|' read -r id desc <<< "$it"
+            printf '  %2s) %s\n' "$id" "$desc"
+        done
+        echo
+        local ans
+        read -rp "Ваш выбор (Enter/'q' — отмена): " ans
+        [[ -z "${ans//[[:space:]]/}" || "$ans" == q || "$ans" == Q ]] && return 1
+        for it in "${items[@]}"; do
+            IFS='|' read -r id desc <<< "$it"
+            [[ "$id" == "$ans" ]] && { MENU_CHOICE="$id"; return 0; }
+        done
+        warn "Нет такого пункта: $ans"
+        sleep 1
+    done
+}
+
+enable_multilib() {
+    warn "На Debian для 32-bit библиотек: sudo dpkg --add-architecture i386 && sudo apt update (при необходимости)."
+    return 0
+}
+
+# Убедиться, что установлены нужные инструменты (curl/git/tar/...)
+ensure_tools() {
+    local -a missing=() t
+    for t in "$@"; do has "$t" || missing+=("$t"); done
+    (( ${#missing[@]} == 0 )) && return 0
+    warn "Устанавливаю недостающие утилиты: ${missing[*]}"
+    ensure_sudo || return 1
+    pac_install "${missing[@]}"
+}
+
+# Количество непустых строк в переменной
+count_lines() { [[ -n "$1" ]] && printf '%s\n' "$1" | wc -l || echo 0; }
+# Склеить строки в "a, b, c"
+join_lines() { printf '%s\n' "$1" | paste -sd ',' - | sed 's/,/, /g'; }
+
+# Переместить существующий путь в резервную копию (path.bak.<дата>)
+stash_dir() {
+    local p="$1"
+    [[ -e "$p" ]] || return 0
+    local b="${p}.bak.$(date +%Y%m%d_%H%M%S)"
+    mv "$p" "$b" && info "Старое сохранено: $b"
+}
+
+# Заменить жёстко прописанный домашний путь старого пользователя на текущий $HOME
+normalize_paths() {
+    local dir="$1"
+    [[ "$HOME" == "/home/lislash" ]] && return 0
+    grep -rlI -- '/home/lislash' "$dir" 2>/dev/null | while IFS= read -r f; do
+        sed -i "s|/home/lislash|$HOME|g" "$f"
+    done
+}
+
+# ОГРОМНАЯ памятка: пресеты Serpantinum нужно включить вручную
+serpantinum_notice() {
+    local -a themes=("$@")
+    (( ${#themes[@]} == 0 )) && themes=(glass archy-style)
+    local list; list=$(printf '%s / ' "${themes[@]}"); list=${list% / }
+    local b="${BOLD}${YELLOW}" n="${NC}"
+    local bar="████████████████████████████████████████████████████████████████████████████████████"
+    echo
+    echo -e "${b}${bar}${n}"
+    echo -e "${b}  ⚠  ВАЖНО: ПРЕСЕТЫ ПРИМЕНЕНЫ, НО ИХ НУЖНО ВКЛЮЧИТЬ ВРУЧНУЮ!${n}"
+    echo -e "${b}${bar}${n}"
+    echo -e "${b}  Serpantinum  →  Настройки  →  Presets (Пресеты)  →  выбрать тему${n}"
+    echo -e "${b}  Доступные темы:  ${list}${n}"
+    echo -e "${b}  Если тема забагалась — перевыберите её (не пресет) в:${n}"
+    echo -e "${b}    Настройки  →  Тема (Оформление)  →  список тем${n}"
+    echo -e "${b}${bar}${n}"
+    echo
+}
+
+# ОГРОМНАЯ плашка: драйверы GPU НЕ ставятся автоматически
+gpu_drivers_notice() {
+    local b="${BOLD}${RED}" n="${NC}"
+    local bar="████████████████████████████████████████████████████████████████████████████████████"
+    echo
+    echo -e "${b}${bar}${n}"
+    echo -e "${b}  ⚠  ДРАЙВЕРЫ GPU НЕ УСТАНАВЛИВАЮТСЯ АВТОМАТИЧЕСКИ!${n}"
+    echo -e "${b}${bar}${n}"
+    echo -e "${b}  Установите их под свою видеокарту (до перезагрузки):${n}"
+    echo -e "${b}    NVIDIA:  sudo apt install nvidia-driver (или драйвер из репо дистрибутива)${n}"
+    echo -e "${b}    AMD:     sudo apt install mesa-vulkan-drivers mesa-va-drivers${n}"
+    echo -e "${b}    Intel:   sudo apt install mesa-vulkan-drivers intel-media-va-driver${n}"
+    echo -e "${b}  Иначе Hyprland / Serpantinum могут не запуститься.${n}"
+    echo -e "${b}${bar}${n}"
+    echo
+}
+
+# ------------------------------------------------------------------------------
+# ИСТОЧНИК КОНФИГОВ (локально или из GitHub)
+# ------------------------------------------------------------------------------
+REPO_ROOT=""
+CONFIGS_DIR=""
+CONFIGS_READY=0
+resolve_configs() {
+    (( CONFIGS_READY )) && return 0
+
+    # 1. Ищем локальные конфиги рядом со скриптом или в текущем каталоге.
+    #    Предпочитаем структуру config/, но поддерживаем legacy-корень.
+    local d
+    for d in "$SCRIPT_DIR" "$PWD"; do
+        if [[ -d "$d/config/fish" || -d "$d/config/nvim" || -d "$d/config/end4" || -d "$d/config/themes" ]]; then
+            REPO_ROOT="$d"; CONFIGS_DIR="$d/config"; CONFIGS_READY=1
+            info "Использую локальные конфиги: $CONFIGS_DIR"
+            return 0
+        fi
+        if [[ -d "$d/fish" || -d "$d/nvim" || -d "$d/themes" || -d "$d/end4" || -f "$d/glass.json" ]]; then
+            REPO_ROOT="$d"; CONFIGS_DIR="$d"; CONFIGS_READY=1
+            info "Использую локальные конфиги (legacy): $CONFIGS_DIR"
+            return 0
+        fi
+    done
+
+    # 2. Скачиваем архив из GitHub
+    ensure_tools curl tar || return 1
+    ensure_work_dir
+    local tarball="$WORK_DIR/configs.tar.gz"
+    warn "Скачиваю конфиги из https://github.com/${REPO_SLUG} ..."
+    if ! curl -fsSL --connect-timeout 20 --retry 2 "$CONFIG_TARBALL" -o "$tarball"; then
+        err "Не удалось скачать конфиги (нет сети?)."
+        return 1
+    fi
+    mkdir -p "$WORK_DIR/configs"
+    if ! tar -xzf "$tarball" -C "$WORK_DIR/configs"; then
+        err "Не удалось распаковать архив конфигов."
+        return 1
+    fi
+    local root
+    for root in "$WORK_DIR"/configs/*/; do
+        [[ -d "$root" ]] || continue
+        REPO_ROOT="${root%/}"
+        if [[ -d "$REPO_ROOT/config" ]]; then
+            CONFIGS_DIR="$REPO_ROOT/config"
+        else
+            CONFIGS_DIR="$REPO_ROOT"
+        fi
+        break
+    done
+    [[ -n "$CONFIGS_DIR" ]] || { err "Архив конфигов пуст."; return 1; }
+    CONFIGS_READY=1
+    ok "Конфиги готовы: $CONFIGS_DIR"
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# 1. АУДИТ СИСТЕМЫ
+# ------------------------------------------------------------------------------
+run_audit() {
+    [[ "${AUDIT_ONLY:-0}" == 1 ]] || clear
+    info "Запуск аналитики системы..."
+    echo
+
+    local report_file now
+    report_file="$REPORT_DIR/system_audit_report_$(date +%Y%m%d_%H%M%S).txt"
+    now=$(date "+%Y-%m-%d %H:%M:%S")
+
+    # --- Система ---
+    local os_name kernel host cpu_name uptime_str
+    os_name=$( (source /etc/os-release 2>/dev/null && echo "${PRETTY_NAME:-$NAME}") || echo "Arch Linux")
+    kernel=$(uname -r)
+    host=$(hostnamectl hostname 2>/dev/null || hostname 2>/dev/null || echo "unknown")
+    cpu_name=$(lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^[ \t]+/,"",$2); print $2; exit}')
+    [[ -z "$cpu_name" ]] && cpu_name=$(awk -F: '/model name/ {gsub(/^[ \t]+/,"",$2); print $2; exit}' /proc/cpuinfo)
+    uptime_str=$(uptime -p 2>/dev/null | sed 's/^up //')
+
+    # --- Память ---
+    local ram_total ram_used swap_total
+    ram_total=$(free -h | awk '/^Mem:/  {print $2}')
+    ram_used=$(free -h  | awk '/^Mem:/  {print $3}')
+    swap_total=$(free -h | awk '/^Swap:/ {print $2}')
+
+    # --- GPU и драйверы ---
+    local gpu_info drivers
+    gpu_info=$(lspci 2>/dev/null | grep -iE 'vga|3d|display' | cut -d: -f3- | sed 's/^[ \t]*//')
+    drivers=$(lspci -nnk 2>/dev/null | grep -A3 -iE 'vga|3d|display' | awk -F': ' '/Kernel driver in use/ {print $2}' | sort -u)
+    [[ -n "$gpu_info" ]] && gpu_info=$(join_lines "$gpu_info") || gpu_info="не определена (pciutils не установлен?)"
+    [[ -n "$drivers"  ]] && drivers=$(join_lines "$drivers")   || drivers="не определены"
+
+    # --- Диски ---
+    local disks_info
+    disks_info=$(df -h -x tmpfs -x devtmpfs -x squashfs -x efivarfs --output=target,size,pcent 2>/dev/null \
+        | tail -n +2 | awk '{print "    " $1 " (" $2 ", занято " $3 ")"}')
+
+    # --- Пакеты (apt/dpkg) ---
+    local all_pkgs total_pacman total_aur=0 total_flatpak=0 helper
+    all_pkgs=$(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null)
+    total_pacman=$(count_lines "$all_pkgs") # keep var name for report compatibility
+    helper=""
+    has flatpak && total_flatpak=$(flatpak list --app 2>/dev/null | wc -l)
+
+    local orphans_list orphans_count orphans_str
+    orphans_list=$(apt-get -s autoremove 2>/dev/null | awk '/^Remv /{print $2}')
+    orphans_count=$(count_lines "$orphans_list")
+    [[ -n "$orphans_list" ]] && orphans_str=$(join_lines "$orphans_list") || orphans_str="отсутствуют"
+
+    local cache_size updates_count="н/д"
+    cache_size=$(du -sh /var/cache/apt/archives 2>/dev/null | awk '{print $1}')
+    updates_count=$(apt list --upgradable 2>/dev/null | awk 'NR>1' | wc -l)
+
+    # --- Безопасность ---
+    local fw_status="Отключен / не установлен" fw_score=0
+    if has firewall-cmd && systemctl is-active --quiet firewalld; then
+        fw_status="Активен (firewalld)"; fw_score=15
+    elif has ufw && systemctl is-active --quiet ufw; then
+        fw_status="Активен (ufw)"; fw_score=15
+    elif systemctl is-active --quiet nftables; then
+        fw_status="Активен (nftables)"; fw_score=15
+    fi
+
+    local mac_status="Не активен"
+    systemctl is-active --quiet apparmor 2>/dev/null && mac_status="Активен (AppArmor)"
+
+    # Микрокод: проверяем соответствие вендору CPU
+    local ucode_status="Не найден" ucode_score=0 vendor expected_ucode
+    vendor=$(awk -F: '/vendor_id/ {gsub(/ /,"",$2); print $2; exit}' /proc/cpuinfo)
+    case "$vendor" in
+        GenuineIntel) expected_ucode="intel-ucode" ;;
+        AuthenticAMD) expected_ucode="amd-ucode" ;;
+        *)            expected_ucode="" ;;
+    esac
+    local deb_ucode="$expected_ucode"
+    [[ "$expected_ucode" == "intel-ucode" ]] && deb_ucode="intel-microcode"
+    [[ "$expected_ucode" == "amd-ucode" ]] && deb_ucode="amd64-microcode"
+    if [[ -n "$deb_ucode" ]] && dpkg -s "$deb_ucode" >/dev/null 2>&1; then
+        ucode_status="Установлен ($deb_ucode)"; ucode_score=10
+    elif [[ -n "$deb_ucode" ]]; then
+        ucode_status="Не найден (нужен $deb_ucode)"
+    fi
+
+    # Упавшие systemd-юниты
+    local failed_units failed_count failed_str="нет"
+    failed_units=$(systemctl --failed --no-legend --plain 2>/dev/null | awk '{print $1}')
+    failed_count=$(count_lines "$failed_units")
+    [[ -n "$failed_units" ]] && failed_str=$(join_lines "$failed_units")
+
+    local secureboot="н/д"
+    if has bootctl; then
+        secureboot=$(bootctl status 2>/dev/null | awk -F': ' '/Secure Boot/ {print $2; exit}')
+        [[ -z "$secureboot" ]] && secureboot="н/д"
+    fi
+
+    # --- Dotfiles ---
+    local checked_cfgs="" found=0 cfg
+    for cfg in "${DOTFILES[@]}"; do
+        if [[ -e "$HOME/.config/$cfg" ]]; then
+            found=$((found + 1)); checked_cfgs+=$'\n'"  [✓] ~/.config/$cfg"
+        else
+            checked_cfgs+=$'\n'"  [✗] ~/.config/$cfg (не найден)"
+        fi
+    done
+    local dot_score=0
+    (( ${#DOTFILES[@]} > 0 )) && dot_score=$(( found * 35 / ${#DOTFILES[@]} ))
+
+    # --- Профиль (точное совпадение имён пакетов) ---
+    local has_hypr=0 has_game=0 has_dev=0
+    grep -qE '^(hyprland|hyprpaper|hyprpicker)$' <<< "$all_pkgs" && has_hypr=1
+    grep -qE '^(steam|lutris|mangohud|gamemode|wine|heroic-games-launcher|gamescope)$' <<< "$all_pkgs" && has_game=1
+    grep -qE '^(docker|podman|virt-manager|qemu-full|qemu-desktop|neovim|code|visual-studio-code-bin|gcc|clang)$' <<< "$all_pkgs" && has_dev=1
+
+    local pipewire="Нет" bt="Нет"
+    systemctl --user is-active --quiet pipewire && pipewire="Да"
+    systemctl is-active --quiet bluetooth && bt="Да"
+
+    # --- Оценка ---
+    local penalty=0 total
+    (( orphans_count > 0 )) && penalty=$((penalty + 5))
+    (( failed_count  > 0 )) && penalty=$((penalty + 5))
+    total=$(( 40 + fw_score + ucode_score + dot_score - penalty ))
+    (( total > 100 )) && total=100
+    (( total < 0   )) && total=0
+
+    local profile="Стандартный Linux Desktop"
+    if   (( has_game && has_dev )); then profile="Игровая и разработческая станция"
+    elif (( has_game ));            then profile="Игровой ПК"
+    elif (( has_dev ));             then profile="Рабочая станция разработчика"
+    elif (( has_hypr ));            then profile="Кастомное Wayland-окружение (Hyprland)"
+    fi
+
+    cat > "$report_file" << REPORT
+================================================================================
+                  СИСТЕМНЫЙ АУДИТ (ARCH LINUX)
+================================================================================
+Дата и время           : $now
+Операционная система   : $os_name
+Ядро                   : $kernel
+Имя хоста              : $host
+Аптайм                 : $uptime_str
+Пользователь / шелл    : ${USER:-$(id -un)} / ${SHELL:-н/д}
+
+--------------------------------------------------------------------------------
+1. ОБОРУДОВАНИЕ И ДИСКИ
+--------------------------------------------------------------------------------
+Процессор              : $cpu_name
+Память                 : всего $ram_total | использовано $ram_used
+Подкачка               : $swap_total
+Видеокарта             : $gpu_info
+Драйверы GPU           : $drivers
+Разделы:
+$disks_info
+
+--------------------------------------------------------------------------------
+2. БЕЗОПАСНОСТЬ И СЛУЖБЫ
+--------------------------------------------------------------------------------
+Брандмауэр             : $fw_status [+$fw_score/15]
+Микрокод CPU           : $ucode_status [+$ucode_score/10]
+Мандатный доступ       : $mac_status
+Secure Boot            : $secureboot
+Pipewire (user)        : $pipewire
+Bluetooth              : $bt
+Упавшие юниты systemd  : $failed_count ($failed_str)
+
+--------------------------------------------------------------------------------
+3. ПАКЕТЫ
+--------------------------------------------------------------------------------
+Всего пакетов (dpkg)   : $total_pacman
+Сторонние/AUR          : $total_aur
+Flatpak                : $total_flatpak
+Доступно обновлений    : $updates_count
+Кэш apt                : ${cache_size:-н/д}
+Сироты                 : $orphans_count
+Список сирот           : $orphans_str
+
+--------------------------------------------------------------------------------
+4. КОНФИГУРАЦИИ (~/.config)
+--------------------------------------------------------------------------------
+Ключевые каталоги:$checked_cfgs
+
+Полнота окружения: $dot_score / 35
+
+--------------------------------------------------------------------------------
+5. ИТОГ
+--------------------------------------------------------------------------------
+Профиль                : $profile
+Индекс конфигурации    : $total / 100
+
+Детализация:
+  • Базовая стабильность : 40/40
+  • Брандмауэр           : $fw_score/15
+  • Микрокод             : $ucode_score/10
+  • Dotfiles             : $dot_score/35
+  • Штрафы               : -$penalty (сироты −5, упавшие юниты −5)
+
+Шкала:
+  [85-100] Отлично сбалансированная и защищённая система
+  [65-84]  Хорошая система, есть замечания
+  [0-64]   Базовая установка, нужна оптимизация
+================================================================================
+REPORT
+
+    ok "Аудит завершён. Отчёт: ${BOLD}$report_file"
+    echo -e "${YELLOW}Рейтинг системы: ${BOLD}$total / 100${NC}"
+    (( failed_count > 0 )) && warn "Есть упавшие юниты: $failed_str"
+    [[ "${AUDIT_ONLY:-0}" == 1 ]] || pause
+}
+
+# ------------------------------------------------------------------------------
+# 2. ОБНОВЛЕНИЕ СИСТЕМЫ
+# ------------------------------------------------------------------------------
+update_system_core() {
+    info "=== Полное обновление системы ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    warn "[1/2] Обновление системы (apt update && apt upgrade)...";
+    sudo apt-get update -y || { err "apt update завершился с ошибкой."; return 1; }; sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y || { err "apt upgrade завершился с ошибкой."; return 1; }
+
+    warn "[2/2] AUR не используется на Debian — пропуск."
+    if has flatpak; then
+        warn "Обновление Flatpak..."
+        flatpak update -y || warn "Flatpak update завершился с предупреждением."
+    fi
+
+    echo
+    local n; n=$(find /etc -name '*.dpkg-*' 2>/dev/null | wc -l)
+    (( n > 0 )) && warn "Найдено .dpkg-* конфиг-файлов: $n — проверьте вручную (dpkg --configure -a / etc)."
+
+    if [[ -f /var/run/reboot-required ]]; then
+        warn "Система сообщает, что требуется перезагрузка (/var/run/reboot-required)."
+    fi
+    ok "Обновление завершено."
+}
+
+update_system() { clear; update_system_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 3. AUR-ХЕЛПЕР
+# ------------------------------------------------------------------------------
+choose_helper() { echo ""; return 0; }
+
+install_aur_helper_core() {
+    warn "AUR/yay/paru не используются на Debian/Ubuntu. Пропускаю."
+    return 0
+}
+
+install_aur_helper_menu() {
+    clear
+    info "=== Установка AUR-хелпера ==="
+    echo
+    echo "1) yay"
+    echo "2) paru"
+    echo "0) Назад"
+    local c
+    read -rp "Выберите [0-2]: " c
+    case "$c" in
+        1) install_aur_helper_core yay ;;
+        2) install_aur_helper_core paru ;;
+        0) return ;;
+        *) err "Неверный выбор" ;;
+    esac
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 4. DOTFILES ПРОФИЛИ (end-4 / serpantinum / stylish-dots)
+# ------------------------------------------------------------------------------
+DOTFILES_PROFILE="stylish-dots" # end-4 | serpantinum | stylish-dots (Debian: рекомендуется stylish-dots/mango)
+
+choose_dotfiles_profile() {
+    info "=== Выбор профиля dotfiles ==="
+    echo "1) end-4 / illogical-impulse — мой текущий конфиг (Hyprland + Quickshell ii)"
+    echo "2) serpantinum — окружение Serpantinum (Hyprland/Quickshell, внешний установщик)"
+    echo "3) stylish-dots — мои дотсы из этого репо (fish + nvim + end-4 конфиг)"
+    echo "0) Оставить: $DOTFILES_PROFILE"
+    local c
+    read -rp "Выберите [0-3]: " c
+    case "$c" in
+        1) DOTFILES_PROFILE="end-4" ;;
+        2) DOTFILES_PROFILE="serpantinum" ;;
+        3) DOTFILES_PROFILE="stylish-dots" ;;
+        0|"") ;;
+        *) warn "Неверный выбор, оставляю $DOTFILES_PROFILE" ;;
+    esac
+    ok "Профиль dotfiles: $DOTFILES_PROFILE"
+}
+
+install_serpantinum_core() {
+    info "=== Установка dotfiles (Serpantinum) ==="
+    echo
+    warn "Serpantinum ориентирован в первую очередь на Arch. На Debian установка может быть неполной/неподдерживаемой."
+
+    local helper; helper=$(aur_helper)
+    if [[ -z "$helper" ]]; then
+        info "AUR-хелпер (не нужен на Debian) не найден — установщик Serpantinum соберёт yay-bin сам."
+        if confirm "Поставить AUR-хелпер заранее?"; then
+            install_aur_helper_core "$(choose_helper)" || warn "Не удалось поставить заранее — Serpantinum соберёт yay-bin сам."
+        fi
+    fi
+
+    ensure_sudo || return 1
+
+    local cmd="$DOTFILES_CMD"
+    local install_txt=""
+    if resolve_configs >/dev/null 2>&1; then
+        for install_txt in "$CONFIGS_DIR/install.txt" "${REPO_ROOT:-}/install.txt"; do
+            [[ -f "$install_txt" ]] && break; install_txt=""
+        done
+    fi
+    if [[ -n "$install_txt" ]]; then
+        local raw line
+        raw=$(tr -d '\r' < "$install_txt")
+        while IFS= read -r line; do
+            [[ -n "${line//[[:space:]]/}" ]] && { cmd="$line"; break; }
+        done <<< "$raw"
+    fi
+    [[ -z "$cmd" ]] && cmd="$DOTFILES_CMD"
+
+    echo
+    info "Команда установки: ${BOLD}$cmd${NC}"
+    confirm "Запустить установщик Serpantinum?" || { warn "Отменено."; return 1; }
+
+    if bash -c "$cmd"; then
+        ok "Serpantinum установлен."
+        configure_hypr_kb_layout
+    else
+        err "Установщик Serpantinum завершился с ошибкой."
+        return 1
+    fi
+}
+
+apply_stylish_dots() {
+    info "=== Применение stylish-dots (мои дотсы) ==="
+    resolve_configs || return 1
+    local ok_any=0
+
+    if confirm "Применить fish конфиг?"; then
+        apply_fish_config && ok_any=1 || warn "fish конфиг не применён."
+    fi
+    if confirm "Применить Neovim конфиг? (выбор пресета)"; then
+        choose_nvim_preset
+        apply_nvim_config "$NVIM_PRESET" && ok_any=1 || warn "Neovim конфиг не применён."
+    fi
+    if [[ -d "$CONFIGS_DIR/end4" ]]; then
+        if confirm "Применить мой end-4 / illogical-impulse конфиг (без API ключей, keyring отдельно)?"; then
+            apply_end4_config && ok_any=1 || warn "end-4 конфиг не применён."
+        fi
+    fi
+    if [[ -d "$CONFIGS_DIR/mango" ]]; then
+        if confirm "Применить MangoWC dotfiles (опционально)?"; then
+            apply_mango_config && ok_any=1 || warn "MangoWC не применён."
+        fi
+    fi
+    (( ok_any )) || warn "Ничего не применено."
+}
+
+install_dotfiles_core() {
+    case "$DOTFILES_PROFILE" in
+        end-4) install_end4_core ;;
+        serpantinum) install_serpantinum_core ;;
+        stylish-dots) apply_stylish_dots ;;
+        *) err "Неизвестный профиль: $DOTFILES_PROFILE"; return 1 ;;
+    esac
+}
+
+install_dotfiles() {
+    clear
+    gpu_drivers_notice
+    choose_dotfiles_profile
+    install_dotfiles_core
+    [[ "$DOTFILES_PROFILE" == "serpantinum" ]] && apply_archy_themes
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 5. ТЕМЫ SERPANTINUM (archy: авто-поиск всех *.json в репозитории)
+# ------------------------------------------------------------------------------
+apply_archy_themes() {
+    resolve_configs || return 1
+
+    # Автопоиск всех пресетов: все *.json в каталоге репозитория.
+    # Так новые темы из репозитория подхватываются автоматически.
+    local -a presets=() names=()
+    local f
+    shopt -s nullglob
+    for f in "$CONFIGS_DIR/themes"/*.json "$CONFIGS_DIR"/*.json; do
+        [[ -f "$f" ]] && presets+=("$f")
+    done
+    shopt -u nullglob
+    # dedupe by basename
+    local -A seen=(); local -a uniq=()
+    for f in "${presets[@]}"; do
+        local bname; bname=$(basename "$f")
+        [[ -n "${seen[$bname]:-}" ]] && continue
+        seen[$bname]=1; uniq+=("$f")
+    done
+    presets=("${uniq[@]}")
+
+    if (( ${#presets[@]} == 0 )); then
+        warn "Пресеты Serpantinum (*.json) не найдены в конфигах (themes/)."
+        return 1
+    fi
+
+    # Кладём пресеты в ~/.local/state/serpantinum/presets
+    mkdir -p "$THEME_DIR"
+    for f in "${presets[@]}"; do
+        cp -a "$f" "$THEME_DIR/$(basename "$f")"
+        names+=("$(basename "$f" .json)")
+        # Предупреждаем, если файл не похож на пресет Serpantinum
+        if ! grep -q '"settings"\|"palette"' "$f" 2>/dev/null; then
+            warn "$(basename "$f"): не похож на пресет Serpantinum (нет полей \"settings\"/\"palette\")."
+        fi
+    done
+    ok "Пресеты Serpantinum применены (${#presets[@]}): ${names[*]}"
+    info "Каталог: $THEME_DIR"
+
+    serpantinum_notice "${names[@]}"
+}
+
+# ------------------------------------------------------------------------------
+# 5.1 РАСКЛАДКА КЛАВИАТУРЫ (us,ru) в конфиге Hyprland
+# ------------------------------------------------------------------------------
+configure_hypr_kb_layout() {
+    local f="$HOME/.config/hypr/config/settings.lua"
+    if [[ ! -f "$f" ]]; then
+        info "Файл $f не найден — пропускаю настройку раскладки (Hyprland ещё не установлен?)."
+        return 0
+    fi
+
+    if grep -qE 'kb_layout[[:space:]]*=[[:space:]]*"us,ru"' "$f"; then
+        ok "Раскладка клавиатуры уже настроена (us,ru)."
+        return 0
+    fi
+
+    cp -a "$f" "${f}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
+    sed -i -E 's/kb_layout[[:space:]]*=[[:space:]]*"us"/kb_layout = "us,ru"/' "$f"
+    if grep -qE 'kb_layout[[:space:]]*=[[:space:]]*"us,ru"' "$f"; then
+        ok "Раскладка клавиатуры: us,ru (переключение — Alt+Shift)."
+    else
+        warn "Не удалось автоматически изменить kb_layout в $f."
+        warn "Поправьте вручную: kb_layout = \"us,ru\","
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# 6. FISH
+# ------------------------------------------------------------------------------
+apply_fish_config() {
+    resolve_configs || return 1
+    local src="$CONFIGS_DIR/fish"
+    [[ -d "$src" ]] || { err "Каталог fish/ не найден в конфигах."; return 1; }
+
+    local dst="$HOME/.config/fish"
+    stash_dir "$dst"
+    mkdir -p "$dst"
+
+    # Копируем осмысленные элементы fish-конфига (без кэшей/рантайм-файлов)
+    local item
+    for item in config.fish fish_plugins conf.d functions completions themes auto-Hypr.fish; do
+        [[ -e "$src/$item" ]] && cp -a "$src/$item" "$dst/"
+    done
+
+    # Исходники анимированных фетчей (<name>.c) — кладём рядом с конфигом,
+    # функции-обёртки собирают их при первом запуске.
+    local f srcf
+    for f in "${ANIM_FETCHES[@]}"; do
+        srcf=""
+        for srcf in "$CONFIGS_DIR/fetches/unstable/$f.c" "$CONFIGS_DIR/fetches/$f.c" "$CONFIGS_DIR/$f.c" "$src/$f.c" "$src/functions/$f.c"; do
+            [[ -f "$srcf" ]] && break
+        done
+        if [[ -f "$srcf" ]]; then
+            cp -a "$srcf" "$dst/$f.c"
+        fi
+    done
+    ok "Исходники фетчей скопированы → $dst"
+
+    normalize_paths "$dst"
+    ok "Конфиг fish применён → $dst"
+}
+
+install_fish_plugins() {
+    has fish || return 0
+    info "Установка плагинов fish (fisher/tide)..."
+    if fish -c 'functions -q fisher; and fisher update' 2>/dev/null; then
+        ok "Плагины fish обновлены (fisher update)."
+    elif fish -c "fisher install ${FISH_PLUGINS[*]}" 2>/dev/null; then
+        ok "Плагины fish установлены."
+    else
+        warn "Не удалось установить плагины fish. Позже вручную: fisher update"
+    fi
+}
+
+set_default_shell_fish() {
+    has fish || return 0
+    local fsh; fsh=$(command -v fish)
+    if [[ "${SHELL:-}" == "$fsh" ]]; then
+        ok "fish уже является оболочкой по умолчанию."
+        return 0
+    fi
+    if confirm "Сделать fish оболочкой по умолчанию (chsh -s $fsh)?"; then
+        if chsh -s "$fsh"; then
+            ok "Оболочка по умолчанию изменена на fish (вступит в силу после входа)."
+        else
+            err "chsh не удался."
+        fi
+    fi
+}
+
+install_fish_core() {
+    info "=== Установка Fish + плагины ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    warn "Установка пакета fish..."
+    pac_install fish || { err "Не удалось установить fish."; return 1; }
+
+    # ffmpeg нужен для пользовательской функции converttool (конвертер/сжатие)
+    if ! has ffmpeg; then
+        warn "Установка ffmpeg (нужен для функции converttool)..."
+        pac_install ffmpeg || warn "ffmpeg не установлен — функция converttool будет недоступна."
+    fi
+
+    apply_fish_config || warn "Конфиг fish не применён."
+
+    # Приветствие терминала: fastfetch или один из анимированных 3D-фетчей
+    configure_greeting
+
+    # Анимированные фетчи собираются из C — нужен компилятор
+    build_anim_fetches
+
+    install_fish_plugins
+    set_default_shell_fish
+    ok "Fish готов."
+}
+
+# --- Приветствие терминала (fastfetch / 3D-фетч / ничего) ---------------------
+# Человекочитаемое описание анимированного фетча (для меню).
+anim_fetch_desc() {
+    case "$1" in
+        keyfetch)      echo "3D-ключ (классический)";;
+        treefetch)     echo "3D-ёлочка-ароматизатор";;
+        tomatofetch)   echo "3D-помидор";;
+        stoolfetch)    echo "3D-табурет";;
+        skeletonfetch) echo "3D-скелетный ключ (с акцентом)";;
+        *)             echo "$1";;
+    esac
+}
+
+# Есть ли у фетча второй (акцентный) цвет — флаг -a/--accent.
+anim_fetch_has_accent() {
+    local f
+    for f in "${ANIM_FETCH_ACCENT[@]}"; do
+        [[ "$f" == "$1" ]] && return 0
+    done
+    return 1
+}
+
+# Запрос цвета: результат в COLOR_VALUE ("#rrggbb") и COLOR_RAINBOW (0|1).
+# $1 — заголовок меню. Возвращает 1 при отмене.
+choose_color() {
+    local title="$1"
+    COLOR_VALUE="#ffc828"; COLOR_RAINBOW=0
+    # name|hex — цвета фетчей (можно и словом, но храним hex)
+    local -a cols=(
+        "gold|#ffc828" "orange|#ff8c1e" "yellow|#ffdc3c" "lime|#a0ff3c"
+        "green|#46dc5a" "teal|#1ebea9" "cyan|#3cdce6" "blue|#4678ff"
+        "purple|#a05aff" "magenta|#e646dc" "pink|#ff82be" "red|#ff3c3c"
+        "silver|#bec3cd" "white|#ebebeb"
+    )
+    local -a items=() c i=1
+    for c in "${cols[@]}"; do
+        items+=("$i|${c%%|*} (${c##*|})")
+        i=$((i + 1))
+    done
+    items+=("$i|Радужный — цвет переливается")
+    local rainbow_idx=$i
+    i=$((i + 1))
+    items+=("$i|Свой HEX-цвет (например #ff8800)")
+    local hex_idx=$i
+
+    menu_select "$title" "${items[@]}" || return 1
+
+    if [[ "$MENU_CHOICE" == "$rainbow_idx" ]]; then
+        COLOR_RAINBOW=1
+    elif [[ "$MENU_CHOICE" == "$hex_idx" ]]; then
+        local hex
+        read -rp "Введите HEX-цвет (например #ff8800): " hex
+        if [[ "$hex" =~ ^#?[0-9a-fA-F]{6}$ ]]; then
+            COLOR_VALUE="#${hex#\#}"
+        else
+            warn "Некорректный HEX — оставляю золотой (#ffc828)."
+        fi
+    elif [[ "$MENU_CHOICE" =~ ^[0-9]+$ ]] && (( MENU_CHOICE >= 1 && MENU_CHOICE <= ${#cols[@]} )); then
+        COLOR_VALUE="${cols[$((MENU_CHOICE - 1))]##*|}"
+    fi
+    return 0
+}
+
+# Пишем fish-файл с настройками (его читает функция fish_greeting).
+# $1 = mode (fastfetch|<фетч>|none), $2 = цвет, $3 = rainbow (0/1),
+# $4 = высота, $5 = акцентный цвет (необязательно)
+write_greeting_file() {
+    local mode="${1:-fastfetch}" color="${2:-#ffc828}" rainbow="${3:-0}" height="${4:-16}" accent="${5:-}"
+    mkdir -p "$GREETING_DIR"
+    {
+        echo "# Настройки приветствия терминала (создано arch_multitool)."
+        echo "# mode: fastfetch | ${ANIM_FETCHES[*]} | none"
+        echo "# 3D-фетч закрепляется внизу: шелл сверху сохраняет историю прокрутки."
+        echo "set -g greeting_mode $mode"
+        echo "set -g greeting_color \"$color\""
+        echo "set -g greeting_rainbow $rainbow"
+        echo "set -g greeting_height $height"
+        [[ -n "$accent" ]] && echo "set -g greeting_accent \"$accent\""
+    } > "$GREETING_FILE"
+    ok "Приветствие: $mode → $GREETING_FILE"
+}
+
+# Интерактивный выбор приветствия (fastfetch / 3D-фетч + цвет + акцент).
+configure_greeting() {
+    # Не интерактивно — просто гарантируем наличие файла настроек.
+    if ! is_interactive; then
+        [[ -f "$GREETING_FILE" ]] || write_greeting_file fastfetch "#ffc828" 0 16
+        return 0
+    fi
+
+    local n=${#ANIM_FETCHES[@]}
+    local fast_idx=1 first_anim=2
+    local last_anim=$((1 + n))
+    local none_idx=$((last_anim + 1))
+
+    local -a items=("$fast_idx|fastfetch — статичная информация о системе")
+    local i f
+    for f in "${ANIM_FETCHES[@]}"; do
+        i=$((first_anim + ${#items[@]} - 1))
+        items+=("$i|$f — $(anim_fetch_desc "$f")")
+    done
+    items+=("$none_idx|Ничего (пустое приветствие)")
+    items+=("0|Оставить как есть")
+
+    menu_select "Приветствие терминала" "${items[@]}" || return 0
+
+    if (( MENU_CHOICE == fast_idx )); then
+        write_greeting_file fastfetch "#ffc828" 0 16
+        return 0
+    fi
+    if (( MENU_CHOICE == none_idx )); then
+        write_greeting_file none "#ffc828" 0 16
+        return 0
+    fi
+    if (( MENU_CHOICE >= first_anim && MENU_CHOICE <= last_anim )); then
+        local mode="${ANIM_FETCHES[$((MENU_CHOICE - first_anim))]}"
+        choose_color "Цвет: $mode" || return 0
+        local color="$COLOR_VALUE" rainbow="$COLOR_RAINBOW" accent=""
+        if anim_fetch_has_accent "$mode"; then
+            if confirm "Настроить акцентный цвет для $mode (по умолчанию — серебряный)?"; then
+                if choose_color "Акцентный цвет: $mode"; then
+                    # радужного акцента нет — если выбран, остаётся серебряный
+                    [[ "$COLOR_RAINBOW" == 1 ]] || accent="$COLOR_VALUE"
+                fi
+            fi
+        fi
+        write_greeting_file "$mode" "$color" "$rainbow" 16 "$accent"
+        info "Подсказка: $mode запускается сам; остановить — '$mode --stop'."
+        return 0
+    fi
+    return 0
+}
+
+# Сборка анимированных фетчей из ~/.config/fish/<name>.c в ~/.local/bin/<name>.
+# Если компилятора нет — ставим gcc; если исходников нет — тихо пропускаем.
+build_anim_fetches() {
+    local -a srcs=() names=()
+    local f src
+    for f in "${ANIM_FETCHES[@]}"; do
+        src="$HOME/.config/fish/$f.c"
+        [[ -f "$src" ]] || src=""
+        if [[ -z "$src" ]]; then
+            for src in "$CONFIGS_DIR/fetches/unstable/$f.c" "$CONFIGS_DIR/fetches/$f.c" "$CONFIGS_DIR/$f.c"; do
+                [[ -f "$src" ]] && break; src=""
+            done
+        fi
+        [[ -n "$src" && -f "$src" ]] && { srcs+=("$src"); names+=("$f"); }
+    done
+    (( ${#srcs[@]} )) || return 0
+
+    if ! has cc; then
+        warn "Установка gcc (нужен для сборки фетчей)..."
+        pac_install gcc || { warn "gcc не установлен — фетчи соберутся при первом запуске (если появится cc)."; return 0; }
+    fi
+
+    mkdir -p "$HOME/.local/bin"
+    local idx
+    for idx in "${!srcs[@]}"; do
+        if cc -O2 -o "$HOME/.local/bin/${names[$idx]}" "${srcs[$idx]}" -lm; then
+            ok "${names[$idx]} собран → ~/.local/bin/${names[$idx]}"
+        else
+            warn "Не удалось собрать ${names[$idx]} (соберётся при первом запуске терминала)."
+        fi
+    done
+}
+
+install_fish() { clear; install_fish_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 7. NEOVIM + NEOVIDE
+# ------------------------------------------------------------------------------
+NVIM_PRESET="lazyvim-stylish" # lazyvim-stylish | super-easy-casual
+
+choose_nvim_preset() {
+    info "=== Выбор конфига Neovim ==="
+    echo "1) lazyvim-stylish (новый, LazyVim, проработанный)"
+    echo "2) super-easy-casual (старый конфиг из прошлого коммита)"
+    echo "0) Оставить: $NVIM_PRESET"
+    local c
+    read -rp "Выберите [0-2]: " c
+    case "$c" in
+        1) NVIM_PRESET="lazyvim-stylish" ;;
+        2) NVIM_PRESET="super-easy-casual" ;;
+        0|"") ;;
+        *) warn "Неверный выбор, оставляю $NVIM_PRESET" ;;
+    esac
+    ok "Выбран Neovim пресет: $NVIM_PRESET"
+}
+
+apply_nvim_config() {
+    resolve_configs || return 1
+    local preset="${1:-$NVIM_PRESET}"
+    local src=""
+
+    case "$preset" in
+        lazyvim-stylish)
+            [[ -d "$CONFIGS_DIR/nvim-presets/lazyvim-stylish" ]] && src="$CONFIGS_DIR/nvim-presets/lazyvim-stylish"
+            [[ -z "$src" && -d "$CONFIGS_DIR/nvim" ]] && src="$CONFIGS_DIR/nvim"
+            ;;
+        super-easy-casual)
+            [[ -d "$CONFIGS_DIR/nvim-presets/super-easy-casual" ]] && src="$CONFIGS_DIR/nvim-presets/super-easy-casual"
+            ;;
+        *)
+            [[ -d "$CONFIGS_DIR/nvim-presets/$preset" ]] && src="$CONFIGS_DIR/nvim-presets/$preset"
+            ;;
+    esac
+
+    [[ -n "$src" && -d "$src" ]] || { err "Neovim пресет '$preset' не найден в $CONFIGS_DIR/nvim-presets."; return 1; }
+
+    local dst="$HOME/.config/nvim"
+    stash_dir "$dst"
+    mkdir -p "$dst"
+
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -a --exclude='.git/' --exclude='.git' --exclude='*.bak' --exclude='*.bak2' "$src/" "$dst/"
+    else
+        cp -a "$src/." "$dst/"
+        rm -rf "$dst/.git" 2>/dev/null || true
+        find "$dst" -type f \( -name '*.bak' -o -name '*.bak2' \) -delete 2>/dev/null || true
+    fi
+
+    normalize_paths "$dst"
+    ok "Конфиг Neovim ($preset) применён → $dst"
+}
+
+apply_neovide_config() {
+    resolve_configs || return 0
+    local src="$CONFIGS_DIR/neovide"
+    if [[ -d "$src" ]] && [[ -n "$(ls -A "$src" 2>/dev/null)" ]]; then
+        local dst="$HOME/.config/neovide"
+        stash_dir "$dst"
+        mkdir -p "$dst"
+        cp -a "$src/." "$dst/"
+        normalize_paths "$dst"
+        ok "Конфиг Neovide применён → $dst"
+    else
+        info "Отдельного конфига Neovide нет (настройки внутри init.lua) — пропуск."
+    fi
+}
+
+install_neovim_core() {
+    info "=== Установка Neovim + Neovide ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    choose_nvim_preset
+
+    warn "Установка neovim, wl-clipboard и Nerd Font..."
+    pac_install neovim wl-clipboard ttf-jetbrains-mono-nerd \
+        || { err "Не удалось установить базовые пакеты Neovim."; return 1; }
+
+    if ! has neovide; then
+        warn "Установка neovide..."
+        if apt-cache show neovide >/dev/null 2>&1; then
+            pac_install neovide || warn "neovide не установлен."
+        else
+            warn "neovide не найден в apt. Установите вручную (AppImage/cargo/snap) при необходимости."
+        fi
+    fi
+
+    apply_nvim_config "$NVIM_PRESET" || warn "Конфиг Neovim не применён."
+    apply_neovide_config
+    ok "Neovim готов ($NVIM_PRESET)."
+}
+
+install_neovim() { clear; install_neovim_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 7.1 MPV (медиаплеер)
+# ------------------------------------------------------------------------------
+install_mpv_core() {
+    info "=== Установка mpv ==="
+    if has mpv; then ok "mpv уже установлен."; return 0; fi
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    warn "Установка mpv..."
+    pac_install mpv || { err "Не удалось установить mpv."; return 1; }
+    ok "mpv установлен."
+}
+
+install_mpv() { clear; install_mpv_core; pause; }
+
+
+# ------------------------------------------------------------------------------
+# 7.2 MANGOWC DOTFILES (из этого репозитория)
+# ------------------------------------------------------------------------------
+apply_mango_config() {
+    resolve_configs || return 1
+
+    # Единый источник правды: используем mango/install.sh из репозитория/конфигов,
+    # чтобы не расходилась логика установки/бэкапа/слияния настроек.
+    if [[ -f "$CONFIGS_DIR/mango/install.sh" ]]; then
+        info "=== Применение MangoWC dotfiles ==="
+        bash "$CONFIGS_DIR/mango/install.sh" || return 1
+        # Доп. безопасность: нормализовать старые жёстко прописанные пути, если встретятся
+        normalize_paths "$HOME/.config/mango" 2>/dev/null || true
+        normalize_paths "$HOME/.config/waybar" 2>/dev/null || true
+        normalize_paths "$HOME/.config/foot" 2>/dev/null || true
+        normalize_paths "$HOME/.config/fuzzel" 2>/dev/null || true
+        normalize_paths "$HOME/.config/mako" 2>/dev/null || true
+        normalize_paths "$HOME/.config/matugen" 2>/dev/null || true
+        return 0
+    fi
+
+    err "MangoWC-конфиги не найдены в $CONFIGS_DIR (ожидается mango/install.sh)."
+    return 1
+}
+
+install_mango_deps() {
+    info "=== Зависимости MangoWC ==="
+    select_packages "MangoWC — пакеты и утилиты" "${MANGO_MENU[@]}" || { warn "Отменено."; return 1; }
+    (( ${#SELECTED_PACKAGES[@]} == 0 )) && { warn "Ничего не выбрано."; return 1; }
+    software_install_pkgs "${SELECTED_PACKAGES[@]}"
+}
+
+install_mango_core() {
+    info "=== MangoWC: зависимости + dotfiles ==="
+    echo
+    echo "Будут установлены/применены dotfiles для MangoWC:"
+    echo "  ~/.config/{mango,waybar,foot,fuzzel,mako,matugen} и ~/.local/bin/mango-settings"
+    echo
+    if confirm "Установить зависимости MangoWC (waybar, fuzzel, fzf, mako, swaybg, ...)?"; then
+        install_mango_deps || warn "Часть зависимостей не установлена."
+    fi
+    apply_mango_config || return 1
+    ok "MangoWC готов. Войдите в сессию MangoWC (или перезагрузите конфиг)."
+}
+
+install_mango() { clear; install_mango_core; pause; }
+
+
+# ------------------------------------------------------------------------------
+# 7.3 END-4 / DOTS-HYPRLAND (illogical-impulse, мой текущий конфиг)
+# ------------------------------------------------------------------------------
+apply_end4_config() {
+    resolve_configs || return 1
+
+    if [[ -f "$CONFIGS_DIR/end4/install.sh" ]]; then
+        info "=== Применение end-4 / illogical-impulse dotfiles ==="
+        bash "$CONFIGS_DIR/end4/install.sh" || return 1
+        return 0
+    fi
+
+    err "end-4 конфиги не найдены в $CONFIGS_DIR (ожидается end4/install.sh)."
+    return 1
+}
+
+install_end4_deps() {
+    info "=== Зависимости end-4 (illogical-impulse) ==="
+    select_packages "end-4 — пакеты и утилиты" "${END4_MENU[@]}" || { warn "Отменено."; return 1; }
+    (( ${#SELECTED_PACKAGES[@]} == 0 )) && { warn "Ничего не выбрано."; return 1; }
+    software_install_pkgs "${SELECTED_PACKAGES[@]}"
+}
+
+install_end4_core() {
+    info "=== end-4: зависимости + мой конфиг ==="
+    echo
+    echo "Будет применён мой текущий конфиг для end-4 / dots-hyprland (illogical-impulse):"
+    echo "  ~/.config/hypr/custom/*, ~/.config/hypr/hyprland/keybinds.lua (патч Print),"
+    echo "  ~/.config/illogical-impulse/config.json, cursor/GTK/env.d"
+    echo
+    warn "Перед этим должен быть установлен сам dots-hyprland (illogical-impulse). На Debian это обычно сложнее/вручную."
+    if confirm "Установить зависимости/утилиты end-4 (hyprshot, grim, bibata, ...)?"; then
+        install_end4_deps || warn "Часть зависимостей не установлена."
+    fi
+    apply_end4_config || return 1
+    ok "end-4 конфиг применён. Выполни hyprctl reload или перезайди в сессию."
+}
+
+install_end4() { clear; install_end4_core; pause; }
+
+
+# ------------------------------------------------------------------------------
+# 8. ПРИМЕНИТЬ МОИ КОНФИГИ (без установки пакетов)
+# ------------------------------------------------------------------------------
+apply_all_configs() {
+    clear
+    info "=== Применение личных конфигов ==="
+    echo
+    resolve_configs || { pause; return; }
+
+    apply_fish_config
+    configure_greeting
+    install_fish_plugins
+    apply_nvim_config
+    apply_neovide_config
+    configure_hypr_kb_layout
+    apply_archy_themes
+    # MangoWC dotfiles (если есть в репозитории)
+    if [[ -d "${CONFIGS_DIR:-}/mango" ]]; then
+        echo
+        if confirm "Применить MangoWC dotfiles (mango/waybar/foot/fuzzel/mako/matugen)?"; then
+            apply_mango_config || warn "MangoWC dotfiles не применены."
+        fi
+    fi
+    # end-4 / illogical-impulse dotfiles (мой текущий конфиг)
+    if [[ -d "${CONFIGS_DIR:-}/end4" ]]; then
+        echo
+        if confirm "Применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
+            apply_end4_config || warn "end-4 конфиг не применён."
+        fi
+    fi
+    echo
+    ok "Готово. Перезапустите терминал/приложения, чтобы увидеть изменения."
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 9. УСТАНОВКА ПО (вкладки + галочки)
+# ------------------------------------------------------------------------------
+# Установить пакеты (авто-включение [multilib] при выборе steam).
+software_install_pkgs() {
+    local -a pkgs=("$@")
+    (( ${#pkgs[@]} == 0 )) && { warn "Ничего не выбрано."; return 1; }
+
+    if printf '%s\n' "${pkgs[@]}" | grep -qx steam; then
+        enable_multilib || warn "Без [multilib] steam не установится."
+    fi
+
+    echo
+    info "К установке: ${pkgs[*]}"
+    pkg_install "${pkgs[@]}" \
+        || { err "Установка завершилась с ошибкой (см. вывод выше)."; return 1; }
+    ok "Установка ПО завершена!"
+}
+
+# Выбор пакетов чек-листами. Результат — в массиве ESSENTIALS_PKGS.
+# $1 = "all" (по умолчанию: базовый набор + приложения) | "apps" (только приложения).
+ESSENTIALS_PKGS=()
+choose_essentials_packages() {
+    local mode="${1:-all}"
+    ESSENTIALS_PKGS=()
+
+    if [[ "$mode" == all ]]; then
+        if select_packages "Базовый набор (рекомендуется)" "${ESSENTIALS_MENU[@]}"; then
+            ESSENTIALS_PKGS+=("${SELECTED_PACKAGES[@]}")
+        else
+            warn "Базовый набор пропущен."
+        fi
+    fi
+
+    if select_packages "Приложения (необязательно)" "${APPS_MENU[@]}"; then
+        ESSENTIALS_PKGS+=("${SELECTED_PACKAGES[@]}")
+    else
+        warn "Приложения пропущены."
+    fi
+
+    (( ${#ESSENTIALS_PKGS[@]} > 0 ))
+}
+
+# Установка выбранного ПО (без Flatpak/Sober/FreeSM — они отдельно).
+install_essentials_core() {
+    choose_essentials_packages "${1:-all}" || { warn "Ничего не выбрано."; return 1; }
+    software_install_pkgs "${ESSENTIALS_PKGS[@]}"
+}
+
+# ------------------------------ Вкладки ПО ------------------------------------
+
+# Вкладка «Базовый набор»
+software_tab_base() {
+    select_packages "Базовый набор (рекомендуется)" "${ESSENTIALS_MENU[@]}" \
+        || { warn "Отменено."; return 0; }
+    software_install_pkgs "${SELECTED_PACKAGES[@]}"
+}
+
+# Вкладка «Приложения»
+software_tab_apps() {
+    select_packages "Приложения (необязательно)" "${APPS_MENU[@]}" \
+        || { warn "Отменено."; return 0; }
+    software_install_pkgs "${SELECTED_PACKAGES[@]}"
+}
+
+# Вкладка «Всё по галочкам» (базовый набор + приложения)
+software_tab_all() {
+    install_essentials_core all
+}
+
+# Вкладка «Flatpak + Flathub (+ Sober / FreeSM)»
+software_tab_flatpak() {
+    setup_flatpak_core || warn "Flatpak не настроен."
+    confirm "Установить Sober (Roblox на Linux) через Flatpak?" && install_sober
+    confirm "Установить FreeSM Launcher (Minecraft, AUR)?" && install_freesm_core
+}
+
+# Центральное меню установки ПО (вкладки)
+install_software_menu() {
+    while true; do
+        menu_select "Установка ПО" \
+            "1|Базовый набор (рекомендуется)" \
+            "2|Приложения (браузеры, мессенджеры, игры...)" \
+            "3|Консольные приколы (визуализации, игры, фетчи, CLI...)" \
+            "4|Кастомные фетчи (fastfetch, uwufetch, areofyl/fetch...)" \
+            "5|Flatpak + Flathub (+ Sober / FreeSM)" \
+            "6|Всё по галочкам (базовый набор + приложения)" \
+            "0|Назад" || return 0
+
+        [[ "$MENU_CHOICE" == 0 ]] && return 0
+
+        [[ -z "$(aur_helper)" ]] && \
+            warn "AUR-хелпер (не нужен на Debian) не найден — AUR-пакеты будут пропущены (пункт 3 главного меню)."
+
+        ensure_sudo || { pause; continue; }
+        pacman_busy && { pause; continue; }
+
+        case "$MENU_CHOICE" in
+            1) software_tab_base; pause ;;
+            2) software_tab_apps; pause ;;
+            3) software_tab_console ;;
+            4) software_tab_fetches; pause ;;
+            5) software_tab_flatpak; pause ;;
+            6) software_tab_all; pause ;;
+        esac
+    done
+}
+
+# ------------------------------------------------------------------------------
+# 9.1 КОНСОЛЬНЫЕ «ПРИКОЛЫ» (визуализации, игры, мониторы, медиа, CLI, фетчи)
+# ------------------------------------------------------------------------------
+# Печатает строки меню для категории $1
+fun_group_items() {
+    local name
+    case "$1" in
+        1) name=FUN_TOOLS_MENU ;;
+        2) name=FUN_GAMES_MENU ;;
+        3) name=FUN_MONITOR_MENU ;;
+        4) name=FUN_MEDIA_MENU ;;
+        5) name=CLI_TOOLS_MENU ;;
+        6) name=CUSTOM_FETCH_MENU ;;
+        *) return 0 ;;
+    esac
+    local -n g="$name"
+    (( ${#g[@]} )) && printf '%s\n' "${g[@]}"
+}
+
+# Установка areofyl/fetch (https://github.com/areofyl/fetch).
+# Приоритет: на Debian — сборка из исходников.
+install_areofyl_fetch() {
+
+
+    info "=== areofyl/fetch (сборка из исходников) ==="
+    ensure_sudo || return 1
+    ensure_tools git make gcc || { err "Нужны git, make и gcc."; return 1; }
+    ensure_work_dir
+
+    local dir="$WORK_DIR/areofyl-fetch"
+    rm -rf "$dir"
+    info "Скачиваю https://github.com/areofyl/fetch ..."
+    git clone --depth 1 https://github.com/areofyl/fetch "$dir" \
+        || { err "Не удалось скачать репозиторий."; return 1; }
+
+    info "Собираю (make)..."
+    ( cd "$dir" && make ) || { err "Сборка не удалась."; return 1; }
+
+    info "Устанавливаю в /usr/local/bin (sudo make install)..."
+    ( cd "$dir" && sudo make install ) || { err "Установка не удалась."; return 1; }
+
+    if has fetch; then
+        ok "areofyl/fetch установлен: команда 'fetch' (например: fetch -l arch)."
+    else
+        warn "Собрано, но команда fetch не найдена в PATH."
+    fi
+}
+
+# Установка выбранных категорий (аргументы — номера категорий).
+software_install_console() {
+    local -a items=() c
+    for c in "$@"; do
+        mapfile -t -O "${#items[@]}" items < <(fun_group_items "$c")
+    done
+    (( ${#items[@]} == 0 )) && { warn "Нет пакетов в выбранных категориях."; return 1; }
+
+    select_packages "Консольные приколы" "${items[@]}" || { warn "Отменено."; return 0; }
+    (( ${#SELECTED_PACKAGES[@]} == 0 )) && { warn "Ничего не выбрано."; return 0; }
+
+    # Отделяем пакеты от того, что собирается из исходников
+    local -a pkgs=() p
+    local want_areofyl=0
+    for p in "${SELECTED_PACKAGES[@]}"; do
+        if [[ "$p" == "$CUSTOM_SRC_FETCH" ]]; then want_areofyl=1; else pkgs+=("$p"); fi
+    done
+
+    local rc=0
+    (( ${#pkgs[@]} )) && { software_install_pkgs "${pkgs[@]}" || rc=1; }
+    (( want_areofyl )) && { install_areofyl_fetch || rc=1; }
+    return $rc
+}
+
+# Вкладка «Консольные приколы»: подпапки по категориям
+software_tab_console() {
+    while true; do
+        menu_select "Консольные приколы — выберите раздел" \
+            "1|Приколы и визуализации" \
+            "2|Консольные игры" \
+            "3|Мониторы и системные утилиты" \
+            "4|Музыка, медиа, браузеры" \
+            "5|Полезные CLI-утилиты" \
+            "6|Кастомные фетчи" \
+            "7|Всё подряд (все разделы)" \
+            "0|Назад" || return 0
+
+        case "$MENU_CHOICE" in
+            0) return 0 ;;
+            7) software_install_console 1 2 3 4 5 6; pause ;;
+            [1-6]) software_install_console "$MENU_CHOICE"; pause ;;
+        esac
+    done
+}
+
+# Вкладка «Кастомные фетчи» (ярлык на раздел 6)
+software_tab_fetches() { software_install_console 6; }
+
+# Совместимость: используется в полной установке (пункт 1)
+install_fun_tools_core() { software_tab_console; }
+
+install_fun_tools() {
+    clear
+    info "=== Консольные приколы ==="
+    echo
+    software_tab_console
+}
+
+# ------------------------------------------------------------------------------
+# 8.1 GPU SCREEN RECORDER
+# ------------------------------------------------------------------------------
+install_gsr_core() {
+    info "=== Установка GPU Screen Recorder ==="
+    if has gpu-screen-recorder && has gpu-screen-recorder-ui; then
+        ok "GPU Screen Recorder уже установлен."
+        return 0
+    fi
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    warn "Установка gpu-screen-recorder + gpu-screen-recorder-ui..."
+    pkg_install gpu-screen-recorder gpu-screen-recorder-ui \
+        || { err "Не удалось установить GPU Screen Recorder."; return 1; }
+    ok "GPU Screen Recorder установлен (движок + оверлей UI)."
+}
+
+install_gsr() { clear; install_gsr_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 8.2 УТИЛИТЫ ДЛЯ АРХИВОВ
+# ------------------------------------------------------------------------------
+install_archive_tools_core() {
+    info "=== Установка утилит для архивов ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    warn "Устанавливаю: ${ARCHIVE_TOOLS[*]}"
+    pkg_install "${ARCHIVE_TOOLS[@]}" \
+        || { err "Часть утилит для архивов не установилась."; return 1; }
+    ok "Утилиты для архивов установлены (GUI: Xarchiver; консоль: tar/zip/unzip/unrar/7zip/...)."
+}
+
+install_archive_tools() { clear; install_archive_tools_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 8.3 ФАЙРВОЛ (ufw или firewalld)
+# ------------------------------------------------------------------------------
+configure_firewall() {
+    clear
+    info "=== Настройка файрвола ==="
+    echo
+    echo -e "${BOLD}Разница между ufw и firewalld:${NC}"
+    echo "  • ufw (Uncomplicated Firewall) — простой фронтенд к nftables/iptables."
+    echo "    Лёгкий и понятный, идеален для домашнего ПК и ноутбука."
+    echo "  • firewalld — динамический менеджер зон (zones) и сервисов."
+    echo "    Гибче (профили сетей, зоны), удобнее для серверов и частой смены сетей."
+    echo "  Оба фильтруют трафик одинаково. Для личной системы проще ufw."
+    echo
+
+    local fw=""
+    has ufw && fw=ufw
+    [[ -z "$fw" ]] && has firewall-cmd && fw=firewalld
+
+    if [[ -z "$fw" ]]; then
+        echo "Какой файрвол установить?"
+        echo "1) ufw (проще, рекомендую для ПК)"
+        echo "2) firewalld (зоны, для серверов)"
+        echo "3) Не устанавливать"
+        local c; read -rp "Ваш выбор [1-3]: " c
+        case "$c" in
+            2) fw=firewalld ;;
+            3) info "Пропущено."; pause; return 0 ;;
+            *) fw=ufw ;;
+        esac
+    else
+        info "Уже установлен файрвол: $fw"
+    fi
+
+    ensure_sudo || { pause; return; }
+
+    if [[ "$fw" == ufw ]]; then
+        has ufw || pkg_install ufw || { err "Не удалось установить ufw."; pause; return; }
+        info "Включаю ufw: входящие запрещены, исходящие разрешены..."
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        sudo ufw --force enable
+        sudo systemctl enable --now ufw 2>/dev/null || true
+        ok "ufw включён (входящие запрещены, исходящие разрешены)."
+        sudo ufw status verbose
+    else
+        has firewall-cmd || pkg_install firewalld || { err "Не удалось установить firewalld."; pause; return; }
+        info "Включаю firewalld (зона public)..."
+        sudo systemctl enable --now firewalld
+        sudo firewall-cmd --set-default-zone=public
+        sudo firewall-cmd --permanent --zone=public --set-target=default
+        sudo firewall-cmd --reload
+        ok "firewalld включён (зона public)."
+        sudo firewall-cmd --list-all
+    fi
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 9.2 FLATPAK + FLATHUB (+ SOBER / ROBLOX)
+# ------------------------------------------------------------------------------
+# Установка и базовая настройка Flatpak: сам flatpak + портал + репозиторий Flathub
+setup_flatpak_core() {
+    info "=== Установка и настройка Flatpak ==="
+    ensure_sudo || return 1
+    pacman_busy && return 1
+
+    if has flatpak; then
+        ok "Flatpak уже установлен."
+    else
+        warn "Установка flatpak и xdg-desktop-portal-gtk..."
+        pac_install flatpak xdg-desktop-portal-gtk || { err "Не удалось установить flatpak."; return 1; }
+    fi
+
+    warn "Добавляю репозиторий Flathub..."
+    if sudo flatpak remote-add --if-not-exists flathub "$FLATPAK_REMOTE_URL"; then
+        ok "Flathub готов."
+    else
+        warn "Системное добавление не удалось — пробую для пользователя."
+        if flatpak remote-add --user --if-not-exists flathub "$FLATPAK_REMOTE_URL"; then
+            ok "Flathub добавлен для пользователя."
+        else
+            err "Не удалось добавить Flathub."
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Установка Sober (Roblox) из Flathub
+install_sober() {
+    has flatpak || { err "Flatpak не установлен — сначала выполните настройку Flatpak."; return 1; }
+    ensure_sudo || return 1
+
+    info "Установка Sober (Roblox на Linux) из Flathub..."
+    if sudo flatpak install -y --noninteractive flathub "$SOBER_APP"; then
+        ok "Sober установлен. Запуск: flatpak run $SOBER_APP"
+        return 0
+    fi
+    warn "Системная установка не удалась — пробую для пользователя."
+    if flatpak install -y --noninteractive --user flathub "$SOBER_APP"; then
+        ok "Sober установлен (для пользователя). Запуск: flatpak run $SOBER_APP"
+        return 0
+    fi
+    err "Не удалось установить Sober."
+    return 1
+}
+
+setup_flatpak() {
+    clear
+    setup_flatpak_core || { pause; return; }
+    if confirm "Установить Sober (Roblox на Linux) из Flathub?"; then
+        install_sober
+    else
+        info "Sober пропущен."
+    fi
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 9.3 FREESM LAUNCHER (MINECRAFT, AUR)
+# ------------------------------------------------------------------------------
+install_freesm_core() {
+    warn "FreeSM Launcher в Debian-версии не устанавливается автоматически (AUR/Arch-пакет). Установите вручную из официального источника, если нужен."
+    return 1
+}
+
+install_freesm() { clear; install_freesm_core; pause; }
+
+# ------------------------------------------------------------------------------
+# 10. ОПТИМИЗАЦИЯ И ОЧИСТКА
+# ------------------------------------------------------------------------------
+optimize_system() {
+    clear
+    info "=== Оптимизация и очистка ==="
+    confirm "Выполнить очистку (apt cache, autoremove, журналы)?" || { pause; return; }
+    ensure_sudo || { pause; return; }
+
+    warn "[1/4] Кэш apt..."
+    sudo apt-get clean -y || true
+    sudo apt-get autoclean -y || true
+
+    warn "[2/4] Неиспользуемые пакеты..."
+    sudo apt-get autoremove --purge -y || warn "autoremove завершился с предупреждением."
+
+    warn "[3/4] Журнал systemd (лимит $JOURNAL_MAX)..."
+    sudo journalctl --vacuum-size="$JOURNAL_MAX" || true
+
+    warn "[4/4] Flatpak/крэш-дампы..."
+    has flatpak && flatpak uninstall --unused -y 2>/dev/null || true
+    sudo find /var/lib/systemd/coredump -type f -mtime +30 -delete 2>/dev/null || true
+
+    ok "Очистка завершена."
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 11. БЭКАП DOTFILES
+# ------------------------------------------------------------------------------
+backup_dotfiles() {
+    clear
+    info "=== Бэкап конфигураций (~/.config) ==="
+    echo
+
+    has zstd || { warn "Устанавливаю zstd..."; pkg_install zstd || { pause; return; }; }
+
+    local -a existing=(); local cfg
+    for cfg in "${DOTFILES[@]}"; do
+        if [[ -e "$HOME/.config/$cfg" ]]; then existing+=("$cfg"); else warn "Пропуск (нет): $cfg"; fi
+    done
+    if (( ${#existing[@]} == 0 )); then
+        err "Нет ни одного каталога для бэкапа."; pause; return
+    fi
+
+    mkdir -p "$BACKUP_DIR"
+    local backup
+    backup="$BACKUP_DIR/dotfiles_backup_$(date +%Y-%m-%d_%H%M%S).tar.zst"
+
+    if tar --zstd -cf "$backup" -C "$HOME/.config" "${existing[@]}" 2>>"$LOG_FILE"; then
+        if tar --zstd -tf "$backup" &>/dev/null; then
+            ok "Бэкап создан и проверен: ${BOLD}$backup${NC}${GREEN} ($(du -h "$backup" | awk '{print $1}'))"
+        else
+            err "Архив создан, но проверка целостности не пройдена!"
+        fi
+    else
+        err "Ошибка создания архива (подробности: $LOG_FILE)."
+        rm -f "$backup"; pause; return
+    fi
+
+    local -a old
+    mapfile -t old < <(ls -1t "$BACKUP_DIR"/dotfiles_backup_*.tar.zst 2>/dev/null | tail -n +$((BACKUP_KEEP + 1)))
+    if (( ${#old[@]} > 0 )); then
+        rm -f -- "${old[@]}"
+        echo "Удалено старых бэкапов: ${#old[@]} (хранится последних: $BACKUP_KEEP)."
+    fi
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 12. РЕМОНТ КЛЮЧЕЙ PACMAN
+# ------------------------------------------------------------------------------
+fix_pacman_keys() {
+    clear
+    info "=== Ремонт apt/dpkg ==="
+    confirm "Выполнить dpkg --configure -a и apt-get update --fix-missing?" || { pause; return; }
+    ensure_sudo || { pause; return; }
+    sudo dpkg --configure -a || true
+    sudo apt-get -f install -y || true
+    sudo apt-get update --fix-missing -y || true
+    ok "Базовый ремонт apt/dpkg выполнен."
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 13. ЗЕРКАЛА (REFLECTOR)
+# ------------------------------------------------------------------------------
+update_mirrors() {
+    clear
+    warn "На Debian зеркала настраиваются в /etc/apt/sources.list или /etc/apt/sources.list.d/. Автоматическая замена не выполняется."
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# 14. HYPRLAND / WAYLAND / AUDIO / SERPANTINUM
+# ------------------------------------------------------------------------------
+hypr_tools() {
+    clear
+    info "=== Утилиты Hyprland / Wayland / Audio ==="
+    echo
+    echo "1) Перезапустить Waybar"
+    echo "2) Перезапустить Pipewire / WirePlumber (проблемы со звуком)"
+    echo "3) Перезагрузить конфиг Hyprland"
+    echo "4) Показать последние ошибки из лога Hyprland"
+    echo "5) Перезапустить Serpantinum / Quickshell"
+    echo "0) Назад"
+    local c
+    read -rp "Выберите [0-5]: " c
+    case "$c" in
+        1)
+            if has waybar; then
+                pkill -x waybar 2>/dev/null; sleep 0.3
+                nohup waybar &>/dev/null & disown
+                ok "Waybar перезапущен."
+            else
+                err "waybar не установлен."
+            fi ;;
+        2)
+            if systemctl --user restart pipewire pipewire-pulse wireplumber; then
+                ok "Звуковой стек перезапущен."
+            else
+                err "Не удалось перезапустить сервисы."
+            fi ;;
+        3)
+            if has hyprctl && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+                hyprctl reload && ok "Конфиг Hyprland перезагружен."
+            else
+                err "Hyprland не запущен в этой сессии."
+            fi ;;
+        4)
+            local d last
+            d="${XDG_RUNTIME_DIR:-/run/user/$UID}/hypr"
+            last=$(ls -1t "$d"/*/hyprland.log 2>/dev/null | head -1)
+            if [[ -n "$last" ]]; then
+                grep -iE 'err|warn|crit' "$last" | tail -n 30
+            else
+                err "Лог не найден в $d."
+            fi ;;
+        5)
+            if has quickshell; then
+                pkill -f quickshell 2>/dev/null
+                has serpantinumd && (nohup serpantinumd start &>/dev/null & disown)
+                ok "Serpantinum/Quickshell перезапущен."
+            else
+                err "quickshell не установлен."
+            fi ;;
+        0) return ;;
+        *) err "Неверный выбор" ;;
+    esac
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# ПОДМЕНЮ «ИНСТРУМЕНТЫ СИСТЕМЫ»
+# ------------------------------------------------------------------------------
+system_menu() {
+    local choice
+    while true; do
+        clear
+        echo -e "${BOLD}${CYAN}====================================================${NC}"
+        echo -e "${BOLD}${CYAN}              ИНСТРУМЕНТЫ СИСТЕМЫ                    ${NC}"
+        echo -e "${BOLD}${CYAN}====================================================${NC}\n"
+        echo -e "  ${GREEN}1)${NC} ${BOLD}Аудит и оценка системы${NC}"
+        echo -e "  ${GREEN}2)${NC} Полное обновление системы (apt + flatpak)"
+        echo -e "  ${GREEN}3)${NC} Оптимизация и очистка"
+        echo -e "  ${GREEN}4)${NC} Бэкап конфигураций (.tar.zst)"
+        echo -e "  ${GREEN}5)${NC} Ремонт apt/dpkg (dpkg --configure -a, apt update)"
+        echo -e "  ${GREEN}6)${NC} Обновить зеркала (Arch-only)"
+        echo -e "  ${GREEN}7)${NC} Утилиты Hyprland / Wayland / Audio"
+        echo -e "  ${RED}0)${NC} Назад"
+        echo
+        read -rp "Номер пункта [0-7]: " choice
+        case "$choice" in
+            1) run_audit ;;
+            2) update_system ;;
+            3) optimize_system ;;
+            4) backup_dotfiles ;;
+            5) fix_pacman_keys ;;
+            6) update_mirrors ;;
+            7) hypr_tools ;;
+            0) return ;;
+            *) err "Неверный пункт меню"; sleep 1 ;;
+        esac
+    done
+}
+
+# ------------------------------------------------------------------------------
+# ПОЛНАЯ УСТАНОВКА
+# ------------------------------------------------------------------------------
+full_setup() {
+    clear
+    info "===================================================="
+    info "        ПОЛНАЯ УСТАНОВКА И НАСТРОЙКА СИСТЕМЫ         "
+    info "===================================================="
+    echo
+    echo "Будет выполнено:"
+    echo "  1. Обновление системы"
+    echo "  2. Проверка пакетного менеджера (apt)"
+    echo "  3. Dotfiles профиль (end-4 / serpantinum / stylish-dots)"
+    echo "  4. Установка Fish + плагины + конфиг"
+    echo "  5. Установка Neovim + Neovide + конфиг"
+    echo "  6. Установка mpv"
+    echo "  7. GPU Screen Recorder + утилиты для архивов (Xarchiver)"
+    echo "  8. Flatpak + Flathub (и Sober по выбору)"
+    echo "  9. FreeSM Launcher (по выбору)"
+    echo " 10. Необязательное ПО — по галочкам (браузеры, мессенджеры, игры...)"
+    echo " 11. Консольные приколы — по галочкам (игры, фетчи, визуализации, CLI...)"
+    echo " 12. Файрвол (ufw / firewalld — по выбору)"
+    echo " 13. Применение тем Serpantinum (archy, авто-поиск)"
+    echo " 14. MangoWC dotfiles (если есть в репозитории, по выбору)"
+    echo " 15. end-4 / illogical-impulse конфиг (мой текущий, по выбору)"
+    echo
+    gpu_drivers_notice
+    confirm "Начать полную установку?" || { warn "Отменено."; pause; return; }
+
+    ensure_sudo || { pause; return; }
+
+    # Serpantinum обычно ориентирован на Arch; на Debian используй только совместимые пункты.
+    # 
+    update_system_core
+
+    warn "AUR-хелпер пропущен (Debian)."
+
+    choose_dotfiles_profile
+    if [[ "$DOTFILES_PROFILE" == "serpantinum" ]]; then
+        if ! install_serpantinum_core; then
+            warn "Serpantinum не установлен."
+            [[ -f "$SERPANTINUM_STATE_DIR/version" ]] || update_system_core
+        fi
+    elif [[ "$DOTFILES_PROFILE" == "end-4" ]]; then
+        install_end4_core || warn "end-4 конфиг не применён."
+    else
+        info "Профиль stylish-dots: применю fish/nvim/end-4 после установки пакетов."
+    fi
+
+    install_fish_core
+    install_neovim_core
+    install_mpv_core || warn "mpv не установлен."
+    install_gsr_core || warn "GPU Screen Recorder не установлен."
+    install_archive_tools_core || warn "Утилиты для архивов не установлены."
+    setup_flatpak_core || warn "Flatpak не настроен."
+    if confirm "Установить Sober (Roblox) через Flatpak?"; then install_sober; fi
+    if confirm "Установить FreeSM Launcher (Minecraft, AUR)?"; then install_freesm_core; fi
+
+    # Необязательное ПО — по галочкам (браузеры, мессенджеры, игры и т.д.)
+    echo
+    if confirm "Выбрать необязательное ПО (браузеры, мессенджеры, игры)?"; then
+        install_essentials_core apps || warn "Дополнительное ПО не установлено."
+    fi
+
+    # Консольные «приколы» — тоже по галочкам
+    echo
+    if confirm "Выбрать консольные приколы (cava, cbonsai, tty-clock, ...)?"; then
+        install_fun_tools_core || warn "Консольные приколы не установлены."
+    fi
+
+    configure_firewall
+    if [[ "$DOTFILES_PROFILE" == "serpantinum" ]]; then
+        apply_archy_themes
+    fi
+    if [[ "$DOTFILES_PROFILE" == "stylish-dots" ]]; then
+        echo
+        if confirm "Применить stylish-dots (fish/nvim/end-4 из репо)?"; then
+            apply_stylish_dots || warn "stylish-dots не применены полностью."
+        fi
+    fi
+    if [[ -d "${CONFIGS_DIR:-}/mango" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/mango" ]]; }; then
+        echo
+        if confirm "Установить/применить MangoWC dotfiles из репозитория?"; then
+            install_mango_core || warn "MangoWC dotfiles не применены."
+        fi
+    fi
+    if [[ "$DOTFILES_PROFILE" != "end-4" && "$DOTFILES_PROFILE" != "stylish-dots" ]]; then
+        if [[ -d "${CONFIGS_DIR:-}/end4" ]] || { resolve_configs >/dev/null 2>&1 && [[ -d "${CONFIGS_DIR:-}/end4" ]]; }; then
+            echo
+            if confirm "Установить/применить end-4 / illogical-impulse конфиг (мой текущий)?"; then
+                install_end4_core || warn "end-4 конфиг не применён."
+            fi
+        fi
+    fi
+
+    echo
+    ok "Полная установка завершена! Рекомендуется перезагрузка."
+    gpu_drivers_notice
+    serpantinum_notice
+    pause
+}
+
+# ------------------------------------------------------------------------------
+# ГЛАВНОЕ МЕНЮ
+# ------------------------------------------------------------------------------
+usage() {
+    cat << USAGE
+Использование: ${0##*/} [-a] [-f] [-h]
+  -a   выполнить системный аудит без меню и выйти
+  -f   выполнить полную установку и настройку без меню
+  -h   показать справку
+Конфигурация (необязательно): $CONFIG_FILE
+Лог операций: $LOG_FILE
+Репозиторий: https://github.com/$REPO_SLUG
+GitHub Pages: https://stylishlasher.github.io/stylish-dots/
+USAGE
+}
+
+main_menu() {
+    local choice
+    while true; do
+        clear
+        echo -e "${BOLD}${CYAN}====================================================${NC}"
+        echo -e "${BOLD}${CYAN}            LINUX MULTITOOL (Debian)                        ${NC}"
+        echo -e "${BOLD}${CYAN}====================================================${NC}\n"
+        echo -e "  ${GREEN}1)${NC} ${BOLD}Полная установка и настройка (всё)${NC}"
+        echo -e "  ${GREEN}2)${NC} Инструменты системы (аудит, очистка, бэкап...)"
+        echo -e "  ${CYAN}--------------------------------------------------${NC}"
+        echo -e "  ${GREEN}3)${NC} Установить AUR-хелпер (Arch-only, пропуск на Debian)"
+        echo -e "  ${GREEN}4)${NC} Установить dotfiles (выбор: end-4 / serpantinum / stylish-dots)"
+        echo -e "  ${GREEN}5)${NC} Установить Fish + плагины + конфиг"
+        echo -e "  ${GREEN}6)${NC} Установить Neovim + Neovide (выбор: lazyvim / super-easy-casual)"
+        echo -e "  ${GREEN}7)${NC} Применить мои конфиги (fish / nvim / end-4 / темы)"
+        echo -e "  ${GREEN}8)${NC} Установить ПО (вкладки: базовое / приложения / приколы / фетчи)"
+        echo -e "  ${GREEN}9)${NC} Установить Flatpak + Flathub (+ Sober)"
+        echo -e "  ${GREEN}10)${NC} Установить mpv"
+        echo -e "  ${GREEN}11)${NC} Установить FreeSM Launcher (Minecraft)"
+        echo -e "  ${GREEN}12)${NC} Установить GPU Screen Recorder"
+        echo -e "  ${GREEN}13)${NC} Установить утилиты для архивов (Xarchiver и др.)"
+        echo -e "  ${GREEN}14)${NC} Настроить файрвол (ufw / firewalld)"
+        echo -e "  ${GREEN}15)${NC} Установить консольные приколы (игры, фетчи, визуализации, CLI...)"
+        echo -e "  ${GREEN}16)${NC} MangoWC: зависимости + применить dotfiles"
+        echo -e "  ${GREEN}17)${NC} end-4 / illogical-impulse: зависимости + мой конфиг"
+        echo -e "  ${RED}0)${NC} Выход"
+        echo
+        read -rp "Номер пункта [0-17]: " choice
+
+        case "$choice" in
+            1) full_setup ;;
+            2) system_menu ;;
+            3) install_aur_helper_menu ;;
+            4) install_dotfiles ;;
+            5) install_fish ;;
+            6) install_neovim ;;
+            7) apply_all_configs ;;
+            8) install_software_menu ;;
+            9) setup_flatpak ;;
+            10) install_mpv ;;
+            11) install_freesm ;;
+            12) install_gsr ;;
+            13) install_archive_tools ;;
+            14) configure_firewall ;;
+            15) install_fun_tools ;;
+            16) install_mango ;;
+            17) install_end4 ;;
+            0) clear; echo "До связи!"; exit 0 ;;
+            *) err "Неверный пункт меню"; sleep 1 ;;
+        esac
+    done
+}
+
+# ---------------------------------- Старт ------------------------------------
+AUDIT_ONLY=0
+FULL_ONLY=0
+while getopts ":afh" opt; do
+    case "$opt" in
+        a) AUDIT_ONLY=1 ;;
+        f) FULL_ONLY=1 ;;
+        h) usage; exit 0 ;;
+        *) usage; exit 1 ;;
+    esac
+done
+
+require_arch
+if (( AUDIT_ONLY )); then
+    run_audit
+elif (( FULL_ONLY )); then
+    full_setup
+else
+    main_menu
+fi
