@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""styletext - render text as ASCII art with optional styles."""
+from __future__ import annotations
+import argparse, os, shutil, subprocess, sys, random
+
+FONTS = ["standard","slant","small","big","block","bubble","digital","mini","script","shadow","smscript","smshadow","smslant","banner","doom","lean","speed"]
+
+def has(cmd): return shutil.which(cmd) is not None
+
+def render_figlet(text, font, width):
+    cmd = ["figlet"]
+    if font: cmd += ["-f", font]
+    if width: cmd += ["-w", str(width)]
+    cmd.append(text)
+    return subprocess.run(cmd, capture_output=True, text=True).stdout
+
+def render_toilet(text, font, filter_name, width):
+    cmd = ["toilet"]
+    if font: cmd += ["-f", font]
+    if filter_name: cmd += ["-F", filter_name]
+    if width: cmd += ["-w", str(width)]
+    cmd.append(text)
+    return subprocess.run(cmd, capture_output=True, text=True).stdout
+
+def render_python(text):
+    # simple big block fallback
+    chars = {
+        'A':["  #  "," # # ","#####","#   #","#   #"],'B':["#### ","#   #","#### ","#   #","#### "],
+        'C':[" ####","#    ","#    ","#    "," ####"],'D':["#### ","#   #","#   #","#   #","#### "],
+        'E':["#####","#    ","#### ","#    ","#####"],'F':["#####","#    ","#### ","#    ","#    "],
+        'G':[" ####","#    ","# ###","#   #"," ####"],'H':["#   #","#   #","#####","#   #","#   #"],
+        'I':["#####","  #  ","  #  ","  #  ","#####"],'J':["#####","   # ","   # ","#  # "," ##  "],
+        'K':["#   #","#  # ","###  ","#  # ","#   #"],'L':["#    ","#    ","#    ","#    ","#####"],
+        'M':["#   #","## ##","# # #","#   #","#   #"],'N':["#   #","##  #","# # #","#  ##","#   #"],
+        'O':[" ### ","#   #","#   #","#   #"," ### "],'P':["#### ","#   #","#### ","#    ","#    "],
+        'Q':[" ### ","#   #","# # #","#  # "," ## #"],'R':["#### ","#   #","#### ","#  # ","#   #"],
+        'S':[" ####","#    "," ### ","    #","#### "],'T':["#####","  #  ","  #  ","  #  ","  #  "],
+        'U':["#   #","#   #","#   #","#   #"," ### "],'V':["#   #","#   #","#   #"," # # ","  #  "],
+        'W':["#   #","#   #","# # #","## ##","#   #"],'X':["#   #"," # # ","  #  "," # # ","#   #"],
+        'Y':["#   #"," # # ","  #  ","  #  ","  #  "],'Z':["#####","   # ","  #  "," #   ","#####"],
+        '0':[" ### ","#  ##","# # #","##  #"," ### "],'1':["  #  "," ##  ","  #  ","  #  "," ### "],
+        '2':[" ### ","#   #","  ## "," #   ","#####"],'3':["#### ","    #"," ### ","    #","#### "],
+        '4':["#   #","#   #","#####","    #","    #"],'5':["#####","#    ","#### ","    #","#### "],
+        '6':[" ### ","#    ","#### ","#   #"," ### "],'7':["#####","   # ","  #  "," #   "," #   "],
+        '8':[" ### ","#   #"," ### ","#   #"," ### "],'9':[" ### ","#   #"," ####","    #"," ### "],
+        ' ': ["     ","     ","     ","     ","     "],'-':["     ","     ","#####","     ","     "],
+        '!':["  #  ","  #  ","  #  ","     ","  #  "],'?':[" ### ","#   #","  ## ","     ","  #  "],
+        '.':["     ","     ","     ","     ","  #  "],
+    }
+    rows = ["","","","",""]
+    for ch in text.upper():
+        g = chars.get(ch, chars[' '])
+        for i in range(5):
+            rows[i] += g[i] + " "
+    return "\n".join(rows) + "\n"
+
+def main():
+    p = argparse.ArgumentParser(description="Render text as ASCII art")
+    p.add_argument("text", nargs="*", help="Text to render")
+    p.add_argument("-f","--font", default="standard", help="figlet/toilet font")
+    p.add_argument("-F","--filter", dest="flt", default=None, help="toilet filter: metal, gay, border, etc")
+    p.add_argument("-w","--width", type=int, default=None)
+    p.add_argument("--list-fonts", action="store_true")
+    p.add_argument("--random-font", action="store_true")
+    p.add_argument("--mode", choices=["auto","figlet","toilet","basic"], default="auto")
+    args = p.parse_args()
+
+    if args.list_fonts:
+        if has("figlet"):
+            d = "/usr/share/figlet"
+            if os.path.isdir(d):
+                for x in sorted(os.listdir(d)):
+                    if x.endswith(".flf"): print(x[:-4])
+        else:
+            print("\n".join(FONTS))
+        return
+
+    text = " ".join(args.text).strip()
+    if not text:
+        text = sys.stdin.read().rstrip("\n") or "hello"
+    font = random.choice(FONTS) if args.random_font else args.font
+
+    out = ""
+    if args.mode in ("auto","toilet") and has("toilet") and (args.flt or args.mode=="toilet"):
+        out = render_toilet(text, font, args.flt, args.width)
+    if not out and args.mode in ("auto","figlet") and has("figlet"):
+        out = render_figlet(text, font, args.width)
+    if not out and args.mode in ("auto","toilet") and has("toilet"):
+        out = render_toilet(text, font, args.flt, args.width)
+    if not out:
+        out = render_python(text)
+    sys.stdout.write(out)
+
+if __name__ == "__main__":
+    main()

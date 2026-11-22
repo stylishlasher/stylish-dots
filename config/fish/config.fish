@@ -24,8 +24,23 @@ if status is-interactive
     alias claer "printf '\033[2J\033[3J\033[1;1H'"
     alias pamcan pacman
     alias q 'qs -c ii'
+    alias please 'sudo'
+    alias .. 'cd ..'
+    alias ... 'cd ../..'
+    alias .... 'cd ../../..'
+    alias gs 'git status -sb'
+    alias ga 'git add'
+    alias gc 'git commit'
+    alias gp 'git push'
+    alias gl 'git log --oneline --decorate -20'
+    alias gdiff 'git diff'
+    alias myip 'curl -fsS ifconfig.me'
+    alias ports 'ss -tulpn'
+    alias path 'printf "%s\n" $PATH'
     if test "$TERM" != "linux"
         alias ls 'eza --icons=auto'
+        alias ll 'eza -lah --icons=auto'
+        alias lt 'eza --tree --level=2 --icons=auto'
     end
     if test "$TERM" = "xterm-kitty"
         alias ssh 'kitten ssh'

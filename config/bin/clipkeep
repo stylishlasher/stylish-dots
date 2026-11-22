@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""clipkeep - tiny clipboard history helper (Wayland wl-paste/wl-copy, X11 xclip fallback)."""
+from __future__ import annotations
+import argparse, json, os, shutil, subprocess, time
+from pathlib import Path
+
+HIST = Path(os.environ.get("XDG_STATE_HOME", Path.home()/".local/state"))/"clipkeep/history.jsonl"
+
+def read_clip():
+    if shutil.which("wl-paste"):
+        r = subprocess.run(["wl-paste","-n"], capture_output=True, text=True)
+        if r.returncode==0: return r.stdout
+    if shutil.which("xclip"):
+        r = subprocess.run(["xclip","-o","-selection","clipboard"], capture_output=True, text=True)
+        if r.returncode==0: return r.stdout
+    return ""
+
+def write_clip(text):
+    if shutil.which("wl-copy"):
+        subprocess.run(["wl-copy"], input=text, text=True); return True
+    if shutil.which("xclip"):
+        subprocess.run(["xclip","-selection","clipboard"], input=text, text=True); return True
+    return False
+
+def load():
+    items=[]
+    if HIST.exists():
+        for line in HIST.read_text(encoding="utf-8", errors="ignore").splitlines():
+            try: items.append(json.loads(line))
+            except: pass
+    return items
+
+def save_item(text):
+    if not text.strip(): return
+    HIST.parent.mkdir(parents=True, exist_ok=True)
+    items = load()
+    if items and items[-1].get("text")==text: return
+    items.append({"ts":int(time.time()),"text":text})
+    items = items[-200:]
+    HIST.write_text("\n".join(json.dumps(i,ensure_ascii=False) for i in items)+"\n", encoding="utf-8")
+
+def main():
+    ap = argparse.ArgumentParser(description="Clipboard history helper")
+    ap.add_argument("cmd", nargs="?", default="list", choices=["list","save","copy","clear","daemon"])
+    ap.add_argument("n", nargs="?", type=int, default=1)
+    ap.add_argument("--interval", type=float, default=1.5)
+    args = ap.parse_args()
+    if args.cmd=="save":
+        save_item(read_clip()); print("saved")
+    elif args.cmd=="list":
+        items=load()
+        for i,it in enumerate(items[-20:],1):
+            t=it['text'].replace('\n','\\n')
+            if len(t)>80: t=t[:77]+"..."
+            print(f"{i:2d}. {t}")
+    elif args.cmd=="copy":
+        items=load()
+        if not items: print("empty"); return
+        idx = args.n-1 if args.n>0 else len(items)+args.n
+        idx = max(0,min(len(items)-1,idx))
+        write_clip(items[idx]["text"]); print("copied")
+    elif args.cmd=="clear":
+        HIST.unlink(missing_ok=True); print("cleared")
+    elif args.cmd=="daemon":
+        last=None
+        print("clipkeep daemon; Ctrl+C to stop")
+        while True:
+            cur=read_clip()
+            if cur!=last:
+                save_item(cur); last=cur
+            time.sleep(args.interval)
+
+if __name__=="__main__":
+    main()

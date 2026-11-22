@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""fakefetch - fake fastfetch/neofetch output for any distro/logo."""
+from __future__ import annotations
+import argparse, os, random, shutil, sys, subprocess
+
+# Small simple logos by key
+LOGOS = {
+"arch": [r"      /\      ",r"     /  \     ",r"    /\   \    ",r"   /      \   ",r"  /   ,,   \  ",r" /   |  |  -\ ",r"/_-''    ''-_\\"],
+"endeavouros": [r"      /\      ",r"    //  \\    ",r"   //    \ \  ",r" / /     _) ) ",r"/_/___-- __-  ",r" /____--      "],
+"ubuntu": [r"         _  ",r"     ---(_) ",r" _/  ---  \ ",r"(_) |   |   ",r"  \  --- _/ ",r"     ---(_) "],
+"debian": [r"  ____  ",r" /  _ \ ",r"|  / ) |",r"|  \_/  ",r" \____  ",r"        "],
+"fedora": [r"  _____ ",r" /   __|",r"|  |  _ ",r"|  |_| |",r" \____| "],
+"manjaro": [r"||||||||| ||||",r"||||||||| ||||",r"||||      ||||",r"|||| |||| ||||",r"|||| |||| ||||"],
+"nixos": [r"  \\  \\ //  ",r" ==\\__\\/ //",r"   //   \\// ",r"==//     //==",r" //\\___//   ",r"// /\\  \\==  "],
+"gentoo": [r" _-----_ ",r"(       \\",r"\    0   \\",r" \        )",r" /      _/",r"(     _-  ",r"\____-    "],
+"windows": [r"################  ################",r"################  ################",r"################  ################",r"################  ################",r"                                ",r"################  ################",r"################  ################",r"################  ################",r"################  ################"],
+"macos": [r"       .:'   ",r"    _ :'_    ",r" .`_`-'_``.  ",r":________.-' ",r":_______:    ",r" :_______`-; ",r"  `._.-._.'  "],
+"linux": [r"    ___    ",r"   (.. |   ",r"   (<> |   ",r"  / __  \  ",r" ( /  \ /| ",r"_/\ __)/_) ",r"\/-____\/  "],
+"void": [r"    _______ ",r" _ \______ -",r"| \  ___  \ |",r"| | /   \ | |",r"| | \___/ | |",r"| \______ \_|",r" -_______\   "],
+"mint": [r" ___________ ",r"|_          \\",r"  | | _____ |",r"  | | | | | |",r"  | | |_| | |",r"  | \_____/ |",r"  \_________/"],
+"alpine": [r"    /\    ",r"   /  \   ",r"  / /\ \  ",r" / /  \ \ ",r"/_/    \_\\"],
+"kali": [r"      ..   ",r"     .:.   ",r"    .:::.  ",r"   .:::::. ",r"  .::::::. ",r" .::::::::."],
+}
+
+ALIAS = {
+"archlinux":"arch","arch linux":"arch","endeavour":"endeavouros","endeavouros":"endeavouros","debian":"debian",
+"ubuntu":"ubuntu","fedora":"fedora","manjaro":"manjaro","nixos":"nixos","gentoo":"gentoo","windows":"windows",
+"win11":"windows","windows11":"windows","mac":"macos","macos":"macos","osx":"macos","linux":"linux",
+"void":"void","mint":"mint","linuxmint":"mint","alpine":"alpine","kali":"kali","kalilinux":"kali"
+}
+
+DISTRO_INFO = {
+"arch": ("Arch Linux","6.9.7-arch1-1","pacman","Hyprland","fish","kitty","AMD Ryzen 7","NVIDIA RTX 4070"),
+"endeavouros": ("EndeavourOS","6.9.7-arch1-1","pacman","Hyprland","fish","foot","AMD Ryzen 5","Radeon RX 6800"),
+"ubuntu": ("Ubuntu 24.04 LTS","6.8.0-35-generic","apt","GNOME","bash","gnome-terminal","Intel i7","Intel Iris Xe"),
+"debian": ("Debian GNU/Linux 12","6.1.0-21-amd64","apt","GNOME","bash","xterm","Intel i5","Intel UHD"),
+"fedora": ("Fedora Linux 40","6.9.5-200.fc40.x86_64","dnf","GNOME","zsh","ptyxis","AMD Ryzen 7","AMD Radeon"),
+"manjaro": ("Manjaro Linux","6.6.32-1-MANJARO","pacman","KDE Plasma","zsh","konsole","Intel i7","NVIDIA GTX 1660"),
+"nixos": ("NixOS 24.05","6.6.32","nix","Hyprland","fish","kitty","AMD Ryzen 9","NVIDIA RTX 4080"),
+"gentoo": ("Gentoo","6.6.30-gentoo","emerge","i3","zsh","urxvt","Intel i9","AMD Radeon"),
+"windows": ("Windows 11 Pro","10.0.22631","winget","Explorer","powershell","Windows Terminal","Intel i7","NVIDIA RTX 3060"),
+"macos": ("macOS Sonoma 14.5","23.5.0","brew","Aqua","zsh","Terminal.app","Apple M3","Apple M3"),
+"linux": ("Linux","6.8.0-generic","pkg","WM","sh","tty","CPU","GPU"),
+"void": ("Void Linux","6.6.31_1","xbps","sway","bash","foot","Intel i5","Intel UHD"),
+"mint": ("Linux Mint 22","6.8.0-35-generic","apt","Cinnamon","bash","gnome-terminal","AMD Ryzen 5","AMD Radeon"),
+"alpine": ("Alpine Linux v3.20","6.6.31-0-lts","apk","sway","ash","foot","Intel N100","Intel UHD"),
+"kali": ("Kali Linux","6.8.11-amd64","apt","Xfce","zsh","qterminal","Intel i7","NVIDIA GTX 1650"),
+}
+
+COLORS = {
+"arch":"\033[36m","endeavouros":"\033[35m","ubuntu":"\033[31m","debian":"\033[31m","fedora":"\033[34m",
+"manjaro":"\033[32m","nixos":"\033[34m","gentoo":"\033[35m","windows":"\033[34m","macos":"\033[37m",
+"linux":"\033[33m","void":"\033[32m","mint":"\033[32m","alpine":"\033[34m","kali":"\033[34m"
+}
+RESET="\033[0m"; BOLD="\033[1m"; DIM="\033[2m"
+
+def c(text,color,enabled):
+    return f"{color}{text}{RESET}" if enabled else text
+
+def normalize(name):
+    k = name.strip().lower().replace("_"," ").replace("-"," ")
+    k2 = k.replace(" ","")
+    return ALIAS.get(k, ALIAS.get(k2, k2))
+
+def get_logo(key):
+    if key in LOGOS: return LOGOS[key][:]
+    # try fastfetch --print-logos logic? fallback generate
+    return [f"  [{key}]  ", "  ??????  ", "  ??????  ", "  ??????  "]
+
+def fake_info(key):
+    d = DISTRO_INFO.get(key, (key.title()+" Linux","6.8.0-generic","pkg","WM","sh","terminal","CPU","GPU"))
+    osn, kern, pkgmgr, wm, shell, term, cpu, gpu = d
+    mem_total = random.choice([8,16,32,64])
+    mem_used = round(random.uniform(1.5, mem_total-1.5),1)
+    up_h = random.randint(0,72); up_m=random.randint(0,59)
+    pkgs = random.randint(400,2800)
+    res = random.choice(["1920x1080","2560x1440","3840x2160","3440x1440"])
+    return {
+        "os": osn, "kernel": kern, "uptime": f"{up_h}h {up_m}m", "packages": f"{pkgs} ({pkgmgr})",
+        "shell": shell, "wm": wm, "terminal": term, "cpu": cpu, "gpu": gpu,
+        "memory": f"{mem_used}GiB / {mem_total}GiB", "resolution": res,
+        "host": random.choice(["ThinkPad","Desktop","Laptop","VirtualBox","Custom PC"]),
+        "user": os.environ.get("USER","user"),
+    }
+
+def render_original(info, logo, color, color_on):
+    labels = [("OS","os"),("Kernel","kernel"),("Uptime","uptime"),("Packages","packages"),("Shell","shell"),("WM","wm"),("Terminal","terminal"),("Memory","memory")]
+    lines = [f"{c(BOLD+info['user']+'@'+info['host'].lower().replace(' ','-')+RESET, color, color_on)}", "-"*30]
+    for lab,key in labels:
+        lines.append(f"{c(lab+':', color, color_on):<18} {info[key]}")
+    return side_by_side(logo, lines, color, color_on)
+
+def render_stylish(info, logo, color, color_on):
+    # matches user's current fastfetch: small logo, key padding, separator space
+    labels = [("os      ","os"),("kernel  ","kernel"),("uptime  ","uptime"),("pkgs    ","packages"),("shell   ","shell"),("wm      ","wm"),("term    ","terminal"),("mem     ","memory")]
+    lines = []
+    for lab,key in labels:
+        lines.append(f"{c(lab, color, color_on)} {info[key]}")
+    return side_by_side(logo[:8], lines, color, color_on)
+
+def render_box(info, logo, color, color_on):
+    pairs = [("OS",info["os"]),("Kernel",info["kernel"]),("Uptime",info["uptime"]),("Pkgs",info["packages"]),("WM",info["wm"]),("Shell",info["shell"]),("Term",info["terminal"]),("Mem",info["memory"])]
+    w = max(len(f"{k}: {v}") for k,v in pairs) + 2
+    lines=[c("┌"+"─"*w+"┐",color,color_on)]
+    for k,v in pairs:
+        s=f" {k}: {v}"
+        lines.append(c("│",color,color_on)+s.ljust(w)+c("│",color,color_on))
+    lines.append(c("└"+"─"*w+"┘",color,color_on))
+    return side_by_side(logo, lines, color, color_on)
+
+def render_mini(info, logo, color, color_on):
+    # logo right/left small, compact key values
+    pairs = [("os",info["os"]),("kr",info["kernel"]),("up",info["uptime"]),("pk",info["packages"]),("wm",info["wm"]),("sh",info["shell"]),("mm",info["memory"])]
+    lines = [f"{c(k,color,color_on)} {v}" for k,v in pairs]
+    return side_by_side(logo[:6], lines, color, color_on)
+
+def render_ultra(info, logo, color, color_on):
+    # no logo, tiny
+    pairs = [("os",info["os"]),("kernel",info["kernel"]),("pkgs",info["packages"]),("wm",info["wm"]),("mem",info["memory"])]
+    return "\n".join(f"{c(k,color,color_on)}  {v}" for k,v in pairs) + "\n"
+
+def render_neon(info, logo, color, color_on):
+    labels = [("󰣇 OS","os"),("󰒋 Kernel","kernel"),("󰅐 Uptime","uptime"),("󰏖 Packages","packages"),("󰆍 Shell","shell"),("󰖲 WM","wm"),("󰆍 Term","terminal"),("󰍛 Memory","memory"),("󰹑 GPU","gpu")]
+    userline = c(f"╭─ {info['user']}@{info['host'].lower().replace(' ','-')}", color, color_on)
+    lines = [userline]
+    for lab,key in labels:
+        lines.append(f"{c('├─',color,color_on)} {c(lab,color,color_on)}  {info[key]}")
+    lines.append(c("╰──────────────────────────", color, color_on))
+    return side_by_side(logo, lines, color, color_on)
+
+def side_by_side(logo, lines, color, color_on):
+    lw = max((len(x) for x in logo), default=0)
+    h = max(len(logo), len(lines))
+    out=[]
+    for i in range(h):
+        l = logo[i] if i < len(logo) else " "*lw
+        r = lines[i] if i < len(lines) else ""
+        pad = " "*(lw - len(l) + 3)
+        out.append(f"{c(l,color,color_on)}{pad}{r}")
+    return "\n".join(out) + "\n"
+
+def main():
+    p = argparse.ArgumentParser(description="Fake fastfetch for fun")
+    p.add_argument("-l","--logo", "--distro", dest="distro", default="arch", help="Distro/logo name")
+    p.add_argument("-s","--style", choices=["original","stylish","mini","ultra","neon","box"], default="original")
+    p.add_argument("--no-color", action="store_true")
+    p.add_argument("--list", action="store_true", help="List known distro names")
+    args = p.parse_args()
+    if args.list:
+        print("\n".join(sorted(LOGOS.keys())))
+        return
+    key = normalize(args.distro)
+    logo = get_logo(key)
+    info = fake_info(key)
+    color_on = not args.no_color and sys.stdout.isatty()
+    color = COLORS.get(key, "\033[36m")
+    if args.style == "original": sys.stdout.write(render_original(info, logo, color, color_on))
+    elif args.style == "stylish": sys.stdout.write(render_stylish(info, logo, color, color_on))
+    elif args.style == "mini": sys.stdout.write(render_mini(info, logo, color, color_on))
+    elif args.style == "ultra": sys.stdout.write(render_ultra(info, logo, color, color_on))
+    elif args.style == "neon": sys.stdout.write(render_neon(info, logo, color, color_on))
+    elif args.style == "box": sys.stdout.write(render_box(info, logo, color, color_on))
+
+if __name__ == "__main__":
+    main()

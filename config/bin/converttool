@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""converttool - simple file conversion helper."""
+from __future__ import annotations
+import argparse, os, shutil, subprocess, sys
+from pathlib import Path
+
+def has(cmd): return shutil.which(cmd) is not None
+
+def run(cmd):
+    print("+", " ".join(cmd))
+    r = subprocess.run(cmd)
+    return r.returncode == 0
+
+def convert(src: Path, dst: Path):
+    s, d = src.suffix.lower(), dst.suffix.lower()
+    if s == d:
+        print("Source and target have same extension; copying.")
+        shutil.copy2(src, dst); return True
+
+    # images
+    img = {".png",".jpg",".jpeg",".webp",".gif",".bmp",".tiff",".avif",".ico",".svg"}
+    audio = {".mp3",".wav",".flac",".ogg",".m4a",".aac",".opus"}
+    video = {".mp4",".mkv",".webm",".mov",".avi",".gif"}
+    doc = {".md",".txt",".html",".pdf",".docx",".org",".rst"}
+
+    if s in img and d in img:
+        if has("magick"): return run(["magick", str(src), str(dst)])
+        if has("convert"): return run(["convert", str(src), str(dst)])
+        if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
+    if s in audio and d in audio:
+        if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
+        if has("sox"): return run(["sox",str(src),str(dst)])
+    if s in video and d in video or (s in video and d == ".gif"):
+        if has("ffmpeg"):
+            cmd=["ffmpeg","-y","-i",str(src)]
+            if d==".gif": cmd += ["-vf","fps=15,scale=640:-1:flags=lanczos"]
+            cmd.append(str(dst))
+            return run(cmd)
+    if s in audio and d in video:
+        if has("ffmpeg"):
+            return run(["ffmpeg","-y","-f","lavfi","-i","color=c=black:s=1280x720:r=30","-i",str(src),"-shortest","-c:v","libx264","-c:a","aac","-pix_fmt","yuv420p",str(dst)])
+    if s in doc and d in doc:
+        if has("pandoc"): return run(["pandoc",str(src),"-o",str(dst)])
+    # fallback ffmpeg
+    if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
+    print(f"No converter found for {s} -> {d}. Install ffmpeg/imagemagick/pandoc as needed.")
+    return False
+
+def main():
+    ap = argparse.ArgumentParser(description="Simple convert helper: converttool input.ext output.ext")
+    ap.add_argument("input", help="Input file")
+    ap.add_argument("output", help="Output file or target extension like .png")
+    ap.add_argument("--batch", action="store_true", help="Treat input as glob and output as extension")
+    args = ap.parse_args()
+
+    inp = args.input
+    out = args.output
+    if args.batch or ("*" in inp):
+        import glob
+        ext = out if out.startswith(".") else "."+out
+        files = glob.glob(inp)
+        ok=True
+        for f in files:
+            src=Path(f); dst=src.with_suffix(ext)
+            if src==dst: continue
+            ok = convert(src,dst) and ok
+        sys.exit(0 if ok else 1)
+    src=Path(inp)
+    if not src.exists():
+        print("Input not found:", src); sys.exit(1)
+    dst = Path(out)
+    if out.startswith(".") and "/" not in out and "\\" not in out:
+        dst = src.with_suffix(out)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    sys.exit(0 if convert(src,dst) else 1)
+
+if __name__ == "__main__":
+    main()

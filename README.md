@@ -210,6 +210,18 @@ C-фетчи перенесены в `config/fetches/unstable/`: `keyfetch`, `tr
 
 Статус: **UNSTABLE/BETA, kind of abandoned**. В мультитуле они не предлагаются как обычный дефолт — их нужно явно включить в выборе приветствия терминала.
 
+## Fish/CLI утилиты (полезности)
+
+В `config/bin/` и `config/fish/functions/` добавлены утилиты:
+
+- `fakefetch` — фейковый fastfetch/neofetch для дистро: `fakefetch -l arch -s stylish|original|mini|ultra|neon|box`
+- `styletext` — ASCII-арт текст: `styletext "hello"`, `styletext --random-font "hello"`, `styletext -F border "hi"` (figlet/toilet если есть)
+- `converttool` — конвертер файлов (ffmpeg/imagemagick/pandoc при наличии): `converttool in.png out.webp`, `converttool *.wav .mp3 --batch`
+- `clipkeep` — история буфера (wl-copy/wl-paste/xclip): `clipkeep save`, `clipkeep list`, `clipkeep copy 1`
+- `quicknote` — быстрые заметки в `~/Notes/quicknotes.md`: `quicknote "текст"`, `quicknote -l`, `quicknote -s слово`
+- Fish функции: `mkcd`, `extract`, `servehere`, `fire`, `clipkeep`, `quicknote`
+- Доп. aliases в fish: `.. ... .... gs ga gc gp gl gdiff myip ports ll lt path please`
+
 ## HackerLARP (консольный прикол)
 
 `config/bin/hackerlarp` — настраиваемый rofl/larp Hollywood-симулятор в терминале. **Никакого реального взлома**: только фейковые анимации/вывод.
