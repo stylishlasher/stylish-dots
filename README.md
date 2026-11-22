@@ -8,7 +8,7 @@
 
 - **Repo:** https://github.com/stylishlasher/stylish-dots/
 - **GitHub Pages:** https://stylishlasher.github.io/stylish-dots/
-- **Bio (Тамам мой тгк и лияка и прочее роблокс ткмЖ:**
+- **Bio (Там мой тгк и личка и прочее роблокс там):**
 https://lislash.vercel.app/
 ---
 
