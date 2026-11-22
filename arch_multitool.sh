@@ -171,7 +171,7 @@ FUN_TOOLS_MENU=(
     "nyancat|Nyan Cat|off"
     "peaclock|Часы-помодоро в терминале (AUR)|off"
     "sl|Паровозик (набери sl вместо ls)|off"
-    "aalib|ASCII-арт библиотека (aafire)|off"
+    "aalib|ASCII-арт библиотека (aafire, нужен для fire)|off"
     "libcaca|Цветной ASCII-арт (cacafire)|off"
 )
 
