@@ -1,0 +1,29 @@
+{
+  "speed": 1.0,
+  "duration": 0,
+  "seed": null,
+  "color": true,
+  "theme": "green",
+  "username": "operator",
+  "hostname": "localhost",
+  "modules": ["banner", "scan", "bruteforce", "decrypt", "download", "exploit", "exfil", "matrix"],
+  "loop": true,
+  "safe_mode": true,
+  "matrix_lines": 18,
+  "download_files": [
+    "mainframe_dump.db",
+    "secrets.zip",
+    "definitely_not_a_virus.bin"
+  ],
+  "targets": [
+    "10.13.37.42",
+    "192.168.1.1",
+    "mainframe.local"
+  ],
+  "wordlist": [
+    "admin",
+    "password",
+    "hunter2",
+    "correcthorsebatterystaple"
+  ]
+}

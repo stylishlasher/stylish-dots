@@ -210,6 +210,23 @@ C-фетчи перенесены в `config/fetches/unstable/`: `keyfetch`, `tr
 
 Статус: **UNSTABLE/BETA, kind of abandoned**. В мультитуле они не предлагаются как обычный дефолт — их нужно явно включить в выборе приветствия терминала.
 
+## HackerLARP (консольный прикол)
+
+`config/bin/hackerlarp` — настраиваемый rofl/larp Hollywood-симулятор в терминале. **Никакого реального взлома**: только фейковые анимации/вывод.
+
+- Модули: `banner`, `scan`, `bruteforce`, `decrypt`, `download`, `exploit`, `exfil`, `matrix`
+- Настройка: `~/.config/hackerlarp/config.json` (скорость, тема, модули, цели, wordlist, файлы, loop/duration/seed)
+- Пример конфига: `config/bin/hackerlarp.config.example.json`
+
+Запуск локально:
+
+```bash
+python3 config/bin/hackerlarp --write-config
+python3 config/bin/hackerlarp --theme amber --speed 1.2 --modules banner,scan,bruteforce,download,matrix
+```
+
+Установка через мультитул: **Консольные приколы → LARP / кино-хакер (hackerlarp)**.
+
 ---
 
 ## Рекомендации

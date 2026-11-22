@@ -227,6 +227,11 @@ FUN_MEDIA_MENU=(
     "termusic|Музыкальный плеер (Rust)|off"
 )
 
+
+# Консольные LARP/киношные приколы
+FUN_LARP_MENU=(
+    "hackerlarp|HackerLARP — настраиваемый Hollywood-симулятор (локально, из репо)|off"
+)
 # Полезные CLI-утилиты
 CLI_TOOLS_MENU=(
     "bat|cat с подсветкой синтаксиса|off"
@@ -1819,6 +1824,7 @@ fun_group_items() {
         4) name=FUN_MEDIA_MENU ;;
         5) name=CLI_TOOLS_MENU ;;
         6) name=CUSTOM_FETCH_MENU ;;
+        7) name=FUN_LARP_MENU ;;
         *) return 0 ;;
     esac
     local -n g="$name"
@@ -1861,6 +1867,30 @@ install_areofyl_fetch() {
     fi
 }
 
+
+install_hackerlarp() {
+    info "=== Установка HackerLARP ==="
+    ensure_sudo || return 1
+    pkg_install python3 || { err "Нужен python3."; return 1; }
+
+    local src=""
+    if [[ -f "$CONFIGS_DIR/bin/hackerlarp" ]]; then
+        src="$CONFIGS_DIR/bin/hackerlarp"
+    elif [[ -f "$SCRIPT_DIR/config/bin/hackerlarp" ]]; then
+        src="$SCRIPT_DIR/config/bin/hackerlarp"
+    else
+        err "Не найден hackerlarp (ожидается config/bin/hackerlarp в репозитории)."
+        return 1
+    fi
+
+    sudo install -Dm755 "$src" /usr/local/bin/hackerlarp
+    mkdir -p "$HOME/.config/hackerlarp"
+    if [[ ! -f "$HOME/.config/hackerlarp/config.json" ]]; then
+        /usr/local/bin/hackerlarp --write-config >/dev/null 2>&1 || true
+    fi
+    ok "HackerLARP установлен: команда 'hackerlarp'"
+    info "Конфиг: ~/.config/hackerlarp/config.json (модули, скорость, тема, targets, wordlist...)"
+}
 # Установка выбранных категорий (аргументы — номера категорий).
 software_install_console() {
     local -a items=() c
@@ -1872,16 +1902,19 @@ software_install_console() {
     select_packages "Консольные приколы" "${items[@]}" || { warn "Отменено."; return 0; }
     (( ${#SELECTED_PACKAGES[@]} == 0 )) && { warn "Ничего не выбрано."; return 0; }
 
-    # Отделяем пакеты от того, что собирается из исходников
+    # Отделяем пакеты от того, что собирается из исходников/локальных скриптов
     local -a pkgs=() p
-    local want_areofyl=0
+    local want_areofyl=0 want_hackerlarp=0
     for p in "${SELECTED_PACKAGES[@]}"; do
-        if [[ "$p" == "$CUSTOM_SRC_FETCH" ]]; then want_areofyl=1; else pkgs+=("$p"); fi
+        if [[ "$p" == "$CUSTOM_SRC_FETCH" ]]; then want_areofyl=1;
+        elif [[ "$p" == "hackerlarp" ]]; then want_hackerlarp=1;
+        else pkgs+=("$p"); fi
     done
 
     local rc=0
     (( ${#pkgs[@]} )) && { software_install_pkgs "${pkgs[@]}" || rc=1; }
     (( want_areofyl )) && { install_areofyl_fetch || rc=1; }
+    (( want_hackerlarp )) && { install_hackerlarp || rc=1; }
     return $rc
 }
 
@@ -1895,13 +1928,14 @@ software_tab_console() {
             "4|Музыка, медиа, браузеры" \
             "5|Полезные CLI-утилиты" \
             "6|Кастомные фетчи" \
-            "7|Всё подряд (все разделы)" \
+            "7|LARP / кино-хакер (hackerlarp)" \
+            "8|Всё подряд (все разделы)" \
             "0|Назад" || return 0
 
         case "$MENU_CHOICE" in
             0) return 0 ;;
-            7) software_install_console 1 2 3 4 5 6; pause ;;
-            [1-6]) software_install_console "$MENU_CHOICE"; pause ;;
+            8) software_install_console 1 2 3 4 5 6 7; pause ;;
+            [1-7]) software_install_console "$MENU_CHOICE"; pause ;;
         esac
     done
 }
