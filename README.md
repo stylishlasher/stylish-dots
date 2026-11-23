@@ -39,6 +39,7 @@ https://lislash.vercel.app/
   - `super-easy-casual/` — старый лёгкий конфиг из прошлого коммита.
 - **`config/themes/`** — JSON-пресеты Serpantinum/темы.
 - **`config/fetches/stylish-fetches/`** — Rust-перепись бывших нестабильных C-фетчей (3D fetches, ручной запуск по команде).
+- **`config/fastfetch/presets/`** — пресеты fastfetch: `default`, `mine`, `micro`, `stylish`, `universal`.
 - **`config/mango/`, `config/waybar/`, `config/foot/`, `config/fuzzel/`, `config/mako/`, `config/matugen/`, `config/bin/`** — MangoWC/Wayland dotfiles и утилиты.
 - **`docs/`** — кастомный сайт GitHub Pages в стиле Material You.
 - **`arch_multitool.sh`** — интерактивный установщик/мультитул.
@@ -145,6 +146,7 @@ stylish-dots/
 │   ├── fetches/
 │   │   ├── unstable/        # старые C-исходники (legacy, не используются по умолчанию)
 │   │   └── stylish-fetches/ # Rust 3D fetches (keyfetch/treefetch/tomatofetch/stoolfetch/skeletonfetch)
+│   ├── fastfetch/presets/   # default/mine/micro/stylish/universal
 │   ├── mango/               # MangoWC конфиги
 │   ├── waybar/ foot/ fuzzel/ mako/ matugen/ bin/
 ├── docs/                    # GitHub Pages (Material You)

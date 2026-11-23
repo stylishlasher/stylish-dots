@@ -1836,8 +1836,67 @@ software_tab_console() {
     done
 }
 
-# Вкладка «Кастомные фетчи» (ярлык на раздел 6)
-software_tab_fetches() { software_install_console 6; }
+# ------------------------------------------------------------------------------
+# FASTFETCH PRESETS
+# ------------------------------------------------------------------------------
+FASTFETCH_PRESETS=(default mine micro stylish universal)
+
+fastfetch_preset_desc() {
+    case "$1" in
+        default)   echo "Стандартный — сбалансированный дефолт";;
+        mine)      echo "Как у меня — компактный, small logo, короткие ключи";;
+        micro)     echo "Микро — 4 строки, минимум шума";;
+        stylish)   echo "Стайлиш — иконки Nerd Font, визуальный";;
+        universal) echo "Универсал — максимум инфы для разных систем";;
+        *)         echo "$1";;
+    esac
+}
+
+install_fastfetch_preset() {
+    local preset="${1:-mine}"
+    resolve_configs || return 1
+    local src="$CONFIGS_DIR/fastfetch/presets/${preset}.jsonc"
+    [[ -f "$src" ]] || { err "Fastfetch preset not found: $src"; return 1; }
+    if ! has fastfetch; then
+        warn "fastfetch не установлен — ставлю..."
+        pkg_install fastfetch || warn "Не удалось установить fastfetch (пресет всё равно скопирую)."
+    fi
+    local dst_dir="$HOME/.config/fastfetch"
+    local dst="$dst_dir/config.jsonc"
+    mkdir -p "$dst_dir"
+    if [[ -f "$dst" ]]; then
+        cp -a "$dst" "${dst}.bak.$(date +%Y%m%d_%H%M%S)"
+        info "Старый fastfetch config сохранён в backup."
+    fi
+    cp -a "$src" "$dst"
+    ok "Fastfetch preset '$preset' применён → $dst"
+}
+
+choose_fastfetch_preset() {
+    local -a items=() i=1 p
+    for p in "${FASTFETCH_PRESETS[@]}"; do
+        items+=("$i|$p — $(fastfetch_preset_desc "$p")"); i=$((i+1))
+    done
+    items+=("0|Назад")
+    menu_select "Fastfetch пресеты" "${items[@]}" || return 0
+    [[ "$MENU_CHOICE" == 0 ]] && return 0
+    local idx=$((MENU_CHOICE-1))
+    if (( idx >= 0 && idx < ${#FASTFETCH_PRESETS[@]} )); then
+        install_fastfetch_preset "${FASTFETCH_PRESETS[$idx]}"
+    fi
+}
+
+software_tab_fetches() {
+    while true; do
+        menu_select "Фетчи"             "1|Fastfetch пресеты (дефолт/мой/микро/стайлиш/универсал)"             "2|Установить пакеты фетчей (fastfetch, uwufetch...)"             "3|Собрать/установить Rust 3D fetches (keyfetch...)"             "0|Назад" || return 0
+        case "$MENU_CHOICE" in
+            0) return 0 ;;
+            1) choose_fastfetch_preset; pause ;;
+            2) software_install_console 6; pause ;;
+            3) build_rust_fetches; pause ;;
+        esac
+    done
+}
 
 # Совместимость: используется в полной установке (пункт 1)
 install_fun_tools_core() { software_tab_console; }

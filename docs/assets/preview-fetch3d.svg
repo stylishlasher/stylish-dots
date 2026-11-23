@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#181a28"/><stop offset="100%" stop-color="#11131d"/></linearGradient></defs>
+  <rect width="960" height="540" rx="28" fill="url(#bg)"/>
+  <text x="54" y="74" fill="#ffcf7a" font-size="30" font-family="monospace">Rust 3D fetches</text>
+  <g font-family="monospace" fill="#cfd6ff" font-size="22">
+    <text x="70" y="140">keyfetch --rotate random</text>
+    <text x="70" y="180">treefetch --rotate horizontal</text>
+    <text x="70" y="220">tomatofetch --rotate vertical</text>
+  </g>
+  <g stroke="#7f86ff" stroke-opacity=".35" fill="none">
+    <path d="M650 350 l90 -120 l90 120 z"/><path d="M740 230 v160"/><ellipse cx="740" cy="390" rx="80" ry="22"/>
+  </g>
+  <g fill="#ffc857" fill-opacity=".9"><circle cx="250" cy="360" r="58"/><rect x="230" y="270" width="40" height="60" rx="10"/></g>
+  <text x="70" y="470" fill="#8f98ad" font-size="22" font-family="monospace">manual run only · no auto-start · no pinned mode</text>
+</svg>

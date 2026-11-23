@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
+  <rect width="960" height="540" rx="28" fill="#171924"/>
+  <rect x="28" y="28" width="904" height="484" rx="22" fill="#1d2030" stroke="#7f86ff" stroke-opacity=".25"/>
+  <text x="56" y="76" fill="#aab0ff" font-size="28" font-family="monospace">fastfetch presets</text>
+  <g font-family="monospace" font-size="24" fill="#dbe0ff">
+    <text x="70" y="140" fill="#8bd3ff">default</text><text x="70" y="175" fill="#99a3b8">balanced modules</text>
+    <text x="360" y="140" fill="#b6a2ff">mine</text><text x="360" y="175" fill="#99a3b8">small logo · compact</text>
+    <text x="650" y="140" fill="#ffb0cf">micro</text><text x="650" y="175" fill="#99a3b8">4 lines only</text>
+    <text x="70" y="290" fill="#9be3a0">stylish</text><text x="70" y="325" fill="#99a3b8">icons + colors</text>
+    <text x="360" y="290" fill="#ffd27d">universal</text><text x="360" y="325" fill="#99a3b8">max info</text>
+  </g>
+  <rect x="56" y="390" width="848" height="80" rx="16" fill="#121522" stroke="#ffffff" stroke-opacity=".06"/>
+  <text x="84" y="438" fill="#7ee787" font-size="24" font-family="monospace">$ fastfetch --config ~/.config/fastfetch/config.jsonc</text>
+</svg>

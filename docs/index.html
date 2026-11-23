@@ -2,19 +2,16 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>stylish-dots — Material You dotfiles</title>
-  <meta name="description" content="Arch Linux dotfiles: end-4 / illogical-impulse, fish, LazyVim, themes, multitool.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#151622">
+  <title>stylish-dots — dotfiles, fetches, fastfetch presets</title>
+  <meta name="description" content="stylish-dots: end-4/illogical-impulse dotfiles, Rust 3D fetches, fastfetch presets, multitool installer. Material You site.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <script>
-    (function () {
-      var themes = ["lavender", "ocean", "sage", "peach", "rose", "amber"];
-      var pick = themes[Math.floor(Math.random() * themes.length)];
-      document.documentElement.dataset.theme = pick;
-    })();
+    (function(){var t=["lavender","ocean","sage","peach","rose","amber"];document.documentElement.dataset.theme=t[Math.floor(Math.random()*t.length)];})();
   </script>
 </head>
 <body>
@@ -24,145 +21,154 @@
 
   <header class="topbar wrap">
     <a class="brand" href="#top" aria-label="stylish-dots">
-      <span class="brand-mark" id="brand-mark" title="stylish-dots"></span>
+      <span class="brand-mark"></span>
       <span class="brand-name">stylish-dots</span>
     </a>
-    <nav class="nav">
+    <button class="menu-btn" id="menu-btn" aria-label="Меню" aria-expanded="false" aria-controls="nav">☰</button>
+    <nav class="nav" id="nav">
       <a href="#profiles">Профили</a>
-      <a href="#stack">Стек</a>
+      <a href="#fetches">Фетчи</a>
+      <a href="#fastfetch">Fastfetch</a>
       <a href="#install">Установка</a>
-      <a href="#credits">Благодарности</a>
+      <a href="#credits">Credits</a>
       <a href="https://github.com/stylishlasher/stylish-dots" class="nav-gh">GitHub</a>
     </nav>
   </header>
 
   <main id="top">
-    <section class="hero wrap">
+    <section class="hero wrap reveal">
       <div class="hero-copy">
-        <p class="eyebrow">Arch Linux · Wayland · Material You</p>
-        <h1>Dotfiles, которые<br><span class="accent">не мешают работать.</span></h1>
-        <p class="lead">Личный сетап на базе <strong><a href="https://github.com/end-4/dots-hyprland" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(191,194,255,.45)">end-4/dots-hyprland</a></strong> (illogical-impulse): Hyprland, Quickshell, fish, LazyVim, темы и мультитул. Конфиги лежат в репо, ставятся выборочно, бэкапятся перед заменой. Оригинальный dots-hyprland — авторство <strong>end-4</strong>.</p>
+        <p class="eyebrow">Arch / Debian · Wayland · Material You</p>
+        <h1>Dotfiles с <span class="accent">характером</span>,<br>а не хаосом.</h1>
+        <p class="lead">Личный сетап на базе <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: конфиги, мультитул, <strong>Rust 3D fetches</strong> и пресеты <strong>fastfetch</strong>. Всё ставится выборочно, с бэкапами и без секретов в репо.</p>
         <div class="actions">
           <a class="btn btn-primary" href="#install">Установить</a>
           <a class="btn btn-ghost" href="https://github.com/stylishlasher/stylish-dots">Исходники</a>
         </div>
         <div class="meta-row">
-          <div class="meta"><span class="meta-k">Shell</span><span class="meta-v">Quickshell ii</span></div>
-          <div class="meta"><span class="meta-k">WM</span><span class="meta-v">Hyprland</span></div>
-          <div class="meta"><span class="meta-k">Editor</span><span class="meta-v">LazyVim / Casual</span></div>
+          <div class="meta"><span class="meta-k">3D fetches</span><span class="meta-v">Rust · manual run</span></div>
+          <div class="meta"><span class="meta-k">Fastfetch</span><span class="meta-v">5 presets</span></div>
+          <div class="meta"><span class="meta-k">Install</span><span class="meta-v">Arch + Debian</span></div>
         </div>
       </div>
-      <div class="hero-panel" aria-hidden="true">
-        <div class="panel-window">
-          <div class="panel-title">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="panel-title-text">arch_multitool.sh</span>
-          </div>
+      <div class="hero-panel">
+        <div class="panel-window floaty">
+          <div class="panel-title"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-title-text">terminal</span></div>
           <div class="panel-body">
+            <div class="line"><span class="p">$</span> keyfetch --rotate random</div>
+            <div class="line muted">  3D key · horizontal/vertical/random</div>
+            <div class="line"><span class="p">$</span> fastfetch --config ~/.config/fastfetch/config.jsonc</div>
+            <div class="line muted">  preset: mine / micro / stylish / universal</div>
             <div class="line"><span class="p">$</span> bash arch_multitool.sh</div>
-            <div class="line muted">  1) Полная установка</div>
-            <div class="line muted">  4) Dotfiles профиль</div>
-            <div class="line pick">     → end-4 / illogical-impulse</div>
-            <div class="line pick">     → serpantinum</div>
-            <div class="line pick">     → stylish-dots</div>
-            <div class="line muted">  6) Neovim пресет</div>
-            <div class="line pick">     → lazyvim-stylish</div>
-            <div class="line pick dim">     → super-easy-casual</div>
-            <div class="line muted"> 17) end-4: мой конфиг</div>
-            <div class="line ok">✓ config applied · backup saved</div>
+            <div class="line pick">  → Fastfetch пресеты</div>
+            <div class="line pick">  → Rust 3D fetches</div>
+            <div class="line ok">✓ no auto-start · no pinned mode · backup saved</div>
           </div>
         </div>
         <div class="chip chip-a">Material You</div>
-        <div class="chip chip-b">no secrets in repo</div>
+        <div class="chip chip-b">mobile-ready</div>
       </div>
     </section>
 
-    <section id="profiles" class="section wrap">
+    <section class="section wrap reveal" id="showcase">
+      <div class="section-head">
+        <p class="eyebrow">Визуал</p>
+        <h2>Немного эффектов, много пользы.</h2>
+        <p>Сайт и инструменты заточены под быстрый просмотр: на десктопе красиво, на телефоне удобно.</p>
+      </div>
+      <div class="showcase-grid">
+        <figure class="shot-card">
+          <img src="./assets/preview-fastfetch.svg" alt="Fastfetch presets preview" loading="lazy" width="960" height="540">
+          <figcaption>Fastfetch пресеты — от микро до универсального.</figcaption>
+        </figure>
+        <figure class="shot-card">
+          <img src="./assets/preview-fetch3d.svg" alt="Rust 3D fetches preview" loading="lazy" width="960" height="540">
+          <figcaption>Rust 3D fetches — ручной запуск, rotation modes.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="profiles" class="section wrap reveal">
       <div class="section-head">
         <p class="eyebrow">Профили</p>
         <h2>Три пути, один репозиторий.</h2>
-        <p>Мультитул не навязывает один стек — выбираешь профиль и то, что реально нужно.</p>
+        <p>Мультитул не навязывает один стек — выбираешь профиль и нужные компоненты.</p>
       </div>
       <div class="cards">
         <article class="card card-featured">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M8 20h8M9 9h6M9 13h4"/></svg>
-          </div>
+          <div class="card-icon">󰣇</div>
           <h3>end-4 / illogical-impulse</h3>
-          <p>Мои оверрайды поверх <a href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: Hyprland custom, Quickshell <code>config.json</code>, бинды Print, курсор Bibata, GTK/env. API-ключи не в репо — в keyring.</p>
-          <ul class="list">
-            <li>top bar always, bottom dock hover</li>
-            <li>ru layout, 180Hz, NVIDIA env</li>
-            <li>backup before apply</li>
-          </ul>
+          <p>Мои оверрайды поверх <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: Hyprland custom, Quickshell config, бинды, курсор, env. Ключи — только в keyring.</p>
+          <ul class="list"><li>top bar always, bottom dock hover</li><li>ru layout, 180Hz, NVIDIA env</li><li>backup before apply</li></ul>
         </article>
         <article class="card">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-          </div>
+          <div class="card-icon">⌁</div>
           <h3>serpantinum</h3>
-          <p>Внешний установщик Serpantinum через мультитул. Для тех, кто хочет полноценное окружение и пресеты отдельно.</p>
-          <ul class="list">
-            <li>установка через install.serpantinum.dev</li>
-            <li>пресеты из <code>themes/</code></li>
-            <li>hypr kb layout patch</li>
-          </ul>
+          <p>Внешний установщик Serpantinum через мультитул, плюс пресеты/темы из репо.</p>
+          <ul class="list"><li>install.serpantinum.dev flow</li><li>themes in <code>config/themes/</code></li><li>hypr kb layout patch</li></ul>
         </article>
         <article class="card">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3z"/></svg>
-          </div>
+          <div class="card-icon">✦</div>
           <h3>stylish-dots</h3>
-          <p>Мои дотсы из репо: fish, nvim пресет по выбору, end-4 конфиг. Удобно, когда нужно быстро поднять своё окружение.</p>
-          <ul class="list">
-            <li>fish + starship + aliases</li>
-            <li>nvim preset chooser</li>
-            <li>end-4 config optional</li>
-          </ul>
+          <p>Мои дотсы: fish, nvim presets, end-4 config, fastfetch presets, Rust 3D fetches.</p>
+          <ul class="list"><li>fish + aliases</li><li>nvim preset chooser</li><li>fetches run by command only</li></ul>
         </article>
       </div>
     </section>
 
-    <section id="stack" class="section wrap">
+    <section id="fetches" class="section wrap reveal">
       <div class="split">
         <div>
-          <p class="eyebrow">Стек</p>
-          <h2>Что внутри.</h2>
-          <p class="muted-p">Без лишней магии: обычные файлы конфигов, скрипты установки и явные точки входа.</p>
+          <p class="eyebrow">3D Fetches</p>
+          <h2>Мёртвые C-фетчи переписаны на Rust.</h2>
+          <p class="muted-p">Старые нестабильные C-исходники сохранены как legacy, но рабочие бинарники теперь собираются из <code>config/fetches/stylish-fetches</code>. Никакого автозапуска в терминале и никакого pinned-режима — только явная команда.</p>
+          <div class="chip-row">
+            <span class="pill">--rotate horizontal</span>
+            <span class="pill">--rotate vertical</span>
+            <span class="pill">--rotate random</span>
+          </div>
           <div class="stack-grid">
-            <div class="stack-item"><span class="stack-k">Hyprland</span><span class="stack-v">custom overrides, keybinds</span></div>
-            <div class="stack-item"><span class="stack-k">Quickshell</span><span class="stack-v">illogical-impulse config</span></div>
-            <div class="stack-item"><span class="stack-k">Fish</span><span class="stack-v">config, functions, conf.d</span></div>
-            <div class="stack-item"><span class="stack-k">Neovim</span><span class="stack-v">LazyVim preset + legacy</span></div>
-            <div class="stack-item"><span class="stack-k">Themes</span><span class="stack-v">presets in <code>config/themes/</code></span></div>
-            <div class="stack-item"><span class="stack-k">Fetches</span><span class="stack-v">unstable C toys in <code>config/fetches/unstable</code></span></div>
+            <div class="stack-item"><span class="stack-k">keyfetch</span><span class="stack-v">3D ключ</span></div>
+            <div class="stack-item"><span class="stack-k">treefetch</span><span class="stack-v">ёлочка-ароматизатор</span></div>
+            <div class="stack-item"><span class="stack-k">tomatofetch</span><span class="stack-v">3D помидор</span></div>
+            <div class="stack-item"><span class="stack-k">stoolfetch</span><span class="stack-v">3D табурет</span></div>
+            <div class="stack-item"><span class="stack-k">skeletonfetch</span><span class="stack-v">скелетный ключ</span></div>
+            <div class="stack-item"><span class="stack-k">manual</span><span class="stack-v">запуск только по команде</span></div>
           </div>
         </div>
-        <div class="code-card">
-          <div class="code-head">
-            <span>Структура</span>
-            <span class="code-badge">repo</span>
-          </div>
-<pre><code>stylish-dots/
-├─ arch_multitool.sh
-├─ config/
-│  ├─ end4/              # my active end-4 config
-│  │  ├─ hypr/custom/
-│  │  ├─ illogical-impulse/config.json
-│  │  └─ install.sh
-│  ├─ fish/              # active fish config
-│  ├─ nvim/              # active LazyVim config
-│  ├─ nvim-presets/
-│  │  ├─ lazyvim-stylish/
-│  │  └─ super-easy-casual/
-│  ├─ themes/            # Serpantinum presets
-│  └─ fetches/unstable/  # abandoned C fetches
-├─ docs/                 # GitHub Pages</code></pre>
+        <div class="code-card glow-card">
+          <div class="code-head"><span>Примеры</span><span class="code-badge">Rust</span></div>
+<pre><code>keyfetch --rotate random
+treefetch --rotate horizontal --accent green
+tomatofetch --rotate vertical --rainbow
+stoolfetch --height 18 --no-info
+skeletonfetch --rotate random --color gold</code></pre>
         </div>
       </div>
     </section>
 
-    <section id="install" class="section wrap">
+    <section id="fastfetch" class="section wrap reveal">
+      <div class="section-head">
+        <p class="eyebrow">Fastfetch presets</p>
+        <h2>Пять пресетов под разные настроения.</h2>
+        <p>Установщик умеет ставить пресет в <code>~/.config/fastfetch/config.jsonc</code> и делает бэкап старого файла.</p>
+      </div>
+      <div class="preset-grid">
+        <article class="preset-card"><h3>default</h3><p>Сбалансированный стандартный набор модулей.</p></article>
+        <article class="preset-card"><h3>mine</h3><p>Твой компактный стиль: small logo, короткие ключи, минимум визуального шума.</p></article>
+        <article class="preset-card"><h3>micro</h3><p>Ультра-короткий вывод: 4 строки, только главное.</p></article>
+        <article class="preset-card"><h3>stylish</h3><p>Иконки Nerd Font, акцент на внешний вид.</p></article>
+        <article class="preset-card"><h3>universal</h3><p>Широкий набор инфы для большинства систем.</p></article>
+      </div>
+      <div class="code-card" style="margin-top:18px">
+        <div class="code-head"><span>Установка пресета</span><span class="code-badge">multitool</span></div>
+<pre><code>bash arch_multitool.sh
+# Установка ПО → Фетчи → Fastfetch пресеты
+# выбрать: default / mine / micro / stylish / universal</code></pre>
+      </div>
+    </section>
+
+    <section id="install" class="section wrap reveal">
       <div class="section-head">
         <p class="eyebrow">Установка</p>
         <h2>Быстрый старт.</h2>
@@ -170,49 +176,33 @@
       <div class="install-grid">
         <div class="install-card">
           <h3>Arch Linux</h3>
-          <p>Одной командой, без клонирования репо:</p>
+          <p>Одной командой:</p>
           <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool.sh | bash</code></pre>
-          <p style="margin-top:14px">Или вручную:</p>
-          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
-cd stylish-dots
-bash arch_multitool.sh</code></pre>
         </div>
         <div class="install-card">
           <h3>Debian / Ubuntu</h3>
-          <p>Адаптированная версия (apt, без AUR/pacman flow):</p>
+          <p>Адаптированная версия:</p>
           <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool_debian.sh | bash</code></pre>
-          <p style="margin-top:14px">Или вручную:</p>
-          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
-cd stylish-dots
-bash arch_multitool_debian.sh</code></pre>
         </div>
       </div>
       <div class="install-grid" style="margin-top:18px">
         <div class="install-card">
           <h3>Только end-4 конфиг</h3>
-          <p>Применить мой текущий конфиг поверх уже установленного dots-hyprland.</p>
           <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
 cd stylish-dots
 bash config/end4/install.sh</code></pre>
         </div>
         <div class="install-card">
-          <h3>MangoWC (Debian helper)</h3>
-          <p>Зависимости через apt + применение MangoWC dotfiles.</p>
-          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
-cd stylish-dots
-bash config/mango/install_debian.sh</code></pre>
+          <h3>Rust 3D fetches</h3>
+          <pre><code>cd stylish-dots/config/fetches/stylish-fetches
+cargo build --release
+install -m755 target/release/*fetch ~/.local/bin/</code></pre>
         </div>
       </div>
-      <div class="note">
-        <strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse добавляются через UI и сохраняются в keyring. Кастомные 3D-фетчи помечены как <code>UNSTABLE/BETA, kind of abandoned</code> и вынесены в <code>config/fetches/unstable/</code>.
-      </div>
-
-      <div class="note" style="margin-top:14px">
-        <strong>Рекомендую:</strong> пак обоев <a href="https://forums.tms.sx/threads/wallpaper-pack-25-tms-wallpapers-4k-3840x2160-1-1000.40932/" target="_blank" rel="noopener noreferrer">Wallpaper Pack 25 (TMS Wallpapers) — 4K</a>.
-      </div>
+      <div class="note"><strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse — в keyring. 3D fetches запускаются вручную и не стартуют при открытии терминала.</div>
     </section>
 
-    <section id="credits" class="section wrap">
+    <section id="credits" class="section wrap reveal">
       <div class="section-head">
         <p class="eyebrow">Благодарности</p>
         <h2>Проекты, на которые опирается сетап.</h2>
@@ -220,34 +210,34 @@ bash config/mango/install_debian.sh</code></pre>
       <div class="cards">
         <article class="card">
           <h3>end-4 / dots-hyprland</h3>
-          <p><a href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a> by <a href="https://github.com/end-4">end-4</a> — оригинальный illogical-impulse / dots-hyprland. Мой <code>config/end4/</code> — пользовательские оверрайды и конфиг поверх него.</p>
+          <p><a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a> by <a class="inline-link" href="https://github.com/end-4">end-4</a> — оригинальный illogical-impulse. Мой <code>config/end4/</code> — пользовательские оверрайды.</p>
         </article>
         <article class="card">
           <h3>Serpantinum</h3>
-          <p><a href="https://github.com/ilyamiro/serpantinum">Serpantinum</a> by <a href="https://github.com/ilyamiro">Illia Miroshnichenko (@ilyamiro)</a> — Wayland-окружение, пресеты и темы, используемые профилем <code>serpantinum</code>. Сайт: <a href="https://serpantinum.dev">serpantinum.dev</a>.</p>
+          <p><a class="inline-link" href="https://github.com/ilyamiro/serpantinum">Serpantinum</a> by <a class="inline-link" href="https://github.com/ilyamiro">Illia Miroshnichenko</a> — Wayland-окружение и пресеты.</p>
+        </article>
+        <article class="card">
+          <h3>Fastfetch / Rust</h3>
+          <p><a class="inline-link" href="https://github.com/fastfetch-cli/fastfetch">fastfetch</a> для системной инфы, а Rust — для переписанных 3D fetches с нормальными режимами вращения.</p>
         </article>
       </div>
     </section>
   </main>
 
-  <section class="section wrap yawstrich-section" id="yawstrich">
+  <section class="section wrap yawstrich-section reveal" id="yawstrich">
     <div class="yawstrich-card">
       <div class="yawstrich-copy">
         <p class="eyebrow">Пасхалка</p>
         <h2>MSM монстры</h2>
-        <p class="muted-p">Любимые монстры из My Singing Monsters. Нажми кнопку — появится гифка.</p>
+        <p class="muted-p">Нажми кнопку — появится гифка. Работает и на телефоне.</p>
         <div class="monster-actions">
           <button class="btn btn-primary yawstrich-btn" id="yawstrich-toggle" type="button">Yawstrich / Стравок</button>
           <button class="btn btn-ghost yawstrich-btn" id="pixolotl-toggle" type="button">Pixolotl / Пиксолотль</button>
         </div>
       </div>
       <div class="yawstrich-media">
-        <div id="yawstrich-media" hidden>
-          <img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich (Стравок) из My Singing Monsters" loading="lazy">
-        </div>
-        <div id="pixolotl-media" hidden>
-          <img src="https://s15.gifyu.com/images/bcR8O.gif" alt="Pixolotl (Пиксолотль) из My Singing Monsters" loading="lazy">
-        </div>
+        <div id="yawstrich-media" hidden><img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich" loading="lazy" width="360" height="360"></div>
+        <div id="pixolotl-media" hidden><img src="https://s15.gifyu.com/images/bcR8O.gif" alt="Pixolotl" loading="lazy" width="360" height="360"></div>
       </div>
     </div>
   </section>
@@ -256,30 +246,32 @@ bash config/mango/install_debian.sh</code></pre>
     <div>© stylishlasher · stylish-dots</div>
     <div class="footer-links">
       <a href="https://github.com/stylishlasher/stylish-dots">GitHub</a>
-      <a href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>
+      <a href="https://github.com/end-4/dots-hyprland">end-4</a>
       <a href="https://github.com/ilyamiro/serpantinum">Serpantinum</a>
     </div>
   </footer>
 
   <script>
-    (function () {
-      function setupToggle(btnId, mediaId, showText, hideText) {
-        var btn = document.getElementById(btnId);
-        var media = document.getElementById(mediaId);
-        if (!btn || !media) return;
-        btn.addEventListener("click", function () {
-          var show = media.hasAttribute("hidden");
-          if (show) {
-            media.removeAttribute("hidden");
-            btn.textContent = hideText;
-          } else {
-            media.setAttribute("hidden", "");
-            btn.textContent = showText;
-          }
+    (function(){
+      var menu=document.getElementById('menu-btn'), nav=document.getElementById('nav');
+      if(menu && nav){
+        menu.addEventListener('click', function(){
+          var open=nav.classList.toggle('open');
+          menu.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
+        nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click', function(){nav.classList.remove('open'); menu.setAttribute('aria-expanded','false');});});
       }
-      setupToggle("yawstrich-toggle", "yawstrich-media", "Yawstrich / Стравок", "Скрыть Стравка");
-      setupToggle("pixolotl-toggle", "pixolotl-media", "Pixolotl / Пиксолотль", "Скрыть Пиксолотля");
+      function setup(btnId, mediaId, show, hide){
+        var b=document.getElementById(btnId), m=document.getElementById(mediaId); if(!b||!m) return;
+        b.addEventListener('click', function(){var s=m.hasAttribute('hidden'); if(s){m.removeAttribute('hidden'); b.textContent=hide;} else {m.setAttribute('hidden',''); b.textContent=show;}});
+      }
+      setup('yawstrich-toggle','yawstrich-media','Yawstrich / Стравок','Скрыть Стравка');
+      setup('pixolotl-toggle','pixolotl-media','Pixolotl / Пиксолотль','Скрыть Пиксолотля');
+
+      var obs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? null : new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target);} });
+      }, {threshold: 0.12});
+      document.querySelectorAll('.reveal').forEach(function(el){ if(obs) obs.observe(el); else el.classList.add('visible'); });
     })();
   </script>
 </body>
