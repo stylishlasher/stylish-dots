@@ -26,10 +26,13 @@ pass "language auto-detection and fallback"
 mapfile -t used < <(grep -rhoE --include='*.sh' '\$\(t [a-z_][a-z_0-9]*|\) t [a-z_][a-z_0-9]*' modules arch_multitool.sh arch_multitool_debian.sh | sed -E 's/.*t //' | sort -u)
 ((${#used[@]} > 0)) || fail "no translation keys found in UI code"
 for lang in en ro; do
-    mapfile -t defined < <(STYLISH_LANG="$lang" bash -c 'source "$1"; printf "%s\n" "${!SD_MSG[@]}"' _ "$I18N" | sort)
+    mapfile -t defined < <(STYLISH_LANG="$lang" bash -c 'source "$1"; printf "%s\n" "${!SD_MSG[@]}"' _ "$I18N")
+    declare -A defined_set=()
+    for k in "${defined[@]}"; do defined_set["$k"]=1; done
     for key in "${used[@]}"; do
-        printf '%s\n' "${defined[@]}" | grep -Fxq "$key" || fail "$lang: missing key $key"
+        [[ -n "${defined_set[$key]:-}" ]] || fail "$lang: missing key $key"
     done
+    unset defined_set
 done
 pass "all UI keys translated in EN and RO"
 

@@ -2,9 +2,11 @@
 # ==============================================================================
 # LINUX MULTITOOL (Debian) — установщик (bootstrap)
 # ==============================================================================
-# Ставит мультитул, модули и конфиги в ~/.local/share/arch-multitool и запускает.
-# Целостность загружаемого проверяется git (SHA объектов) и bash -n модулей.
-# После первого запуска мультитул работает без интернета. --refresh обновляет кэш.
+# Ставит лаунчер, modules/ и config/ в ~/.local/share/arch-multitool и запускает.
+# Загрузка динамическая: из git берутся только нужные пути (sparse + blob:none),
+# git проверяет SHA объектов, всё содержимое дополнительно проходит bash -n.
+# Замена лаунчера и кэша атомарная: при любой ошибке возвращается прежняя версия.
+# Повторный запуск работает без сети. --refresh обновляет весь набор.
 #
 # Быстрый запуск:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash
@@ -12,7 +14,7 @@
 # Полная установка без меню:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash -s -- -f
 #
-# Обновить кэш модулей/конфигов:
+# Обновить лаунчер и кэш:
 #   bash install/install_debian.sh --refresh
 # ==============================================================================
 
@@ -21,12 +23,12 @@ set -euo pipefail
 # ------------------------------- Настройки -----------------------------------
 REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
-RAW_BASE="https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}"
 REPO_URL="https://github.com/${REPO_SLUG}.git"
 
 # Куда положить мультитул, модули и конфиги (перезапуск без интернета)
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/arch-multitool"
 MULTITOOL="$INSTALL_DIR/arch_multitool_debian.sh"
+LAUNCHER="${MULTITOOL##*/}"
 
 # --------------------------------- Цвета -------------------------------------
 if [[ -t 2 ]]; then
@@ -66,13 +68,13 @@ for a in "$@"; do
 done
 if (( ${#ARGS[@]} )); then set -- "${ARGS[@]}"; else set --; fi
 
-# Ищем локальную копию мультитула с modules/ и config/ (клонированный репозиторий)
+# Ищем локальную копию с лаунчером, modules/ и config/ (клонированный репозиторий)
 LOCAL_DIR=""
 SELF="${BASH_SOURCE[0]:-}"
 if [[ -n "$SELF" && -f "$SELF" ]]; then
     self_dir="$(cd -- "$(dirname -- "$SELF")" && pwd -P)"
     for cand in "$self_dir" "$self_dir/.."; do
-        if [[ -f "$cand/arch_multitool_debian.sh" && -d "$cand/modules" && -d "$cand/config" ]]; then
+        if [[ -f "$cand/$LAUNCHER" && -d "$cand/modules" && -d "$cand/config" ]]; then
             LOCAL_DIR="$(cd -- "$cand" && pwd -P)"
             break
         fi
@@ -81,13 +83,6 @@ fi
 
 mkdir -p "$INSTALL_DIR"
 
-ensure_curl() {
-    command -v curl >/dev/null 2>&1 && return 0
-    say "Устанавливаю curl..."
-    sudo apt-get update || die "Не удалось обновить список пакетов."
-    sudo apt-get install -y curl ca-certificates || die "Не удалось установить curl."
-}
-
 ensure_git() {
     command -v git >/dev/null 2>&1 && return 0
     say "Устанавливаю git (он проверит целостность загружаемых файлов)..."
@@ -95,71 +90,73 @@ ensure_git() {
     sudo apt-get install -y git || die "Не удалось установить git."
 }
 
-# Отвергаем битые/неполные модули до попадания в кэш.
+# Проверяем весь набор до попадания в кэш: лаунчер, модули и конфиги.
 verify_bundle() {
     local dir="$1" f
+    [[ -f "$dir/$LAUNCHER" ]] || return 1
+    bash -n "$dir/$LAUNCHER" || return 1
     [[ -f "$dir/modules/lib/multitool.sh" && -f "$dir/modules/lib/i18n.sh" && -f "$dir/modules/lib/common.sh" ]] || return 1
     [[ -d "$dir/config/fastfetch" && -d "$dir/config/end4" ]] || return 1
     while IFS= read -r -d '' f; do bash -n "$f" || return 1; done < <(find "$dir/modules" -type f -name '*.sh' -print0 2>/dev/null)
 }
 
-# Меняем кэш целиком; при любой ошибке возвращаем прежнюю версию.
-swap_cache() {
-    local src="$1" tmp had_old=0
+# Меняем лаунчер + кэш целиком; при любой ошибке возвращаем прежнюю версию.
+swap_bundle() {
+    local src="$1" tmp had_old=0 item
     tmp="$(mktemp -d "$INSTALL_DIR/.old.XXXXXX")" || die "Не удалось создать каталог для отката."
-    if [[ -d "$INSTALL_DIR/modules" || -d "$INSTALL_DIR/config" ]]; then
-        had_old=1
-        [[ -d "$INSTALL_DIR/modules" ]] && mv "$INSTALL_DIR/modules" "$tmp/modules"
-        [[ -d "$INSTALL_DIR/config" ]] && mv "$INSTALL_DIR/config" "$tmp/config"
-    fi
-    if ! cp -a "$src/modules" "$INSTALL_DIR/modules" || ! cp -a "$src/config" "$INSTALL_DIR/config" || ! verify_bundle "$INSTALL_DIR"; then
-        rm -rf "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
+    for item in "$LAUNCHER" modules config; do
+        if [[ -e "$INSTALL_DIR/$item" ]]; then
+            had_old=1
+            mv "$INSTALL_DIR/$item" "$tmp/$item"
+        fi
+    done
+    if ! cp -a "$src/$LAUNCHER" "$INSTALL_DIR/$LAUNCHER" \
+        || ! cp -a "$src/modules" "$INSTALL_DIR/modules" \
+        || ! cp -a "$src/config" "$INSTALL_DIR/config" \
+        || ! verify_bundle "$INSTALL_DIR"; then
+        rm -rf "$INSTALL_DIR/$LAUNCHER" "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
         if (( had_old )); then
-            [[ -d "$tmp/modules" ]] && mv "$tmp/modules" "$INSTALL_DIR/modules"
-            [[ -d "$tmp/config" ]] && mv "$tmp/config" "$INSTALL_DIR/config"
+            for item in "$LAUNCHER" modules config; do
+                [[ -e "$tmp/$item" ]] && mv "$tmp/$item" "$INSTALL_DIR/$item"
+            done
         fi
         rm -rf "$tmp"
         die "Не удалось обновить кэш — прежняя версия восстановлена."
     fi
+    chmod +x "$MULTITOOL"
     rm -rf "$tmp"
 }
 
-cache_repo() {
+# Динамическая загрузка: только лаунчер, modules/ и config/, ничего лишнего.
+fetch_bundle() {
     local tmp
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap.XXXXXX")" || die "Не удалось создать временный каталог."
     if [[ -n "$LOCAL_DIR" ]]; then
-        say "Копирую modules/ и config/ из $LOCAL_DIR"
+        say "Копирую $LAUNCHER, modules/ и config/ из $LOCAL_DIR"
         # tar с исключениями: в кэш не попадают target/, __pycache__ и прочие артефакты сборки
-        tar -C "$LOCAL_DIR" -cf - --exclude='*/target' --exclude='*__pycache__' modules config | tar -xf - -C "$tmp" \
-            || die "Не удалось скопировать modules/ и config/."
+        tar -C "$LOCAL_DIR" -cf - --exclude='*/target' --exclude='*__pycache__' "$LAUNCHER" modules config | tar -xf - -C "$tmp" \
+            || die "Не удалось скопировать файлы из локальной копии."
     else
         ensure_git
-        say "Скачиваю репозиторий ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH}); git проверяет SHA объектов..."
-        git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$tmp/repo" || die "Не удалось скачать репозиторий."
+        say "Скачиваю только нужные пути ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH}); git проверяет SHA объектов..."
+        git clone --depth 1 --filter=blob:none --sparse --branch "$REPO_BRANCH" "$REPO_URL" "$tmp/repo" \
+            || die "Не удалось скачать репозиторий."
+        git -C "$tmp/repo" sparse-checkout set modules config || die "Не удалось выбрать нужные пути."
+        say "Коммит: $(git -C "$tmp/repo" rev-parse --short HEAD)"
+        cp "$tmp/repo/$LAUNCHER" "$tmp/$LAUNCHER" || die "В репозитории нет $LAUNCHER."
         mv "$tmp/repo/modules" "$tmp/modules" || die "В репозитории нет modules/."
         mv "$tmp/repo/config" "$tmp/config" || die "В репозитории нет config/."
     fi
-    verify_bundle "$tmp" || die "Загруженные модули/конфиги не прошли проверку целостности."
-    swap_cache "$tmp"
+    verify_bundle "$tmp" || die "Загруженные файлы не прошли проверку целостности."
+    swap_bundle "$tmp"
     rm -rf "$tmp"
 }
 
-# --------------------------- Получение лаунчера ------------------------------
-if [[ -n "$LOCAL_DIR" ]]; then
-    say "Использую локальную копию: $LOCAL_DIR/arch_multitool_debian.sh"
-    cp -f "$LOCAL_DIR/arch_multitool_debian.sh" "$MULTITOOL"
+# -------------------------- Лаунчер + кэш модулей -----------------------------
+if [[ "$REFRESH" == "1" || ! -f "$MULTITOOL" || ! -f "$INSTALL_DIR/modules/lib/multitool.sh" || ! -d "$INSTALL_DIR/config/fastfetch" ]]; then
+    fetch_bundle
 else
-    ensure_curl
-    say "Скачиваю Linux Multitool (Debian) из ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH})..."
-    curl -fsSL --connect-timeout 20 --retry 3 "${RAW_BASE}/arch_multitool_debian.sh" -o "$MULTITOOL" || die "Не удалось скачать arch_multitool_debian.sh."
-fi
-chmod +x "$MULTITOOL"
-
-# ------------------------------- Кэш модулей --------------------------------
-if [[ "$REFRESH" == "1" || ! -f "$INSTALL_DIR/modules/lib/multitool.sh" || ! -d "$INSTALL_DIR/config/fastfetch" ]]; then
-    cache_repo
-else
-    say "Кэш modules/ и config/ уже есть — работаю офлайн (--refresh для обновления)."
+    say "Лаунчер и кэш готовы — работаю офлайн (--refresh для обновления)."
 fi
 
 ok "Мультитул готов: $MULTITOOL"
