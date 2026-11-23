@@ -42,7 +42,8 @@ https://lislash.vercel.app/
 - **`config/fastfetch/presets/`** — пресеты fastfetch: `default`, `mine`, `micro`, `stylish`, `universal`.
 - **`config/mango/`, `config/waybar/`, `config/foot/`, `config/fuzzel/`, `config/mako/`, `config/matugen/`, `config/bin/`** — MangoWC/Wayland dotfiles и утилиты.
 - **`docs/`** — кастомный сайт GitHub Pages в стиле Material You.
-- **`arch_multitool.sh`** — интерактивный установщик/мультитул.
+- **`arch_multitool.sh`** — GUI/меню-мультитул (Arch), **`arch_multitool_debian.sh`** — Debian/Ubuntu адаптация.
+- **`modules/`** — модули действий: мультитул содержит UI, а установка/применение конфигов выполняется модулями (докачиваются по необходимости).
 
 ---
 
@@ -92,21 +93,20 @@ cd stylish-dots
 bash arch_multitool_debian.sh
 ```
 
-> Arch-версия рассчитана на Arch/pacman. Debian-версия — best-effort для Debian/Ubuntu-based (`apt` вместо pacman/AUR): AUR/Serpantinum/end-4 могут требовать ручной установки зависимостей.
+> Оба мультитула теперь работают как GUI/меню-оболочки: логика установки вынесена в `modules/`. При запуске через `curl | bash` недостающие модули докачиваются из GitHub автоматически.
+> Arch-версия рассчитана на pacman/AUR, Debian-версия — best-effort для apt/dpkg.
 
 ---
 
 ## Профили dotfiles
 
-Мультитул (пункт **4**) и полная установка поддерживают выбор профиля:
+Мультитулы поддерживают выбор профиля и **полную интерактивную установку** (пункт 1 в меню): по разделам выбираешь профиль, пресет Neovim, пресет fastfetch и галочками отмечаешь компоненты.
 
 | Профиль | Что делает |
 |---|---|
 | **end-4 / illogical-impulse** | Применяет мой текущий конфиг из `end4/` поверх установленного dots-hyprland. |
-| **serpantinum** | Запускает внешний установщик Serpantinum, патчит раскладку Hyprland, применяет темы из `themes/`. |
-| **stylish-dots** | Применяет мои дотсы из этого репо: fish, выбранный Neovim preset, опционально end-4/MangoWC. |
-
-В полном сценарии профиль выбирается до установки пакетов; после установки fish/nvim/end-4 применяются в соответствии с выбором.
+| **serpantinum** | Внешний установщик Serpantinum (через его installer), темы/пресеты можно применять из `config/themes/`. |
+| **stylish-dots** | Применяет мои дотсы: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
 
 ---
 
@@ -127,9 +127,14 @@ bash arch_multitool_debian.sh
 
 ```text
 stylish-dots/
-├── arch_multitool.sh        # основной мультитул
+├── arch_multitool.sh        # Arch GUI-мультитул (загружает modules/)
+├── arch_multitool_debian.sh # Debian/Ubuntu GUI-мультитул
+├── modules/                 # модули действий (докачиваются при необходимости)
+│   ├── lib/                 # common/platform/menu/loader
+│   └── actions/             # fish, neovim, fetches, dotfiles, software, interactive...
 ├── install/
-│   │   └── install.sh           # bootstrap (curl | bash)
+│   ├── install.sh           # bootstrap Arch (curl | bash)
+│   └── install_debian.sh    # bootstrap Debian/Ubuntu
 ├── config/                  # все конфиги/ресурсы (чтобы не захламлять корень)
 │   ├── end4/                # мой текущий end-4 / illogical-impulse конфиг
 │   │   ├── hypr/
@@ -210,9 +215,13 @@ bash config/mango/install.sh
 
 ## Кастомные фетчи
 
-C-фетчи перенесены в `config/fetches/unstable/`: `keyfetch`, `treefetch`, `tomatofetch`, `stoolfetch`, `skeletonfetch`.
+Rust 3D fetches лежат в `config/fetches/stylish-fetches/` и запускаются вручную: `keyfetch`, `treefetch`, `tomatofetch`, `stoolfetch`, `skeletonfetch`. Режимы вращения: `--rotate horizontal|vertical|random`.
 
-Статус: **UNSTABLE/BETA, kind of abandoned**. В мультитуле они не предлагаются как обычный дефолт — их нужно явно включить в выборе приветствия терминала.
+Старые C-исходники сохранены в `config/fetches/unstable/` как legacy/abandoned.
+
+## Fastfetch пресеты
+
+В `config/fastfetch/presets/` есть пресеты: `default`, `mine`, `micro`, `stylish`, `universal`. Мультитул умеет установить выбранный пресет в `~/.config/fastfetch/config.jsonc` (с бэкапом старого).
 
 ## Fish/CLI утилиты (полезности)
 

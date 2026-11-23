@@ -40,7 +40,7 @@
       <div class="hero-copy">
         <p class="eyebrow">Arch / Debian · Wayland · Material You</p>
         <h1>Dotfiles с <span class="accent">характером</span>,<br>а не хаосом.</h1>
-        <p class="lead">Личный сетап на базе <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: конфиги, мультитул, <strong>Rust 3D fetches</strong> и пресеты <strong>fastfetch</strong>. Всё ставится выборочно, с бэкапами и без секретов в репо.</p>
+        <p class="lead">Личный сетап на базе <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: конфиги, модульный мультитул, <strong>Rust 3D fetches</strong> и пресеты <strong>fastfetch</strong>. Полная интерактивная установка с галочками, модули докачиваются по необходимости.</p>
         <div class="actions">
           <a class="btn btn-primary" href="#install">Установить</a>
           <a class="btn btn-ghost" href="https://github.com/stylishlasher/stylish-dots">Исходники</a>
@@ -60,8 +60,8 @@
             <div class="line"><span class="p">$</span> fastfetch --config ~/.config/fastfetch/config.jsonc</div>
             <div class="line muted">  preset: mine / micro / stylish / universal</div>
             <div class="line"><span class="p">$</span> bash arch_multitool.sh</div>
-            <div class="line pick">  → Fastfetch пресеты</div>
-            <div class="line pick">  → Rust 3D fetches</div>
+            <div class="line pick">  → Полная интерактивная установка (галочки)</div>
+            <div class="line pick">  → Модули: UI отдельно, действия отдельно</div>
             <div class="line ok">✓ no auto-start · no pinned mode · backup saved</div>
           </div>
         </div>
@@ -199,7 +199,7 @@ cargo build --release
 install -m755 target/release/*fetch ~/.local/bin/</code></pre>
         </div>
       </div>
-      <div class="note"><strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse — в keyring. 3D fetches запускаются вручную и не стартуют при открытии терминала.</div>
+      <div class="note"><strong>Важно:</strong> API-ключи не хранятся в репозитории. AI-ключи для illogical-impulse — в keyring. 3D fetches запускаются вручную и не стартуют при открытии терминала. Мультитул — GUI/меню; действия выполняются модулями из <code>modules/</code>.</div>
     </section>
 
     <section id="credits" class="section wrap reveal">
