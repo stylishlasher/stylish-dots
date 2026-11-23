@@ -23,6 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          exec > >(tee /tmp/backup-test.log) 2>&1
           fail(){ echo "FAIL: $*" >&2; [[ -f "${TMP:-}/out" ]] && { echo "--- output ---"; cat "${TMP}/out"; }; exit 1; }
           pass(){ echo "PASS: $*"; }
 
@@ -80,3 +81,10 @@ jobs:
           [[ $rc -ne 0 ]] || fail "should fail"
           [[ "$(cat "$HOME/.config/fish/config.fish")" == "new" ]] || fail "not rolled back"
           pass "registry failure rollback"
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-test-log
+          path: /tmp/backup-test.log
+          if-no-files-found: warn
