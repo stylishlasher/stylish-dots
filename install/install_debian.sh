@@ -82,6 +82,7 @@ command -v sha256sum >/dev/null 2>&1 || die "sha256sum не найден — н�
 command -v openssl >/dev/null 2>&1 || die "openssl не найден — нужен для проверки подписи набора."
 
 banner
+export STYLISH_BOOTSTRAPPED=1 # лаунчеры пропускают только запуск через bootstrap
 
 # --refresh не пробрасываем в мультитул
 REFRESH=0

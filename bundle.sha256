@@ -211,8 +211,8 @@
 # mode 755 config/mango/scripts/wallpaper
 # mode 755 config/mango/scripts/wallpaper-pick
 # mode 755 config/waybar/scripts/distro-icon.sh
-d3d57ce10b5c1589704048e720f6478e08340c90cf57357891a25ba22f2354d6  arch_multitool.sh
-8e11adfe56fcea5a0d7f821e5cd44057d6f389151a6824a453529c4e094f8c45  arch_multitool_debian.sh
+7c645804bdf90fc068350a35a960a7f05cd611e527d7279140c5ed00d52dc518  arch_multitool.sh
+011b05fadc66d5d97013a9781c1ac0cbcefcd5943c87b984d7b1d1cc29f09ca2  arch_multitool_debian.sh
 111199969a87c1cdf51b2f219daba6405503801a5d8b5ffeb6528d7b6f48e842  config/bin/clipkeep
 ad5b54a7d3048b8b8c7797a18f0aafcd1adc30fbe8a80b6083e875b94b47895a  config/bin/converttool
 6f075b1cee0be84b1ebeeb2b8c0c3452c69a07474e510b06dcc3f8a9f7c257c4  config/bin/fakefetch

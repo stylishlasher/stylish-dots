@@ -56,21 +56,15 @@ https://lislash.vercel.app/
 Одной командой (без клонирования репо):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool.sh | bash
-```
-
-Через bootstrap-установщик:
-
-```bash
 curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
 ```
 
-Или вручную:
+Из клонированного репозитория:
 
 ```bash
 git clone https://github.com/stylishlasher/stylish-dots.git
 cd stylish-dots
-bash arch_multitool.sh
+bash install/install.sh
 ```
 
 ### Debian / Ubuntu-based (адаптированная версия)
@@ -78,24 +72,18 @@ bash arch_multitool.sh
 Одной командой (без клонирования репо):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool_debian.sh | bash
-```
-
-Через bootstrap-установщик:
-
-```bash
 curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash
 ```
 
-Или вручную:
+Из клонированного репозитория:
 
 ```bash
 git clone https://github.com/stylishlasher/stylish-dots.git
 cd stylish-dots
-bash arch_multitool_debian.sh
+bash install/install_debian.sh
 ```
 
-> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). При прямом `curl | bash` недостающие модули докачиваются из GitHub автоматически.
+> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). Прямой запуск лаунчеров отключён: они только печатают подсказку и требуют bootstrap.
 > Arch-версия рассчитана на pacman/AUR, Debian-версия — best-effort для apt/dpkg.
 >
 > Манифест набора (`bundle.sha256`) подписан RSA-ключом: публичный вшит в оба `install/*.sh`, приватного в репозитории нет. Проверяются SHA-256 каждого файла, права доступа и символьные ссылки — подмена файлов вместе с манифестом не пройдёт. После изменений в `modules/` или `config/` переподписывай манифест: `bash scripts/sign-bundle.sh` (приватный ключ — `STYLISH_SIGNING_KEY` или `~/.local/share/stylish-dots/signing.key`). Неподписанным остаётся только сам `install/*.sh`, который грузится по HTTPS.

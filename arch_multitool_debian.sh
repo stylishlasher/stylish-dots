@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -uo pipefail
+if [[ "${STYLISH_BOOTSTRAPPED:-}" != "1" ]]; then
+    printf '%s\n' \
+        "Прямой запуск мультитула отключён — используй bootstrap:" \
+        "  curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash" >&2
+    exit 1
+fi
 TOOL_NAME="Stylish Multitool Debian v4"
 STYLISH_PLATFORM="debian"
 export STYLISH_PLATFORM

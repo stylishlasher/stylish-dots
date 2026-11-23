@@ -371,22 +371,25 @@ run_migration_variant install.sh arch_multitool.sh pacman
 run_migration_variant install_debian.sh arch_multitool_debian.sh apt-get
 run_real_repo_test
 
-# Регрессия: `curl | bash` без аргументов не должен бесконечно печатать меню на EOF.
+# Прямой запуск лаунчеров заменён плашкой; bootstrap помечает своё окружение.
 run_noninteractive_test() {
-    local out
-    set +e
-    out="$(timeout 10 bash "$ROOT/arch_multitool.sh" </dev/null 2>&1)"; local rc=$?
-    set -e
-    [[ $rc -ne 0 ]] || fail "noninteractive launcher entered the menu"
-    grep -q 'Нет интерактивного ввода' <<<"$out" || { echo "$out" >&2; fail "no noninteractive warning"; }
-    [[ $(grep -c '== Arch Multitool ==' <<<"$out") -le 1 ]] || fail "menu spam still present"
+    local out launcher rc
+    for launcher in arch_multitool.sh arch_multitool_debian.sh; do
+        set +e
+        out="$(timeout 10 bash "$ROOT/$launcher" </dev/null 2>&1)"; rc=$?
+        set -e
+        [[ $rc -ne 0 ]] || fail "$launcher: direct launch succeeded"
+        grep -q 'Прямой запуск мультитула отключён' <<<"$out" || { echo "$out" >&2; fail "$launcher: no bootstrap banner"; }
+        grep -q 'install/install' <<<"$out" || { echo "$out" >&2; fail "$launcher: no bootstrap command in banner"; }
+        [[ $(grep -c '== .* ==' <<<"$out") -eq 0 ]] || fail "$launcher: menu spam still present"
+    done
     if out="$(printf '' | timeout 5 bash -c 't(){ echo "$1"; }; warn(){ echo "$*"; }; source "$1"; menu_select Title "0|Exit"' _ "$ROOT/modules/lib/menu.sh" 2>&1)"; then
         fail "menu_select accepted EOF"
     fi
     if out="$(printf '' | timeout 5 bash -c 't(){ echo "$1"; }; warn(){ echo "$*"; }; source "$1"; select_packages Title "pkg|desc|on"' _ "$ROOT/modules/lib/menu.sh" 2>&1)"; then
         fail "select_packages accepted EOF"
     fi
-    pass "noninteractive stdin exits instead of spamming the menu"
+    pass "direct launchers show bootstrap banner; selectors exit on EOF"
 }
 run_noninteractive_test
 
