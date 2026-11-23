@@ -28,6 +28,16 @@ pkg_update() {
 }
 
 INSTALLED_PKGS_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/installed-packages.txt"
+
+pkg_is_installed() {
+    local p="$1"
+    case "$PLATFORM" in
+        arch) pacman -Q "$p" >/dev/null 2>&1 ;;
+        debian) dpkg-query -W -f='${db:Status-Status}' "$p" 2>/dev/null | grep -qx 'installed' ;;
+        *) return 1 ;;
+    esac
+}
+
 track_installed_pkgs() {
     mkdir -p "$(dirname "$INSTALLED_PKGS_STATE")"
     local p
@@ -39,19 +49,33 @@ track_installed_pkgs() {
 pkg_install() {
     local -a pkgs=("$@")
     (( ${#pkgs[@]} )) || return 0
+
+    local -a pre_missing=()
+    local p
+    for p in "${pkgs[@]}"; do
+        pkg_is_installed "$p" || pre_missing+=("$p")
+    done
+
+    local rc=0
     case "$PLATFORM" in
         arch)
             if has yay; then yay -S --needed --noconfirm "${pkgs[@]}"
             elif has paru; then paru -S --needed --noconfirm "${pkgs[@]}"
             else sudo pacman -S --needed --noconfirm "${pkgs[@]}"
-            fi
+            fi || rc=$?
             ;;
         debian)
-            sudo apt-get install -y "${pkgs[@]}"
+            sudo apt-get install -y "${pkgs[@]}" || rc=$?
             ;;
         *) err "Unsupported platform: $PLATFORM"; return 1 ;;
-    esac || return 1
-    track_installed_pkgs "${pkgs[@]}"
+    esac
+
+    local -a newly_installed=()
+    for p in "${pre_missing[@]}"; do
+        pkg_is_installed "$p" && newly_installed+=("$p")
+    done
+    track_installed_pkgs "${newly_installed[@]}"
+    return "$rc"
 }
 
 pac_install() { pkg_install "$@"; }
