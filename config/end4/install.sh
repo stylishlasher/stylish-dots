@@ -21,11 +21,20 @@ TS="$(date +%Y%m%d_%H%M%S)"
 BK="$HOME/.config-backup-end4-$TS"
 BACKED_UP=0
 
+BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
+register_backup() {
+  local src="$1" bk="$2"
+  mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+  printf '%s	%s	%s
+' "$(date '+%F %T')" "$src" "$bk" >> "$BACKUP_REGISTRY"
+}
+
 backup_path() {
   local target="$1" rel="$2"
   if [ -e "$target" ] || [ -L "$target" ]; then
     mkdir -p "$BK/$(dirname "$rel")"
     cp -a "$target" "$BK/$rel"
+    register_backup "$target" "$BK/$rel"
     BACKED_UP=1
     echo "backup: $target -> $BK/$rel"
   fi

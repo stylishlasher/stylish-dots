@@ -2,11 +2,9 @@
 
 action_create_home_readme() {
     local f="$HOME/README.md"
-    if [[ -e "$f" || -L "$f" ]]; then
-        cp -a "$f" "${f}.bak.$(date +%Y%m%d_%H%M%S)"
-        info "Backup: ${f}.bak.*"
-    fi
+    [[ -e "$f" || -L "$f" ]] && stash_dir "$f"
     cat > "$f" <<'MD'
+<!-- stylish-dots:home-readme -->
 # Полезные ссылки
 
 ## Обои

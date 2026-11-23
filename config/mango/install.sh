@@ -29,11 +29,20 @@ done
 
 BK="$HOME/.config-backup-mango-$(date +%Y%m%d_%H%M%S)"
 BACKED_UP=0
+BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
+register_backup() {
+  local src="$1" bk="$2"
+  mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+  printf '%s	%s	%s
+' "$(date '+%F %T')" "$src" "$bk" >> "$BACKUP_REGISTRY"
+}
+
 backup_if_exists() {
   local target="$1" name="$2"
   if [ -e "$target" ] || [ -L "$target" ]; then
     mkdir -p "$BK"
     mv "$target" "$BK/$name"
+    register_backup "$target" "$BK/$name"
     BACKED_UP=1
     echo "бэкап: $target -> $BK/$name"
   fi
@@ -91,7 +100,7 @@ done
 
 if [ -f "$TMPROOT/mango-settings" ]; then
   if [ -f "$HOME/.local/bin/mango-settings" ]; then
-    mkdir -p "$BK"; cp -a "$HOME/.local/bin/mango-settings" "$BK/mango-settings"; BACKED_UP=1
+    mkdir -p "$BK"; cp -a "$HOME/.local/bin/mango-settings" "$BK/mango-settings"; register_backup "$HOME/.local/bin/mango-settings" "$BK/mango-settings"; BACKED_UP=1
   fi
   install -m755 "$TMPROOT/mango-settings" "$HOME/.local/bin/mango-settings"
 fi

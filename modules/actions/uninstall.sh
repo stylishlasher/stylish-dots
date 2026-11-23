@@ -34,10 +34,10 @@ action_uninstall() {
             illogical-conf) stash_dir "$HOME/.config/illogical-impulse/quickshell"; ok "quickshell config removed" ;;
             home-readme)
                 local f="$HOME/README.md"
-                if [[ -f "$f" ]] && grep -q "Wallpaper Pack 25 (TMS Wallpapers)" "$f" && grep -q "## Firefox расширения" "$f"; then
+                if [[ -f "$f" ]] && grep -q "stylish-dots:home-readme" "$f"; then
                     stash_dir "$f"; ok "home README removed/backed up"
                 else
-                    warn "~/README.md не похож на файл multitool; пропущен"
+                    warn "~/README.md не помечен как созданный multitool; пропущен"
                 fi
                 ;;
             rust-fetches)

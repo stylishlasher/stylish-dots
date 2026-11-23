@@ -2,7 +2,37 @@
 
 BACKUP_REGISTRY="${BACKUP_REGISTRY:-${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv}"
 
+backup_import_legacy_dir() {
+    local dir="$1" prefix="$2"
+    [[ -d "$dir" ]] || return 0
+    local bk rel target
+    while IFS= read -r -d '' bk; do
+        rel="${bk#$dir/}"
+        case "$prefix:$rel" in
+            end4:hypr/custom) target="$HOME/.config/hypr/custom" ;;
+            end4:hypr/hyprland/keybinds.lua) target="$HOME/.config/hypr/hyprland/keybinds.lua" ;;
+            end4:illogical-impulse/config.json) target="$HOME/.config/illogical-impulse/config.json" ;;
+            end4:environment.d/10-cursor.conf) target="$HOME/.config/environment.d/10-cursor.conf" ;;
+            end4:gtk-3.0/settings.ini) target="$HOME/.config/gtk-3.0/settings.ini" ;;
+            end4:gtk-4.0/settings.ini) target="$HOME/.config/gtk-4.0/settings.ini" ;;
+            end4:icons-default/index.theme) target="$HOME/.icons/default/index.theme" ;;
+            mango:mango|mango:waybar|mango:foot|mango:fuzzel|mango:mako|mango:matugen) target="$HOME/.config/$rel" ;;
+            mango:mango-settings) target="$HOME/.local/bin/mango-settings" ;;
+            *) continue ;;
+        esac
+        grep -Fq $'\t'"$target"$'\t'"$bk" "$BACKUP_REGISTRY" 2>/dev/null || backup_register "$target" "$bk"
+    done < <(find "$dir" -mindepth 1 -maxdepth 3 \( -type f -o -type d \) -print0 2>/dev/null)
+}
+
+backup_import_legacy() {
+    mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+    local d
+    for d in "$HOME"/.config-backup-end4-*; do backup_import_legacy_dir "$d" end4; done
+    for d in "$HOME"/.config-backup-mango-*; do backup_import_legacy_dir "$d" mango; done
+}
+
 action_backup_list() {
+    backup_import_legacy
     if [[ ! -f "$BACKUP_REGISTRY" ]]; then info "Бэкапов не найдено."; return 0; fi
     echo -e "${BOLD}${CYAN}== Бэкапы stylish-dots (последние 50) ==${NC}"
     local total start i line
