@@ -25,15 +25,16 @@ backup_import_legacy_dir() {
 }
 
 backup_import_legacy() {
-    mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+    mkdir -p "$(dirname "$BACKUP_REGISTRY")" || { err "Не удалось создать каталог реестра: $(dirname "$BACKUP_REGISTRY")"; return 1; }
+    touch "$BACKUP_REGISTRY" || { err "Не удалось создать реестр бэкапов: $BACKUP_REGISTRY"; return 1; }
     local d
     for d in "$HOME"/.config-backup-end4-*; do backup_import_legacy_dir "$d" end4; done
     for d in "$HOME"/.config-backup-mango-*; do backup_import_legacy_dir "$d" mango; done
 }
 
 action_backup_list() {
-    backup_import_legacy
-    if [[ ! -f "$BACKUP_REGISTRY" ]]; then info "Бэкапов не найдено."; return 0; fi
+    backup_import_legacy || return 1
+    if [[ ! -s "$BACKUP_REGISTRY" ]]; then info "Бэкапов не найдено."; return 0; fi
     echo -e "${BOLD}${CYAN}== Бэкапы stylish-dots (последние 50) ==${NC}"
     local total start i line
     total=$(wc -l < "$BACKUP_REGISTRY")
@@ -94,7 +95,7 @@ action_restore_profile() {
 
 action_restore_backup() {
     local target="${1:-}"
-    backup_import_legacy
+    backup_import_legacy || return 1
     [[ -f "$BACKUP_REGISTRY" ]] || { err "Реестр бэкапов пуст: $BACKUP_REGISTRY"; return 1; }
 
     local bk=""
@@ -117,8 +118,12 @@ action_restore_backup() {
     if [[ -e "$target" || -L "$target" ]]; then
         local cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
         mv "$target" "$cur" || { err "Не удалось сохранить текущее состояние: $target"; return 1; }
-        backup_register "$target" "$cur" || warn "Текущее сохранено, но не записано в реестр: $cur"
-        info "Текущее сохранено: $cur"
+        if backup_register "$target" "$cur"; then
+            info "Текущее сохранено: $cur"
+        else
+            err "Текущее сохранено, но не записано в реестр: $cur"
+            return 1
+        fi
     fi
     mkdir -p "$(dirname "$target")" || { err "Не удалось создать каталог: $(dirname "$target")"; return 1; }
     cp -a "$bk" "$target" || { err "Не удалось восстановить $target из $bk"; return 1; }
