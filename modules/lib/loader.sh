@@ -46,6 +46,7 @@ run_action() {
         full_auto) require_module actions/interactive.sh; action_full_auto "$@" ;;
         apply_configs) require_module actions/dotfiles.sh; action_apply_configs "$@" ;;
         quick_audit) require_module actions/audit.sh; action_quick_audit "$@" ;;
+        create_home_readme) require_module actions/extras.sh; action_create_home_readme "$@" ;;
         *) err "Неизвестное действие: $action"; return 1 ;;
     esac
 }

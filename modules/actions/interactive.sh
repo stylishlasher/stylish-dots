@@ -50,6 +50,7 @@ action_full_interactive() {
         "flatpak|Flatpak + Flathub|off"
         "warp|Cloudflare WARP (Arch)|off"
         "firewall|Firewall (ufw)|off"
+        "home-readme|Создать ~/README.md (обои + Firefox расширения)|on"
     )
     select_packages "Компоненты (галочки)" "${items[@]}" || return 1
 
@@ -70,6 +71,7 @@ action_full_interactive() {
             flatpak) action_install_flatpak || warn "flatpak failed" ;;
             warp) action_install_warp || warn "warp failed" ;;
             firewall) action_configure_firewall || warn "firewall failed" ;;
+            home-readme) require_module actions/extras.sh; action_create_home_readme || warn "home readme failed" ;;
         esac
     done
 
