@@ -7,6 +7,9 @@ action_uninstall() {
     action_preflight uninstall || return 1
 
     local -a items=(
+        "rollback-end4|Откатить end4 по бэкапам (или убрать новые пути)|off"
+        "rollback-mango|Откатить mango по бэкапам (или убрать новые пути)|off"
+        "rollback-stylish|Откатить stylish по бэкапам (или убрать новые пути)|off"
         "fish-conf|Удалить ~/.config/fish|off"
         "nvim-conf|Удалить ~/.config/nvim|off"
         "fastfetch-conf|Удалить ~/.config/fastfetch|off"
@@ -15,7 +18,7 @@ action_uninstall() {
         "rust-fetches|Удалить Rust fetch binaries из ~/.local/bin|off"
         "remove-pkgs|Удалить пакеты, установленные этим инсталлером (осторожно)|off"
     )
-    select_packages "Uninstall: выбери что удалить" "${items[@]}" || return 1
+    select_packages "Uninstall: выбери что удалить/откатить" "${items[@]}" || return 1
 
     echo
     echo -e "${BOLD}${CYAN}== UNINSTALL OVERVIEW ==${NC}"
@@ -24,10 +27,13 @@ action_uninstall() {
     else
         echo "  - (ничего не выбрано)"
     fi
-    is_interactive && ! confirm "Продолжить удаление?" && return 1
+    is_interactive && ! confirm "Продолжить uninstall/rollback?" && return 1
 
     for p in "${SELECTED_PACKAGES[@]}"; do
         case "$p" in
+            rollback-end4) action_restore_profile end4 || warn "rollback end4 failed" ;;
+            rollback-mango) action_restore_profile mango || warn "rollback mango failed" ;;
+            rollback-stylish) action_restore_profile stylish || warn "rollback stylish failed" ;;
             fish-conf) stash_dir "$HOME/.config/fish"; ok "fish config removed" ;;
             nvim-conf) stash_dir "$HOME/.config/nvim"; ok "nvim config removed" ;;
             fastfetch-conf) stash_dir "$HOME/.config/fastfetch"; ok "fastfetch config removed" ;;

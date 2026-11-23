@@ -48,7 +48,6 @@ action_restore_profile() {
     local profile="${1:-}"
     [[ -n "$profile" ]] || { err "Укажи профиль: end4|mango|stylish"; return 1; }
     backup_import_legacy
-    [[ -f "$BACKUP_REGISTRY" ]] || { err "Реестр бэкапов пуст: $BACKUP_REGISTRY"; return 1; }
     local -a targets=()
     case "$profile" in
         end4) targets=("$HOME/.config/hypr/custom" "$HOME/.config/hypr/hyprland/keybinds.lua" "$HOME/.config/illogical-impulse/config.json" "$HOME/.config/environment.d/10-cursor.conf" "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.icons/default/index.theme") ;;
@@ -56,17 +55,38 @@ action_restore_profile() {
         stylish) targets=("$HOME/.config/fish" "$HOME/.config/nvim" "$HOME/.config/fastfetch" "$HOME/README.md") ;;
         *) err "Неизвестный профиль: $profile"; return 1 ;;
     esac
-    local t
+
+    echo -e "${BOLD}${CYAN}== Rollback: $profile ==${NC}"
+    local t bk; local -a plan=()
     for t in "${targets[@]}"; do
-        local bk
-        bk=$(awk -F'	' -v t="$t" '$2==t{b=$3} END{print b}' "$BACKUP_REGISTRY")
+        bk=$(awk -F'\t' -v t="$t" '$2==t{b=$3} END{print b}' "$BACKUP_REGISTRY" 2>/dev/null)
         if [[ -n "$bk" && (-e "$bk" || -L "$bk") ]]; then
-            action_restore_backup "$t" || warn "restore failed: $t"
+            echo "  [restore] $t <- $bk"
+            plan+=("restore|$t")
+        elif [[ -e "$t" || -L "$t" ]]; then
+            echo "  [remove]  $t (бэкапа не было, путь будет убран в backup)"
+            plan+=("remove|$t")
         else
-            info "Нет бэкапа для $t, пропуск"
+            echo "  [skip]    $t (нет бэкапа и текущего пути)"
         fi
     done
-    ok "Rollback профиля $profile завершён (где были бэкапы)."
+    is_interactive && ! confirm "Выполнить rollback профиля $profile?" && return 1
+
+    local failed=0 okc=0 item
+    for item in "${plan[@]}"; do
+        local op="${item%%|*}"; local path="${item#*|}"
+        if [[ "$op" == "restore" ]]; then
+            if action_restore_backup "$path"; then okc=$((okc+1)); else warn "restore failed: $path"; failed=$((failed+1)); fi
+        else
+            if stash_dir "$path"; then okc=$((okc+1)); else warn "remove failed: $path"; failed=$((failed+1)); fi
+        fi
+    done
+
+    if (( failed )); then
+        err "Rollback профиля $profile завершён с ошибками: ok=$okc fail=$failed"
+        return 1
+    fi
+    ok "Rollback профиля $profile завершён: $okc действий"
 }
 
 action_restore_backup() {
