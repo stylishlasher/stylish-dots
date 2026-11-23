@@ -11,7 +11,7 @@ PUB=""
 stub_launchers() {
     local dir="$1" f
     for f in arch_multitool.sh arch_multitool_debian.sh; do
-        printf '#!/usr/bin/env bash\nprintf "ARGS:%%s\\n" "$*"\nprintf "NVIM:%%s\\n" "${NVIM_PRESET:-}"\n' > "$dir/$f"
+        printf '#!/usr/bin/env bash\nprintf "ARGS:%%s\\n" "$*"\n' > "$dir/$f"
         chmod +x "$dir/$f"
     done
 }
@@ -89,7 +89,7 @@ run_variant() {
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
     setup_test_key "$tmp"
-    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" NVIM_PRESET=super-easy-casual)
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
     EO=(env PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
 
     mkdir -p "$repo/install" "$tmp/bin"
@@ -112,7 +112,6 @@ run_variant() {
     [[ -f "$current/modules/lib/multitool.sh" ]] || fail "$script: modules cache missing"
     [[ -f "$current/config/fastfetch/config.jsonc" ]] || fail "$script: config cache missing"
     grep -q '^ARGS:-a$' <<<"$out" || { echo "$out" >&2; fail "$script: --refresh leaked to multitool"; }
-    grep -q '^NVIM:super-easy-casual$' <<<"$out" || { echo "$out" >&2; fail "$script: nvim preset not passed to launcher"; }
     pass "$script: installs signed launcher + modules + config in a release"
     [[ ! -e "$current/config/fetches/stylish-fetches/target" ]] || fail "$script: build artifacts in cache"
     [[ ! -e "$current/config/bin/__pycache__" ]] || fail "$script: __pycache__ in cache"
@@ -249,7 +248,7 @@ run_clone_variant() {
     fixture="$tmp/fixture"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
     setup_test_key "$tmp"
-    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" NVIM_PRESET=super-easy-casual)
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
     EO=(env PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
     mkdir -p "$tmp/bin" "$tmp/standalone"
     make_payload "$fixture"
@@ -312,7 +311,7 @@ run_migration_variant() {
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-migration-test.XXXXXX")"
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; old="$data/arch-multitool"
     setup_test_key "$tmp"
-    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" NVIM_PRESET=super-easy-casual)
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
     mkdir -p "$repo/install" "$old/modules/lib" "$old/config/fastfetch" "$tmp/bin"
     patch_installer_pubkey "$ROOT/install/$script" "$repo/install/$script" "$PUB"
     make_payload "$repo"
@@ -393,31 +392,5 @@ run_noninteractive_test() {
     pass "direct launchers show bootstrap banner; selectors exit on EOF"
 }
 run_noninteractive_test
-
-# Плашка выбора Neovim-пресета должна работать и при `curl | bash` (TTY есть, stdin — скрипт).
-run_preset_prompt_test() {
-    local script_name tmp repo home data bin pkg out rc
-    command -v script >/dev/null 2>&1 || { pass "preset prompt test skipped: script(1) unavailable"; return 0; }
-    for script_name in install.sh install_debian.sh; do
-        tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-preset-test.XXXXXX")"
-        repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; bin="$tmp/bin"
-        mkdir -p "$repo/install" "$bin"
-        setup_test_key "$tmp"
-        patch_installer_pubkey "$ROOT/install/$script_name" "$repo/install/$script_name" "$PUB"
-        make_payload "$repo"
-        sign_fixture "$repo" "$tmp/test.key"
-        pkg=pacman; [[ "$script_name" == install_debian.sh ]] && pkg=apt-get
-        printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$pkg"; chmod +x "$bin/$pkg"
-        set +e
-        out="$(printf '1\n' | timeout 30 script -qec "env PATH=$bin:\$PATH HOME=$home XDG_DATA_HOME=$data bash $repo/install/$script_name" /dev/null 2>&1)"; rc=$?
-        set -e
-        [[ $rc -eq 0 ]] || { echo "$out" >&2; fail "$script_name: preset prompt run failed (rc=$rc)"; }
-        grep -q 'super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "$script_name: no preset prompt"; }
-        grep -q 'NVIM:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "$script_name: light preset not applied"; }
-        rm -rf "$tmp"
-    done
-    pass "bootstrap prompts for light/complex Neovim preset (both installers)"
-}
-run_preset_prompt_test
 
 echo "ALL BOOTSTRAP TESTS PASSED"

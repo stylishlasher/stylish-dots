@@ -25,19 +25,12 @@ action_full_interactive() {
         "4|$(t profile_none)" || return 1
     local profile="$MENU_CHOICE"
 
-    # Neovim preset: bootstrap уже мог выбрать его заранее.
-    local nvim_choice
-    case "${NVIM_PRESET:-}" in
-        lazyvim-stylish) nvim_choice=1 ;;
-        super-easy-casual) nvim_choice=2 ;;
-        *)
-            menu_select "Neovim preset" \
-                "1|$(t nvim_recommended)" \
-                "2|$(t nvim_old)" \
-                "3|$(t nvim_none)" || return 1
-            nvim_choice="$MENU_CHOICE"
-            ;;
-    esac
+    # Neovim preset
+    menu_select "Neovim preset" \
+        "1|$(t nvim_recommended)" \
+        "2|$(t nvim_old)" \
+        "3|$(t nvim_none)" || return 1
+    local nvim_choice="$MENU_CHOICE"
 
     # Fastfetch preset
     menu_select "Fastfetch preset" \
@@ -166,7 +159,7 @@ action_full_auto() {
     action_update_system || true
     action_install_basic || true
     action_install_fish || true
-    action_install_neovim "${NVIM_PRESET:-lazyvim-stylish}" || true
+    action_install_neovim lazyvim-stylish || true
     action_install_fastfetch_preset mine || true
     action_build_rust_fetches || true
     ok "$(t auto_done)"
