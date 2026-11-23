@@ -220,6 +220,22 @@ fetch_bundle() {
     rm -rf "$tmp"
 }
 
+choose_nvim_preset() {
+    [[ -z "${NVIM_PRESET:-}" && -r /dev/tty ]] || return 0
+    local answer
+    printf '%s\n' \
+        'Neovim preset:' \
+        '  1) super-easy-casual — лёгкий' \
+        '  2) lazyvim-stylish — сложный (по умолчанию)' >&2
+    printf 'Выбор [1/2]: ' >&2
+    IFS= read -r answer < /dev/tty || return 0
+    case "$answer" in
+        1) NVIM_PRESET=super-easy-casual ;;
+        *) NVIM_PRESET=lazyvim-stylish ;;
+    esac
+    export NVIM_PRESET
+}
+
 # -------------------------- Лаунчер + кэш модулей -----------------------------
 if [[ "$REFRESH" == "1" ]] || ! verify_bundle "$CURRENT"; then
     fetch_bundle
@@ -230,6 +246,11 @@ fi
 ok "Мультитул готов: $MULTITOOL"
 ok "Модули: $CURRENT/modules · конфиги: $CURRENT/config"
 echo >&2
+
+# Preset Neovim выбирается один раз при установке; NVIM_PRESET из окружения имеет приоритет.
+if [[ "$REFRESH" != "1" && ( ${#ARGS[@]} -eq 0 || " ${ARGS[*]} " == *' -f '* || " ${ARGS[*]} " == *' --full '* ) ]]; then
+    choose_nvim_preset
+fi
 
 # ---------------------------------- Запуск -----------------------------------
 # Мультитул интерактивный, поэтому при запуске через "curl | bash" подсовываем ему TTY.

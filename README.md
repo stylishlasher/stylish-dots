@@ -83,7 +83,7 @@ cd stylish-dots
 bash install/install_debian.sh
 ```
 
-> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). Прямой запуск лаунчеров отключён: они только печатают подсказку и требуют bootstrap.
+> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). Прямой запуск лаунчеров отключён: они только печатают подсказку и требуют bootstrap. При установке bootstrap спрашивает Neovim-пресет: лёгкий (`super-easy-casual`) или сложный (`lazyvim-stylish`, по умолчанию); заданный заранее `NVIM_PRESET` имеет приоритет.
 > Arch-версия рассчитана на pacman/AUR, Debian-версия — best-effort для apt/dpkg.
 >
 > Манифест набора (`bundle.sha256`) подписан RSA-ключом: публичный вшит в оба `install/*.sh`, приватного в репозитории нет. Проверяются SHA-256 каждого файла, права доступа и символьные ссылки — подмена файлов вместе с манифестом не пройдёт. После изменений в `modules/` или `config/` переподписывай манифест: `bash scripts/sign-bundle.sh` (приватный ключ — `STYLISH_SIGNING_KEY` или `~/.local/share/stylish-dots/signing.key`). Неподписанным остаётся только сам `install/*.sh`, который грузится по HTTPS.

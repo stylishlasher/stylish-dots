@@ -83,7 +83,7 @@ cd stylish-dots
 bash install/install_debian.sh
 ```
 
-> Both multitools are GUI/menu shells: the logic lives in `modules/`. The bootstrap installers (`install/install.sh`, `install/install_debian.sh`) place the launchers, `modules/` and `config/` into `~/.local/share/arch-multitool`, so everything works offline after the first run; `bash install/install.sh --refresh` (or `install_debian.sh --refresh`) refreshes the cache. Direct launcher runs are disabled: they only print a hint and require the bootstrap.
+> Both multitools are GUI/menu shells: the logic lives in `modules/`. The bootstrap installers (`install/install.sh`, `install/install_debian.sh`) place the launchers, `modules/` and `config/` into `~/.local/share/arch-multitool`, so everything works offline after the first run; `bash install/install.sh --refresh` (or `install_debian.sh --refresh`) refreshes the cache. Direct launcher runs are disabled: they only print a hint and require the bootstrap. At install time the bootstrap asks for a Neovim preset: light (`super-easy-casual`) or complex (`lazyvim-stylish`, default); an already set `NVIM_PRESET` wins.
 > The Arch version targets pacman/AUR; the Debian version is best-effort for apt/dpkg.
 >
 > The bundle manifest (`bundle.sha256`) is RSA-signed: the public key is embedded in both `install/*.sh`, the private key never enters the repository. SHA-256 of every file, file permissions and symlinks are verified, so swapping files together with the manifest won't pass. After changes to `modules/` or `config/`, re-sign it with `bash scripts/sign-bundle.sh` (private key via `STYLISH_SIGNING_KEY` or `~/.local/share/stylish-dots/signing.key`). Only `install/*.sh` itself is unsigned — it is fetched over HTTPS.
