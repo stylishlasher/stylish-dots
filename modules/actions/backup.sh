@@ -140,18 +140,24 @@ action_restore_backup() {
         return 1
     }
 
-    local tmp="${target}.restore-tmp.$$"
-    rm -rf "$tmp"
+    local tmpdir tmp
+    tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/stylish-restore.XXXXXX") || {
+        err "Не удалось создать временный каталог"
+        [[ -n "$cur" && (-e "$cur" || -L "$cur") ]] && mv "$cur" "$target" 2>/dev/null && warn "Возвращено прежнее состояние: $target"
+        return 1
+    }
+    tmp="$tmpdir/payload"
     if cp -a "$bk" "$tmp"; then
         rm -rf "$target"
         if mv "$tmp" "$target"; then
+            rm -rf "$tmpdir" 2>/dev/null || true
             ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
             return 0
         fi
     fi
 
     err "Не удалось восстановить $target из $bk"
-    rm -rf "$tmp" 2>/dev/null || true
+    rm -rf "$tmpdir" 2>/dev/null || true
     if [[ -n "$cur" && (-e "$cur" || -L "$cur") ]]; then
         rm -rf "$target" 2>/dev/null || true
         if mv "$cur" "$target" 2>/dev/null; then

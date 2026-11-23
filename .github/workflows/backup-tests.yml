@@ -1,0 +1,25 @@
+name: backup-tests
+on:
+  push:
+    paths:
+      - 'modules/lib/common.sh'
+      - 'modules/actions/backup.sh'
+      - 'modules/actions/uninstall.sh'
+      - 'tests/backup-tests.sh'
+      - '.github/workflows/backup-tests.yml'
+  pull_request:
+    paths:
+      - 'modules/lib/common.sh'
+      - 'modules/actions/backup.sh'
+      - 'modules/actions/uninstall.sh'
+      - 'tests/backup-tests.sh'
+      - '.github/workflows/backup-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  bash-backup-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backup regression tests
+        run: bash tests/backup-tests.sh

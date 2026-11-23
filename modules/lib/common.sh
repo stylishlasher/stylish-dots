@@ -47,7 +47,8 @@ ensure_sudo() {
 }
 
 ensure_work_dir() { [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] || WORK_DIR=$(mktemp -d /tmp/stylish-dots.XXXXXX); }
-cleanup() { [[ -n "$SUDO_KEEPALIVE_PID" ]] && kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"; }
+# return 0: иначе статус cleanup подменяет код выхода скрипта через EXIT trap
+cleanup() { [[ -n "$SUDO_KEEPALIVE_PID" ]] && kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"; return 0; }
 trap cleanup EXIT INT TERM
 
 resolve_configs() {
@@ -91,7 +92,12 @@ stash_dir() {
         if backup_register "$dst" "$bk"; then
             info "Backup: $bk"
         else
-            err "Бэкап перемещён, но не записан в реестр: $bk"
+            err "Бэкап перемещён, но не записан в реестр: $bk; пробую вернуть"
+            if mv "$bk" "$dst" 2>/dev/null; then
+                err "Исходный путь восстановлен: $dst"
+            else
+                err "Не удалось вернуть $bk -> $dst; восстанови вручную"
+            fi
             return 1
         fi
     else
