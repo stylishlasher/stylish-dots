@@ -48,7 +48,7 @@ action_backup_list() {
 action_restore_profile() {
     local profile="${1:-}"
     [[ -n "$profile" ]] || { err "Укажи профиль: end4|mango|stylish"; return 1; }
-    backup_import_legacy
+    backup_import_legacy || return 1
     local -a targets=()
     case "$profile" in
         end4) targets=("$HOME/.config/hypr/custom" "$HOME/.config/hypr/hyprland/keybinds.lua" "$HOME/.config/illogical-impulse/config.json" "$HOME/.config/environment.d/10-cursor.conf" "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.icons/default/index.theme") ;;
@@ -115,17 +115,23 @@ action_restore_backup() {
         [[ -n "$bk" ]] || { err "Действующий бэкап для $target не найден"; return 1; }
     fi
 
+    local cur=""
     if [[ -e "$target" || -L "$target" ]]; then
-        local cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
+        cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
         mv "$target" "$cur" || { err "Не удалось сохранить текущее состояние: $target"; return 1; }
         if backup_register "$target" "$cur"; then
             info "Текущее сохранено: $cur"
         else
-            err "Текущее сохранено, но не записано в реестр: $cur"
+            err "Текущее состояние перемещено в $cur, но не записано в реестр; пробую вернуть его обратно"
+            mv "$cur" "$target" 2>/dev/null || err "Не удалось вернуть $cur -> $target; восстанови вручную"
             return 1
         fi
     fi
     mkdir -p "$(dirname "$target")" || { err "Не удалось создать каталог: $(dirname "$target")"; return 1; }
-    cp -a "$bk" "$target" || { err "Не удалось восстановить $target из $bk"; return 1; }
+    if ! cp -a "$bk" "$target"; then
+        err "Не удалось восстановить $target из $bk"
+        [[ -n "$cur" && (-e "$cur" || -L "$cur") && ! -e "$target" && ! -L "$target" ]] && mv "$cur" "$target" 2>/dev/null && warn "Возвращено прежнее состояние: $target"
+        return 1
+    fi
     ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
 }
