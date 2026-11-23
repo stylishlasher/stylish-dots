@@ -80,7 +80,7 @@ EOF
 quick_audit() {
     echo -e "${BOLD}== Быстрый аудит ==${NC}"
     echo "Host: $(hostnamectl --static 2>/dev/null || hostname)"
-    echo "OS: $(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-unknown}")"
+    echo "OS: $(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-unknown}")"; [[ "${ID:-}" == "cachyos" || "${NAME:-}" == *CachyOS* ]] && echo "Compat: CachyOS (Arch-compatible mode)"
     echo "Kernel: $(uname -r)"
     echo "Disk:"; df -h / | tail -1
     echo "Mem:"; free -h | awk '/Mem:/ {print $3 "/" $2}'
@@ -92,17 +92,23 @@ main_menu() {
     while true; do
         menu_select "Arch Multitool v4" \
             "1|Полная интерактивная установка (галочки по разделам)" \
-            "2|Установка ПО / фетчи / пресеты" \
-            "3|Применить конфиги (stylish/end-4/mango/fastfetch)" \
-            "4|Обновить систему" \
-            "5|Аудит системы" \
+            "2|Dotfiles-only (без обновления системы/пакетов)" \
+            "3|Установка ПО / фетчи / пресеты" \
+            "4|Применить конфиги (stylish/end-4/mango/fastfetch)" \
+            "5|Бэкапы / восстановление" \
+            "6|Uninstall" \
+            "7|Обновить систему" \
+            "8|Аудит системы" \
             "0|Выход" || exit 0
         case "$MENU_CHOICE" in
             1) run_action full_interactive; pause ;;
-            2) run_action software_menu ;;
-            3) run_action apply_configs; pause ;;
-            4) run_action update_system; pause ;;
-            5) run_action quick_audit; pause ;;
+            2) run_action dotfiles_only; pause ;;
+            3) run_action software_menu ;;
+            4) run_action apply_configs; pause ;;
+            5) run_action backup_list; is_interactive && confirm "Восстановить бэкап?" && run_action restore_backup; pause ;;
+            6) run_action uninstall; pause ;;
+            7) run_action update_system; pause ;;
+            8) run_action quick_audit; pause ;;
             0) exit 0 ;;
         esac
     done

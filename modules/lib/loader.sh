@@ -47,6 +47,11 @@ run_action() {
         apply_configs) require_module actions/dotfiles.sh; action_apply_configs "$@" ;;
         quick_audit) require_module actions/audit.sh; action_quick_audit "$@" ;;
         create_home_readme) require_module actions/extras.sh; action_create_home_readme "$@" ;;
+        dotfiles_only) require_module actions/interactive.sh; action_install_dotfiles_only "$@" ;;
+        preflight) require_module actions/preflight.sh; action_preflight "$@" ;;
+        backup_list) require_module actions/backup.sh; action_backup_list "$@" ;;
+        restore_backup) require_module actions/backup.sh; action_restore_backup "$@" ;;
+        uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
         *) err "Неизвестное действие: $action"; return 1 ;;
     esac
 }

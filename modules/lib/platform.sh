@@ -11,7 +11,12 @@ detect_platform() {
     else
         PLATFORM="unknown"
     fi
-    export PLATFORM
+    IS_CACHYOS="0"
+    if [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        [[ "${ID:-}" == "cachyos" || "${ID_LIKE:-}" == *cachyos* || "${NAME:-}" == *CachyOS* ]] && IS_CACHYOS="1"
+    fi
+    export PLATFORM IS_CACHYOS
 }
 
 pkg_update() {

@@ -4,6 +4,7 @@
 
 action_full_interactive() {
     require_module lib/menu.sh
+    require_module actions/preflight.sh
     require_module actions/system.sh
     require_module actions/software.sh
     require_module actions/fish.sh
@@ -13,6 +14,7 @@ action_full_interactive() {
     require_module actions/flatpak.sh
     require_module actions/network.sh
 
+    action_preflight install || return 1
     info "Полная интерактивная установка: выбери профиль, пресеты и компоненты."
 
     # Profile
@@ -50,7 +52,7 @@ action_full_interactive() {
         "flatpak|Flatpak + Flathub|off"
         "warp|Cloudflare WARP (Arch)|off"
         "firewall|Firewall (ufw)|off"
-        "home-readme|Создать ~/README.md (обои + Firefox расширения)|on"
+        "home-readme|Создать ~/README.md (обои + Firefox расширения)|off"
     )
     select_packages "Компоненты (галочки)" "${items[@]}" || return 1
 
@@ -147,11 +149,13 @@ action_full_interactive() {
 }
 
 action_full_auto() {
+    require_module actions/preflight.sh
     require_module actions/system.sh
     require_module actions/software.sh
     require_module actions/fish.sh
     require_module actions/neovim.sh
     require_module actions/fetches.sh
+    action_preflight install || return 1
     action_update_system || true
     action_install_basic || true
     action_install_fish || true
@@ -159,4 +163,52 @@ action_full_auto() {
     action_install_fastfetch_preset mine || true
     action_build_rust_fetches || true
     ok "Авто-установка завершена."
+}
+
+action_install_dotfiles_only() {
+    require_module lib/menu.sh
+    require_module actions/preflight.sh
+    require_module actions/dotfiles.sh
+    require_module actions/fetches.sh
+    require_module actions/neovim.sh
+    action_preflight dotfiles || return 1
+
+    menu_select "Dotfiles-only: профиль" \
+        "1|stylish-dots (fish + nvim + fetches)" \
+        "2|end-4 / illogical-impulse" \
+        "3|MangoWC" \
+        "0|Назад" || return 0
+    local profile="$MENU_CHOICE"
+    [[ "$profile" == "0" ]] && return 0
+
+    menu_select "Neovim preset" \
+        "1|lazyvim-stylish" "2|super-easy-casual" "3|Не менять Neovim" || return 1
+    local nvim_choice="$MENU_CHOICE"
+    menu_select "Fastfetch preset" \
+        "1|mine" "2|default" "3|micro" "4|stylish" "5|universal" "6|Не менять" || return 1
+    local ff_choice="$MENU_CHOICE"
+
+    echo
+    echo -e "${BOLD}${CYAN}== DOTFILES-ONLY OVERVIEW ==${NC}"
+    echo "  profile=$profile nvim=$nvim_choice fastfetch=$ff_choice"
+    echo "  Система и пакеты не обновляются."
+    is_interactive && ! confirm "Применить?" && return 1
+
+    case "$nvim_choice" in
+        1) action_install_neovim lazyvim-stylish || warn "nvim failed" ;;
+        2) action_install_neovim super-easy-casual || warn "nvim failed" ;;
+    esac
+    case "$ff_choice" in
+        1) action_install_fastfetch_preset mine || warn "fastfetch failed" ;;
+        2) action_install_fastfetch_preset default || warn "fastfetch failed" ;;
+        3) action_install_fastfetch_preset micro || warn "fastfetch failed" ;;
+        4) action_install_fastfetch_preset stylish || warn "fastfetch failed" ;;
+        5) action_install_fastfetch_preset universal || warn "fastfetch failed" ;;
+    esac
+    case "$profile" in
+        1) action_apply_stylish "$nvim_choice" || warn "profile failed" ;;
+        2) action_apply_end4 || warn "end4 failed" ;;
+        3) action_apply_mango || warn "mango failed" ;;
+    esac
+    ok "Dotfiles-only установка завершена."
 }

@@ -75,11 +75,20 @@ resolve_configs() {
     [[ -d "$CONFIGS_DIR" ]]
 }
 
+BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
+
+backup_register() {
+    local src="$1" bk="$2"
+    mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+    printf '%s\t%s\t%s\n' "$(date '+%F %T')" "$src" "$bk" >> "$BACKUP_REGISTRY"
+}
+
 stash_dir() {
     local dst="$1"
     [[ -e "$dst" || -L "$dst" ]] || return 0
     local bk="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
     mv "$dst" "$bk"
+    backup_register "$dst" "$bk"
     info "Backup: $bk"
 }
 
