@@ -87,9 +87,13 @@ stash_dir() {
     local dst="$1"
     [[ -e "$dst" || -L "$dst" ]] || return 0
     local bk="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
-    mv "$dst" "$bk"
-    backup_register "$dst" "$bk"
-    info "Backup: $bk"
+    if mv "$dst" "$bk"; then
+        backup_register "$dst" "$bk"
+        info "Backup: $bk"
+    else
+        err "Не удалось создать бэкап: $dst -> $bk"
+        return 1
+    fi
 }
 
 normalize_paths() {
