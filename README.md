@@ -38,7 +38,7 @@ https://lislash.vercel.app/
   - `lazyvim-stylish/` — новый проработанный LazyVim;
   - `super-easy-casual/` — старый лёгкий конфиг из прошлого коммита.
 - **`config/themes/`** — JSON-пресеты Serpantinum/темы.
-- **`config/fetches/unstable/`** — кастомные C-фетчи, помечены как **UNSTABLE/BETA, kind of abandoned**.
+- **`config/fetches/stylish-fetches/`** — Rust-перепись бывших нестабильных C-фетчей (3D fetches, ручной запуск по команде).
 - **`config/mango/`, `config/waybar/`, `config/foot/`, `config/fuzzel/`, `config/mako/`, `config/matugen/`, `config/bin/`** — MangoWC/Wayland dotfiles и утилиты.
 - **`docs/`** — кастомный сайт GitHub Pages в стиле Material You.
 - **`arch_multitool.sh`** — интерактивный установщик/мультитул.
@@ -143,7 +143,8 @@ stylish-dots/
 │   │   └── super-easy-casual/
 │   ├── themes/              # JSON-пресеты/темы Serpantinum
 │   ├── fetches/
-│   │   └── unstable/        # UNSTABLE/BETA C-фетчи (kind of abandoned)
+│   │   ├── unstable/        # старые C-исходники (legacy, не используются по умолчанию)
+│   │   └── stylish-fetches/ # Rust 3D fetches (keyfetch/treefetch/tomatofetch/stoolfetch/skeletonfetch)
 │   ├── mango/               # MangoWC конфиги
 │   ├── waybar/ foot/ fuzzel/ mako/ matugen/ bin/
 ├── docs/                    # GitHub Pages (Material You)
@@ -163,7 +164,7 @@ stylish-dots/
 | Neovim preset | `~/.config/nvim/` |
 | MangoWC | `~/.config/mango/`, `~/.config/waybar/`, `~/.config/foot/`, `~/.config/fuzzel/`, `~/.config/mako/`, `~/.config/matugen/`, `~/.local/bin/mango-settings` |
 | Темы Serpantinum | `~/.local/state/serpantinum/presets/` |
-| Приветствие терминала | `~/.config/arch_multitool/greeting.fish` |
+| Stylish 3D fetches (Rust) | `~/.local/bin/{keyfetch,treefetch,tomatofetch,stoolfetch,skeletonfetch}` |
 
 > Перед заменой существующих конфигов мультитул/скрипты делают бэкап (`*.bak.<timestamp>` или backup dir).
 
