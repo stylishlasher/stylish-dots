@@ -54,10 +54,56 @@ action_full_interactive() {
     )
     select_packages "Компоненты (галочки)" "${items[@]}" || return 1
 
+    local profile_name nvim_name ff_name
+    case "$profile" in
+        1) profile_name="stylish-dots (fish + nvim + fetches)";;
+        2) profile_name="end-4 / illogical-impulse";;
+        3) profile_name="MangoWC";;
+        4) profile_name="не применять";;
+        *) profile_name="$profile";;
+    esac
+    case "$nvim_choice" in
+        1) nvim_name="lazyvim-stylish";;
+        2) nvim_name="super-easy-casual";;
+        3) nvim_name="не устанавливать";;
+        *) nvim_name="$nvim_choice";;
+    esac
+    case "$ff_choice" in
+        1) ff_name="mine";; 2) ff_name="default";; 3) ff_name="micro";;
+        4) ff_name="stylish";; 5) ff_name="universal";; 6) ff_name="не ставить";;
+        *) ff_name="$ff_choice";;
+    esac
+
     echo
-    info "План:"
-    echo "  profile=$profile nvim=$nvim_choice fastfetch=$ff_choice"
-    echo "  components: ${SELECTED_PACKAGES[*]:-(none)}"
+    echo -e "${BOLD}${CYAN}================== OVERVIEW ==================${NC}"
+    echo -e "${BOLD}Профиль dotfiles:${NC} $profile_name"
+    echo -e "${BOLD}Neovim preset:${NC}    $nvim_name"
+    echo -e "${BOLD}Fastfetch preset:${NC} $ff_name"
+    echo -e "${BOLD}Компоненты:${NC}"
+    local comp
+    for comp in update basic aur fish rust-fetches flatpak warp firewall home-readme; do
+        local mark="[-]"; local desc="$comp"
+        case "$comp" in
+            update) desc="Обновить систему";;
+            basic) desc="Базовый набор пакетов";;
+            aur) desc="AUR helper yay (только Arch)";;
+            fish) desc="Fish + конфиг";;
+            rust-fetches) desc="Rust 3D fetches (keyfetch/treefetch/...)";;
+            flatpak) desc="Flatpak + Flathub";;
+            warp) desc="Cloudflare WARP (Arch)";;
+            firewall) desc="Firewall (ufw)";;
+            home-readme) desc="Создать ~/README.md (обои + Firefox расширения)";;
+        esac
+        for p in "${SELECTED_PACKAGES[@]}"; do [[ "$p" == "$comp" ]] && mark="[x]"; done
+        echo "  $mark $desc"
+    done
+    echo -e "${BOLD}Будет установлено/применено:${NC}"
+    for p in "${SELECTED_PACKAGES[@]}"; do echo "  - $p"; done
+    [[ "$nvim_choice" != "3" ]] && echo "  - neovim preset: $nvim_name"
+    [[ "$ff_choice" != "6" ]] && echo "  - fastfetch preset: $ff_name"
+    [[ "$profile" != "4" ]] && echo "  - dotfiles profile: $profile_name"
+    echo -e "${BOLD}${CYAN}===============================================${NC}"
+    echo
     is_interactive && ! confirm "Начать установку?" && return 1
 
     local p
