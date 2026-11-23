@@ -3,7 +3,8 @@
 # LINUX MULTITOOL (Debian) — установщик (bootstrap)
 # ==============================================================================
 # Ставит мультитул, модули и конфиги в ~/.local/share/arch-multitool и запускает.
-# После этого мультитул работает без интернета. --refresh обновляет кэш.
+# Целостность загружаемого проверяется git (SHA объектов) и bash -n модулей.
+# После первого запуска мультитул работает без интернета. --refresh обновляет кэш.
 #
 # Быстрый запуск:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install_debian.sh | bash
@@ -21,7 +22,7 @@ set -euo pipefail
 REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 RAW_BASE="https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}"
-CONFIG_TARBALL="https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${REPO_BRANCH}"
+REPO_URL="https://github.com/${REPO_SLUG}.git"
 
 # Куда положить мультитул, модули и конфиги (перезапуск без интернета)
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/arch-multitool"
@@ -65,14 +66,14 @@ for a in "$@"; do
 done
 if (( ${#ARGS[@]} )); then set -- "${ARGS[@]}"; else set --; fi
 
-# Ищем локальную копию мультитула (если запущено из клонированного репозитория)
+# Ищем локальную копию мультитула с modules/ и config/ (клонированный репозиторий)
 LOCAL_DIR=""
 SELF="${BASH_SOURCE[0]:-}"
 if [[ -n "$SELF" && -f "$SELF" ]]; then
-    self_dir="$(cd -- "$(dirname -- "$(realpath "$SELF")")" && pwd)"
+    self_dir="$(cd -- "$(dirname -- "$SELF")" && pwd -P)"
     for cand in "$self_dir" "$self_dir/.."; do
-        if [[ -f "$cand/arch_multitool_debian.sh" ]]; then
-            LOCAL_DIR="$(cd -- "$cand" && pwd)"
+        if [[ -f "$cand/arch_multitool_debian.sh" && -d "$cand/modules" && -d "$cand/config" ]]; then
+            LOCAL_DIR="$(cd -- "$cand" && pwd -P)"
             break
         fi
     done
@@ -87,27 +88,60 @@ ensure_curl() {
     sudo apt-get install -y curl ca-certificates || die "Не удалось установить curl."
 }
 
-# Кладёт modules/ и config/ в кэш: из локального репо или tarball с GitHub.
+ensure_git() {
+    command -v git >/dev/null 2>&1 && return 0
+    say "Устанавливаю git (он проверит целостность загружаемых файлов)..."
+    sudo apt-get update || die "Не удалось обновить список пакетов."
+    sudo apt-get install -y git || die "Не удалось установить git."
+}
+
+# Отвергаем битые/неполные модули до попадания в кэш.
+verify_bundle() {
+    local dir="$1" f
+    [[ -f "$dir/modules/lib/multitool.sh" && -f "$dir/modules/lib/i18n.sh" && -f "$dir/modules/lib/common.sh" ]] || return 1
+    [[ -d "$dir/config/fastfetch" && -d "$dir/config/end4" ]] || return 1
+    while IFS= read -r -d '' f; do bash -n "$f" || return 1; done < <(find "$dir/modules" -type f -name '*.sh' -print0 2>/dev/null)
+}
+
+# Меняем кэш целиком; при любой ошибке возвращаем прежнюю версию.
+swap_cache() {
+    local src="$1" tmp had_old=0
+    tmp="$(mktemp -d "$INSTALL_DIR/.old.XXXXXX")" || die "Не удалось создать каталог для отката."
+    if [[ -d "$INSTALL_DIR/modules" || -d "$INSTALL_DIR/config" ]]; then
+        had_old=1
+        [[ -d "$INSTALL_DIR/modules" ]] && mv "$INSTALL_DIR/modules" "$tmp/modules"
+        [[ -d "$INSTALL_DIR/config" ]] && mv "$INSTALL_DIR/config" "$tmp/config"
+    fi
+    if ! cp -a "$src/modules" "$INSTALL_DIR/modules" || ! cp -a "$src/config" "$INSTALL_DIR/config" || ! verify_bundle "$INSTALL_DIR"; then
+        rm -rf "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
+        if (( had_old )); then
+            [[ -d "$tmp/modules" ]] && mv "$tmp/modules" "$INSTALL_DIR/modules"
+            [[ -d "$tmp/config" ]] && mv "$tmp/config" "$INSTALL_DIR/config"
+        fi
+        rm -rf "$tmp"
+        die "Не удалось обновить кэш — прежняя версия восстановлена."
+    fi
+    rm -rf "$tmp"
+}
+
 cache_repo() {
     local tmp
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap.XXXXXX")" || die "Не удалось создать временный каталог."
-    if [[ -n "$LOCAL_DIR" && -d "$LOCAL_DIR/modules" && -d "$LOCAL_DIR/config" ]]; then
+    if [[ -n "$LOCAL_DIR" ]]; then
         say "Копирую modules/ и config/ из $LOCAL_DIR"
-        cp -a "$LOCAL_DIR/modules" "$tmp/modules" || die "Не удалось скопировать modules/."
-        cp -a "$LOCAL_DIR/config" "$tmp/config" || die "Не удалось скопировать config/."
+        # tar с исключениями: в кэш не попадают target/, __pycache__ и прочие артефакты сборки
+        tar -C "$LOCAL_DIR" -cf - --exclude='*/target' --exclude='*__pycache__' modules config | tar -xf - -C "$tmp" \
+            || die "Не удалось скопировать modules/ и config/."
     else
-        ensure_curl
-        say "Скачиваю модули и конфиги из ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH})..."
-        curl -fsSL --connect-timeout 20 --retry 3 "$CONFIG_TARBALL" -o "$tmp/repo.tar.gz" || die "Не удалось скачать репозиторий."
-        tar -xzf "$tmp/repo.tar.gz" -C "$tmp" --strip-components=1 modules config || die "Не удалось распаковать репозиторий."
+        ensure_git
+        say "Скачиваю репозиторий ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH}); git проверяет SHA объектов..."
+        git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$tmp/repo" || die "Не удалось скачать репозиторий."
+        mv "$tmp/repo/modules" "$tmp/modules" || die "В репозитории нет modules/."
+        mv "$tmp/repo/config" "$tmp/config" || die "В репозитории нет config/."
     fi
-    rm -rf "$INSTALL_DIR/modules.new" "$INSTALL_DIR/config.new"
-    mv "$tmp/modules" "$INSTALL_DIR/modules.new" || die "Не удалось обновить кэш modules/."
-    mv "$tmp/config" "$INSTALL_DIR/config.new" || die "Не удалось обновить кэш config/."
+    verify_bundle "$tmp" || die "Загруженные модули/конфиги не прошли проверку целостности."
+    swap_cache "$tmp"
     rm -rf "$tmp"
-    rm -rf "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
-    mv "$INSTALL_DIR/modules.new" "$INSTALL_DIR/modules"
-    mv "$INSTALL_DIR/config.new" "$INSTALL_DIR/config"
 }
 
 # --------------------------- Получение лаунчера ------------------------------
