@@ -32,8 +32,8 @@ action_install_neovim() {
 action_neovim_menu() {
     require_module lib/menu.sh
     menu_select "Neovim" \
-        "1|$(t nvim_light)" \
-        "2|$(t nvim_complex)" \
+        "1|$(t nvim_old)" \
+        "2|$(t nvim_recommended)" \
         "0|$(t menu_back)" || return 0
     case "$MENU_CHOICE" in
         1) action_install_neovim super-easy-casual ;;

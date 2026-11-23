@@ -408,7 +408,7 @@ run_nvim_submenu_test() {
         ' _ "$ROOT/modules/lib/menu.sh" "$ROOT/modules/actions/neovim.sh" 2>&1)"
         grep -q "INSTALL:$preset" <<<"$out" || { echo "$out" >&2; fail "nvim submenu: choice $choice did not install $preset"; }
     done
-    pass "Neovim submenu installs light and complex presets"
+    pass "Neovim submenu installs old and new configs"
 }
 run_nvim_submenu_test
 
