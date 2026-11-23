@@ -13,17 +13,22 @@ fastfetch_preset_desc() {
     esac
 }
 
-action_install_fastfetch_preset() {
+action_copy_fastfetch_preset() {
     local preset="${1:-mine}"
     resolve_configs || return 1
     local src="$CONFIGS_DIR/fastfetch/presets/${preset}.jsonc"
     [[ -f "$src" ]] || { err "Preset not found: $preset"; return 1; }
-    has fastfetch || { ensure_sudo || return 1; pkg_install fastfetch || true; }
     mkdir -p "$HOME/.config/fastfetch"
     local dst="$HOME/.config/fastfetch/config.jsonc"
-    [[ -f "$dst" ]] && cp -a "$dst" "${dst}.bak.$(date +%Y%m%d_%H%M%S)"
+    [[ -f "$dst" || -L "$dst" ]] && stash_dir "$dst"
     cp -a "$src" "$dst"
-    ok "Fastfetch preset '$preset' установлен."
+    ok "Fastfetch preset '$preset' скопирован."
+}
+
+action_install_fastfetch_preset() {
+    local preset="${1:-mine}"
+    has fastfetch || { ensure_sudo || return 1; pkg_install fastfetch || true; }
+    action_copy_fastfetch_preset "$preset"
 }
 
 RUST_FETCHES=(keyfetch treefetch tomatofetch stoolfetch skeletonfetch)

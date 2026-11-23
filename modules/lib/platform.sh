@@ -27,6 +27,15 @@ pkg_update() {
     esac
 }
 
+INSTALLED_PKGS_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/installed-packages.txt"
+track_installed_pkgs() {
+    mkdir -p "$(dirname "$INSTALLED_PKGS_STATE")"
+    local p
+    for p in "$@"; do
+        grep -qxF "$p" "$INSTALLED_PKGS_STATE" 2>/dev/null || echo "$p" >> "$INSTALLED_PKGS_STATE"
+    done
+}
+
 pkg_install() {
     local -a pkgs=("$@")
     (( ${#pkgs[@]} )) || return 0
@@ -41,7 +50,8 @@ pkg_install() {
             sudo apt-get install -y "${pkgs[@]}"
             ;;
         *) err "Unsupported platform: $PLATFORM"; return 1 ;;
-    esac
+    esac || return 1
+    track_installed_pkgs "${pkgs[@]}"
 }
 
 pac_install() { pkg_install "$@"; }

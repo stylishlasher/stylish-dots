@@ -169,46 +169,48 @@ action_install_dotfiles_only() {
     require_module lib/menu.sh
     require_module actions/preflight.sh
     require_module actions/dotfiles.sh
-    require_module actions/fetches.sh
-    require_module actions/neovim.sh
     action_preflight dotfiles || return 1
 
     menu_select "Dotfiles-only: профиль" \
-        "1|stylish-dots (fish + nvim + fetches)" \
-        "2|end-4 / illogical-impulse" \
-        "3|MangoWC" \
+        "1|stylish-dots (fish + nvim config only)" \
+        "2|end-4 / illogical-impulse config" \
+        "3|MangoWC config" \
         "0|Назад" || return 0
     local profile="$MENU_CHOICE"
     [[ "$profile" == "0" ]] && return 0
 
-    menu_select "Neovim preset" \
+    menu_select "Neovim config preset" \
         "1|lazyvim-stylish" "2|super-easy-casual" "3|Не менять Neovim" || return 1
     local nvim_choice="$MENU_CHOICE"
-    menu_select "Fastfetch preset" \
+    menu_select "Fastfetch config preset" \
         "1|mine" "2|default" "3|micro" "4|stylish" "5|universal" "6|Не менять" || return 1
     local ff_choice="$MENU_CHOICE"
 
     echo
     echo -e "${BOLD}${CYAN}== DOTFILES-ONLY OVERVIEW ==${NC}"
     echo "  profile=$profile nvim=$nvim_choice fastfetch=$ff_choice"
-    echo "  Система и пакеты не обновляются."
+    echo "  Копируются только конфиги. Пакеты/система не устанавливаются и не обновляются."
+    echo "  Rust fetch binaries/Cargo не собираются; отсутствующие программы будут пропущены с предупреждением."
     is_interactive && ! confirm "Применить?" && return 1
 
     case "$nvim_choice" in
-        1) action_install_neovim lazyvim-stylish || warn "nvim failed" ;;
-        2) action_install_neovim super-easy-casual || warn "nvim failed" ;;
+        1|2)
+            require_module actions/neovim.sh
+            local preset="lazyvim-stylish"; [[ "$nvim_choice" == "2" ]] && preset="super-easy-casual"
+            apply_nvim_config "$preset" || warn "nvim config failed"
+            ;;
     esac
     case "$ff_choice" in
-        1) action_install_fastfetch_preset mine || warn "fastfetch failed" ;;
-        2) action_install_fastfetch_preset default || warn "fastfetch failed" ;;
-        3) action_install_fastfetch_preset micro || warn "fastfetch failed" ;;
-        4) action_install_fastfetch_preset stylish || warn "fastfetch failed" ;;
-        5) action_install_fastfetch_preset universal || warn "fastfetch failed" ;;
+        1|2|3|4|5)
+            require_module actions/fetches.sh
+            local p; case "$ff_choice" in 1) p=mine;; 2) p=default;; 3) p=micro;; 4) p=stylish;; 5) p=universal;; esac
+            action_copy_fastfetch_preset "$p" || warn "fastfetch config failed"
+            ;;
     esac
     case "$profile" in
-        1) action_apply_stylish "$nvim_choice" || warn "profile failed" ;;
+        1) action_apply_stylish_configs_only "$nvim_choice" || warn "profile failed" ;;
         2) action_apply_end4 || warn "end4 failed" ;;
         3) action_apply_mango || warn "mango failed" ;;
     esac
-    ok "Dotfiles-only установка завершена."
+    ok "Dotfiles-only завершён (только конфиги)."
 }

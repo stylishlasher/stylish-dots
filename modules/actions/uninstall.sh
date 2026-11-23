@@ -11,9 +11,9 @@ action_uninstall() {
         "nvim-conf|Удалить ~/.config/nvim|off"
         "fastfetch-conf|Удалить ~/.config/fastfetch|off"
         "illogical-conf|Удалить ~/.config/illogical-impulse/quickshell|off"
-        "home-readme|Удалить ~/README.md (созданный multitool)|off"
+        "home-readme|Удалить ~/README.md только если создан multitool|off"
         "rust-fetches|Удалить Rust fetch binaries из ~/.local/bin|off"
-        "remove-pkgs|Удалить базовые пакеты (осторожно)|off"
+        "remove-pkgs|Удалить пакеты, установленные этим инсталлером (осторожно)|off"
     )
     select_packages "Uninstall: выбери что удалить" "${items[@]}" || return 1
 
@@ -32,18 +32,39 @@ action_uninstall() {
             nvim-conf) stash_dir "$HOME/.config/nvim"; ok "nvim config removed" ;;
             fastfetch-conf) stash_dir "$HOME/.config/fastfetch"; ok "fastfetch config removed" ;;
             illogical-conf) stash_dir "$HOME/.config/illogical-impulse/quickshell"; ok "quickshell config removed" ;;
-            home-readme) [[ -f "$HOME/README.md" ]] && { stash_dir "$HOME/README.md"; ok "home README removed"; } ;;
+            home-readme)
+                local f="$HOME/README.md"
+                if [[ -f "$f" ]] && grep -q "Wallpaper Pack 25 (TMS Wallpapers)" "$f" && grep -q "## Firefox расширения" "$f"; then
+                    stash_dir "$f"; ok "home README removed/backed up"
+                else
+                    warn "~/README.md не похож на файл multitool; пропущен"
+                fi
+                ;;
             rust-fetches)
                 local b; for b in keyfetch treefetch tomatofetch stoolfetch skeletonfetch; do
-                    [[ -f "$HOME/.local/bin/$b" ]] && { stash_dir "$HOME/.local/bin/$b"; }
+                    [[ -f "$HOME/.local/bin/$b" ]] && stash_dir "$HOME/.local/bin/$b"
                 done
                 ok "rust fetch binaries removed/backed up" ;;
             remove-pkgs)
                 ensure_sudo || return 1
-                if [[ "$PLATFORM" == "arch" ]]; then
-                    sudo pacman -Rns --noconfirm fastfetch fish neovim 2>/dev/null || warn "some packages not removed"
+                local state="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/installed-packages.txt"
+                local -a pkgs=()
+                if [[ -f "$state" ]]; then
+                    mapfile -t pkgs < <(grep -v '^#' "$state" | sed '/^$/d')
                 else
-                    sudo apt-get remove -y fastfetch fish neovim 2>/dev/null || warn "some packages not removed"
+                    warn "Нет списка пакетов, установленных installer-ом ($state). Пропускаю удаление пакетов."
+                    warn "Удаляй пакеты вручную, чтобы не затронуть пользовательские."
+                    continue
+                fi
+                (( ${#pkgs[@]} )) || { warn "Список установленных пакетов пуст"; continue; }
+                echo "Будут удалены только пакеты из $state:"
+                printf '  - %s
+' "${pkgs[@]}"
+                is_interactive && ! confirm "Удалить эти пакеты?" && continue
+                if [[ "$PLATFORM" == "arch" ]]; then
+                    sudo pacman -Rns --noconfirm "${pkgs[@]}" 2>/dev/null || warn "some packages not removed"
+                else
+                    sudo apt-get remove -y "${pkgs[@]}" 2>/dev/null || warn "some packages not removed"
                 fi
                 ;;
         esac
