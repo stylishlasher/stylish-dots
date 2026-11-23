@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Common helpers for stylish-dots modules.
-
-set -uo pipefail
+# Опции shell (set -e/-u/pipefail) задаёт entry point, библиотека их не меняет.
 
 : "${REPO_SLUG:=stylishlasher/stylish-dots}"
 : "${REPO_BRANCH:=main}"
