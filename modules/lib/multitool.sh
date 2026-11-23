@@ -138,7 +138,13 @@ multitool_main() {
         -h|--help) show_help; exit 0 ;;
         -a|--audit) load_modules; quick_audit; exit 0 ;;
         -f|--full) load_modules; run_action full_auto; exit 0 ;;
-        "") load_modules; main_menu ;;
+        "")
+            if [[ ! -t 0 ]]; then
+                warn "$(t noninteractive_no_menu)"
+                show_help
+                exit 1
+            fi
+            load_modules; main_menu ;;
         *) err "$(t unknown_option "$1")"; show_help; exit 1 ;;
     esac
 }

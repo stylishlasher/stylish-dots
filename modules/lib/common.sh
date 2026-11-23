@@ -34,9 +34,9 @@ warn() { echo -e "${YELLOW}$*${NC}"; log "WARN  $*"; }
 ok()   { echo -e "${GREEN}[✓] $*${NC}"; log "OK    $*"; }
 err()  { echo -e "${RED}[✗] $*${NC}" >&2; log "ERROR $*"; }
 
-pause() { echo; read -rp "${YELLOW}$(t pause)${NC}" _; }
+pause() { echo; read -rp "${YELLOW}$(t pause)${NC}" _ || true; }
 is_interactive() { [[ -t 0 && -t 1 ]]; }
-confirm() { local ans; read -rp "${YELLOW}$1 [y/N]: ${NC}" ans; [[ "$ans" =~ ^[YyДдDd]$ ]]; }
+confirm() { local ans=""; read -rp "${YELLOW}$1 [y/N]: ${NC}" ans || return 1; [[ "$ans" =~ ^[YyДдDd]$ ]]; }
 has() { command -v "$1" &>/dev/null; }
 
 ensure_sudo() {

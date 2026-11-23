@@ -104,7 +104,7 @@ action_restore_backup() {
     local bk=""
     if [[ -z "$target" ]]; then
         action_backup_list
-        local n; read -rp "$(t restore_number_prompt): " n
+        local n; read -rp "$(t restore_number_prompt): " n || return 1
         [[ "$n" =~ ^[Qq]$ || -z "$n" ]] && return 0
         [[ "$n" =~ ^[0-9]+$ ]] || { err "$(t invalid_number)"; return 1; }
         target=$(sed -n "${n}p" "$BACKUP_REGISTRY" | awk -F'\t' '{print $2}')

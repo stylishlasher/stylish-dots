@@ -15,7 +15,7 @@ menu_select() {
             echo -e "  ${GREEN}${k})${NC} $v"
         done
         local c
-        read -rp "$(t choice): " c
+        read -rp "$(t choice): " c || return 1
         for i in "${items[@]}"; do
             local k="${i%%|*}"
             if [[ "$c" == "$k" ]]; then MENU_CHOICE="$c"; return 0; fi
@@ -45,7 +45,7 @@ select_packages() {
             printf "  %2d) %s %-28s %s\n" "$((i+1))" "$mark" "$id" "$desc"
         done
         echo "$(t checkbox_keys)"
-        local c; read -rp "$(t toggle_prompt): " c
+        local c; read -rp "$(t toggle_prompt): " c || return 1
         case "$c" in
             a|A) for i in "${!on[@]}"; do on[$i]="1"; done ;;
             n|N) for i in "${!on[@]}"; do on[$i]="0"; done ;;
