@@ -20,7 +20,9 @@ backup_import_legacy_dir() {
             mango:mango-settings) target="$HOME/.local/bin/mango-settings" ;;
             *) continue ;;
         esac
-        grep -Fq $'\t'"$target"$'\t'"$bk" "$BACKUP_REGISTRY" 2>/dev/null || backup_register "$target" "$bk"
+        if ! grep -Fq $'\t'"$target"$'\t'"$bk" "$BACKUP_REGISTRY" 2>/dev/null; then
+            backup_register "$target" "$bk" || warn "Не удалось зарегистрировать legacy backup: $bk"
+        fi
     done < <(find "$dir" -mindepth 1 -maxdepth 3 \( -type f -o -type d \) -print0 2>/dev/null)
 }
 
@@ -123,15 +125,40 @@ action_restore_backup() {
             info "Текущее сохранено: $cur"
         else
             err "Текущее состояние перемещено в $cur, но не записано в реестр; пробую вернуть его обратно"
-            mv "$cur" "$target" 2>/dev/null || err "Не удалось вернуть $cur -> $target; восстанови вручную"
+            if mv "$cur" "$target" 2>/dev/null; then
+                err "Возвращено прежнее состояние: $target"
+            else
+                err "Не удалось вернуть $cur -> $target; восстанови вручную"
+            fi
             return 1
         fi
     fi
-    mkdir -p "$(dirname "$target")" || { err "Не удалось создать каталог: $(dirname "$target")"; return 1; }
-    if ! cp -a "$bk" "$target"; then
-        err "Не удалось восстановить $target из $bk"
+
+    mkdir -p "$(dirname "$target")" || {
+        err "Не удалось создать каталог: $(dirname "$target")"
         [[ -n "$cur" && (-e "$cur" || -L "$cur") && ! -e "$target" && ! -L "$target" ]] && mv "$cur" "$target" 2>/dev/null && warn "Возвращено прежнее состояние: $target"
         return 1
+    }
+
+    local tmp="${target}.restore-tmp.$$"
+    rm -rf "$tmp"
+    if cp -a "$bk" "$tmp"; then
+        rm -rf "$target"
+        if mv "$tmp" "$target"; then
+            ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
+            return 0
+        fi
     fi
-    ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
+
+    err "Не удалось восстановить $target из $bk"
+    rm -rf "$tmp" 2>/dev/null || true
+    if [[ -n "$cur" && (-e "$cur" || -L "$cur") ]]; then
+        rm -rf "$target" 2>/dev/null || true
+        if mv "$cur" "$target" 2>/dev/null; then
+            warn "Возвращено прежнее состояние: $target"
+        else
+            err "Не удалось автоматически вернуть прежнее состояние; оно сохранено в: $cur"
+        fi
+    fi
+    return 1
 }

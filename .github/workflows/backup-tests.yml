@@ -1,0 +1,82 @@
+name: backup-tests
+on:
+  push:
+    paths:
+      - 'modules/lib/common.sh'
+      - 'modules/actions/backup.sh'
+      - 'modules/actions/uninstall.sh'
+      - '.github/workflows/backup-tests.yml'
+  pull_request:
+    paths:
+      - 'modules/lib/common.sh'
+      - 'modules/actions/backup.sh'
+      - 'modules/actions/uninstall.sh'
+      - '.github/workflows/backup-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  bash-backup-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backup regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail(){ echo "FAIL: $*" >&2; exit 1; }
+          pass(){ echo "PASS: $*"; }
+
+          # 1. import legacy backup when backup_register fails: warn, continue
+          TMP=$(mktemp -d)
+          HOME="$TMP/home"; mkdir -p "$HOME/.config-backup-end4-1/hypr/custom"
+          echo x > "$HOME/.config-backup-end4-1/hypr/custom/a.conf"
+          export HOME XDG_STATE_HOME="$HOME/.local/state"
+          source modules/lib/common.sh >/dev/null 2>&1 || true
+          source modules/actions/backup.sh
+          backup_register(){ return 1; }
+          set +e
+          backup_import_legacy >"$TMP/out" 2>&1; rc=$?
+          set -e
+          [[ $rc -eq 0 ]] || fail "legacy import rc=$rc"
+          grep -q "Не удалось зарегистрировать legacy backup" "$TMP/out" || fail "no warning"
+          pass "legacy import tolerates register failure"
+
+          # 2. restore rolls back when cp fails and partial target exists
+          TMP=$(mktemp -d)
+          HOME="$TMP/home"; mkdir -p "$HOME/.config/fish"
+          export HOME XDG_STATE_HOME="$HOME/.local/state"
+          source modules/lib/common.sh >/dev/null 2>&1 || true
+          source modules/actions/backup.sh
+          mkdir -p "$TMP/bk/fish"; echo old > "$TMP/bk/fish/config.fish"
+          echo new > "$HOME/.config/fish/config.fish"
+          backup_register "$HOME/.config/fish" "$TMP/bk/fish" >/dev/null
+          cp(){
+            if [[ "$1" == "-a" && "$2" == "$TMP/bk/fish" ]]; then
+              mkdir -p "$3"; echo partial > "$3/config.fish"; return 1
+            fi
+            command cp "$@"
+          }
+          set +e
+          action_restore_backup "$HOME/.config/fish" >"$TMP/out" 2>&1; rc=$?
+          set -e
+          [[ $rc -ne 0 ]] || fail "restore should fail"
+          [[ "$(cat "$HOME/.config/fish/config.fish")" == "new" ]] || fail "state not restored"
+          grep -q "Возвращено прежнее состояние" "$TMP/out" || fail "missing rollback message"
+          pass "restore rollback on cp failure"
+
+          # 3. registry write failure during restore rolls current state back
+          TMP=$(mktemp -d)
+          HOME="$TMP/home"; mkdir -p "$HOME/.config/fish"
+          export HOME XDG_STATE_HOME="$HOME/.local/state"
+          source modules/lib/common.sh >/dev/null 2>&1 || true
+          source modules/actions/backup.sh
+          mkdir -p "$TMP/bk/fish"; echo old > "$TMP/bk/fish/config.fish"
+          echo new > "$HOME/.config/fish/config.fish"
+          backup_register "$HOME/.config/fish" "$TMP/bk/fish" >/dev/null
+          backup_register(){ return 1; }
+          set +e
+          action_restore_backup "$HOME/.config/fish" >"$TMP/out" 2>&1; rc=$?
+          set -e
+          [[ $rc -ne 0 ]] || fail "should fail"
+          [[ "$(cat "$HOME/.config/fish/config.fish")" == "new" ]] || fail "not rolled back"
+          pass "registry failure rollback"
