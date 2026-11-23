@@ -28,9 +28,9 @@ REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 REPO_URL="https://github.com/${REPO_SLUG}.git"
 
-# Якорь доверия: публичный ключ вшит в установщик, а не берётся из репозитория.
-# Переопределение — только для регрессионных тестов со своим ключом.
-BUNDLE_PUBKEY="${STYLISH_BUNDLE_PUBKEY:-$(cat <<'SD_PUBKEY'
+# Якорь доверия: публичный ключ вшит в установщик, а не берётся из репозитория
+# или из окружения. Подменить его можно только изменив сам установщик.
+BUNDLE_PUBKEY="$(cat <<'SD_PUBKEY'
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlcXFELtdbF+4vzRC2O9+
 sN/el2OncAavgxdEYk0ZRTtnVKKjhylXB99qljqja9AtwaDywEE2DBjViTb275s9
@@ -41,7 +41,7 @@ d7H+tTVegW8CgKDzDXoLIPrSbL8tA4plb4h52jwL9zxlLTF/Nd5ntPGukmPXjjqL
 yQIDAQAB
 -----END PUBLIC KEY-----
 SD_PUBKEY
-)}"
+)"
 MANIFEST=bundle.sha256
 SIG="$MANIFEST.sig"
 

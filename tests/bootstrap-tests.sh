@@ -23,6 +23,18 @@ setup_test_key() {
     PUB="$(cat "$dir/test.pub")"
 }
 
+# Установщик больше не принимает ключ из окружения: тесты подменяют его в своей копии.
+patch_installer_pubkey() {
+    local src="$1" dst="$2" pub="$3"
+    awk -v pub="$pub" '
+        /<<.*SD_PUBKEY/ { print; print pub; inkey = 1; next }
+        inkey && /^SD_PUBKEY$/ { print; inkey = 0; next }
+        inkey { next }
+        { print }
+    ' "$src" > "$dst"
+    chmod +x "$dst"
+}
+
 # Манифест фикстуры повторяет формат scripts/sign-bundle.sh (включая исключения сборки).
 sign_fixture() {
     local dir="$1" key="$2"
@@ -77,11 +89,11 @@ run_variant() {
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
     setup_test_key "$tmp"
-    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
-    EO=(env "STYLISH_BUNDLE_PUBKEY=$PUB" PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    EO=(env PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
 
     mkdir -p "$repo/install" "$tmp/bin"
-    cp "$ROOT/install/$script" "$repo/install/$script"
+    patch_installer_pubkey "$ROOT/install/$script" "$repo/install/$script" "$PUB"
     make_payload "$repo"
     mkdir -p "$repo/config/fetches/stylish-fetches/target" "$repo/config/bin/__pycache__"
     echo artifact > "$repo/config/fetches/stylish-fetches/target/keyfetch"
@@ -111,6 +123,13 @@ run_variant() {
     assert_no_network "$marker" "$script offline"
     grep -q 'Набор проверен' <<<"$out" || { echo "$out" >&2; fail "$script: verify message missing"; }
     pass "$script: offline run with only whitelisted binaries"
+
+    # Ключ нельзя подменить через окружение: установщик обязан использовать вшитый.
+    if ! out="$(env STYLISH_BUNDLE_PUBKEY='not-a-pem' PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
+        bash "$repo/install/$script" -h 2>&1)"; then
+        echo "$out" >&2; fail "$script: environment overrode the embedded key"
+    fi
+    pass "$script: STYLISH_BUNDLE_PUBKEY in env is ignored"
 
     # Битый модуль, подменённый конфиг, права и симлинк чинятся без --refresh.
     printf 'if [[ ' > "$current/modules/lib/i18n.sh"
@@ -229,12 +248,12 @@ run_clone_variant() {
     fixture="$tmp/fixture"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
     setup_test_key "$tmp"
-    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
-    EO=(env "STYLISH_BUNDLE_PUBKEY=$PUB" PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    EO=(env PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
     mkdir -p "$tmp/bin" "$tmp/standalone"
     make_payload "$fixture"
     sign_fixture "$fixture" "$tmp/test.key"
-    cp "$ROOT/install/$script" "$tmp/standalone/$script"
+    patch_installer_pubkey "$ROOT/install/$script" "$tmp/standalone/$script" "$PUB"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/$pkg"
     make_offline_bin "$offlinebin" "$marker"
 
@@ -292,9 +311,9 @@ run_migration_variant() {
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-migration-test.XXXXXX")"
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; old="$data/arch-multitool"
     setup_test_key "$tmp"
-    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    E=(env "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
     mkdir -p "$repo/install" "$old/modules/lib" "$old/config/fastfetch" "$tmp/bin"
-    cp "$ROOT/install/$script" "$repo/install/$script"
+    patch_installer_pubkey "$ROOT/install/$script" "$repo/install/$script" "$PUB"
     make_payload "$repo"
     sign_fixture "$repo" "$tmp/test.key"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/$pkg"
@@ -329,11 +348,11 @@ run_real_repo_test() {
     mkdir -p "$tmp/bin"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/pacman"
     make_offline_bin "$offlinebin" "$marker"
-    if ! out="$(env -u STYLISH_BUNDLE_PUBKEY PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
+    if ! out="$(env PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
         bash "$ROOT/install/install.sh" --help 2>&1)"; then
         echo "$out" >&2; fail "real repo: embedded public key rejected committed signature"
     fi
-    if ! out="$(env -u STYLISH_BUNDLE_PUBKEY PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
+    if ! out="$(env PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
         bash "$ROOT/install/install.sh" --help 2>&1)"; then
         echo "$out" >&2; fail "real repo: offline verification failed"
     fi
