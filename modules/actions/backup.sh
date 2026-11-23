@@ -44,8 +44,34 @@ action_backup_list() {
     done
 }
 
+action_restore_profile() {
+    local profile="${1:-}"
+    [[ -n "$profile" ]] || { err "Укажи профиль: end4|mango|stylish"; return 1; }
+    backup_import_legacy
+    [[ -f "$BACKUP_REGISTRY" ]] || { err "Реестр бэкапов пуст: $BACKUP_REGISTRY"; return 1; }
+    local -a targets=()
+    case "$profile" in
+        end4) targets=("$HOME/.config/hypr/custom" "$HOME/.config/hypr/hyprland/keybinds.lua" "$HOME/.config/illogical-impulse/config.json" "$HOME/.config/environment.d/10-cursor.conf" "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.icons/default/index.theme") ;;
+        mango) targets=("$HOME/.config/mango" "$HOME/.config/waybar" "$HOME/.config/foot" "$HOME/.config/fuzzel" "$HOME/.config/mako" "$HOME/.config/matugen" "$HOME/.local/bin/mango-settings") ;;
+        stylish) targets=("$HOME/.config/fish" "$HOME/.config/nvim" "$HOME/.config/fastfetch" "$HOME/README.md") ;;
+        *) err "Неизвестный профиль: $profile"; return 1 ;;
+    esac
+    local t
+    for t in "${targets[@]}"; do
+        local bk
+        bk=$(awk -F'	' -v t="$t" '$2==t{b=$3} END{print b}' "$BACKUP_REGISTRY")
+        if [[ -n "$bk" && (-e "$bk" || -L "$bk") ]]; then
+            action_restore_backup "$t" || warn "restore failed: $t"
+        else
+            info "Нет бэкапа для $t, пропуск"
+        fi
+    done
+    ok "Rollback профиля $profile завершён (где были бэкапы)."
+}
+
 action_restore_backup() {
     local target="${1:-}"
+    backup_import_legacy
     [[ -f "$BACKUP_REGISTRY" ]] || { err "Реестр бэкапов пуст: $BACKUP_REGISTRY"; return 1; }
 
     local bk=""

@@ -51,6 +51,7 @@ run_action() {
         preflight) require_module actions/preflight.sh; action_preflight "$@" ;;
         backup_list) require_module actions/backup.sh; action_backup_list "$@" ;;
         restore_backup) require_module actions/backup.sh; action_restore_backup "$@" ;;
+        restore_profile) require_module actions/backup.sh; action_restore_profile "$@" ;;
         uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
         *) err "Неизвестное действие: $action"; return 1 ;;
     esac

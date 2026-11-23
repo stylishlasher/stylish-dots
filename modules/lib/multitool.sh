@@ -91,7 +91,7 @@ main_menu() {
             "2|Dotfiles-only (без обновления системы/пакетов)" \
             "3|Установка ПО / фетчи / пресеты" \
             "4|Применить конфиги (stylish/end-4/mango/fastfetch)" \
-            "5|Бэкапы / восстановление" \
+            "5|Бэкапы / восстановление / rollback профиля" \
             "6|Uninstall" \
             "7|Обновить систему" \
             "8|Аудит системы" \
@@ -101,7 +101,16 @@ main_menu() {
             2) run_action dotfiles_only; pause ;;
             3) run_action software_menu ;;
             4) run_action apply_configs; pause ;;
-            5) run_action backup_list; is_interactive && confirm "Восстановить бэкап?" && run_action restore_backup; pause ;;
+            5)
+                menu_select "Бэкапы" "1|Список бэкапов" "2|Восстановить по номеру" "3|Rollback end4" "4|Rollback mango" "5|Rollback stylish" "0|Назад" || true
+                case "$MENU_CHOICE" in
+                    1) run_action backup_list ;;
+                    2) run_action restore_backup ;;
+                    3) run_action restore_profile end4 ;;
+                    4) run_action restore_profile mango ;;
+                    5) run_action restore_profile stylish ;;
+                esac
+                pause ;;
             6) run_action uninstall; pause ;;
             7) run_action update_system; pause ;;
             8) run_action quick_audit; pause ;;
