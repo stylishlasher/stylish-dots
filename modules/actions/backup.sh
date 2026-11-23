@@ -59,12 +59,15 @@ action_restore_profile() {
     echo -e "${BOLD}${CYAN}== Rollback: $profile ==${NC}"
     local t bk; local -a plan=()
     for t in "${targets[@]}"; do
-        bk=$(awk -F'\t' -v t="$t" '$2==t{b=$3} END{print b}' "$BACKUP_REGISTRY" 2>/dev/null)
-        if [[ -n "$bk" && (-e "$bk" || -L "$bk") ]]; then
+        bk=""
+        while IFS=$'\t' read -r _ src bkp; do
+            [[ "$src" == "$t" && -n "$bkp" && (-e "$bkp" || -L "$bkp") ]] && bk="$bkp"
+        done < "$BACKUP_REGISTRY"
+        if [[ -n "$bk" ]]; then
             echo "  [restore] $t <- $bk"
             plan+=("restore|$t")
         elif [[ -e "$t" || -L "$t" ]]; then
-            echo "  [remove]  $t (бэкапа не было, путь будет убран в backup)"
+            echo "  [remove]  $t (действующего бэкапа не найдено, путь будет убран в backup)"
             plan+=("remove|$t")
         else
             echo "  [skip]    $t (нет бэкапа и текущего пути)"
@@ -103,18 +106,21 @@ action_restore_backup() {
         target=$(sed -n "${n}p" "$BACKUP_REGISTRY" | awk -F'\t' '{print $2}')
         bk=$(sed -n "${n}p" "$BACKUP_REGISTRY" | awk -F'\t' '{print $3}')
         [[ -n "$target" && -n "$bk" ]] || { err "Запись не найдена"; return 1; }
+        [[ -e "$bk" || -L "$bk" ]] || { err "Бэкап не существует: $bk"; return 1; }
     else
-        bk=$(awk -F'\t' -v t="$target" '$2==t{b=$3} END{print b}' "$BACKUP_REGISTRY")
+        while IFS=$'\t' read -r _ src bkp; do
+            [[ "$src" == "$target" && -n "$bkp" && (-e "$bkp" || -L "$bkp") ]] && bk="$bkp"
+        done < "$BACKUP_REGISTRY"
+        [[ -n "$bk" ]] || { err "Действующий бэкап для $target не найден"; return 1; }
     fi
 
-    [[ -n "$bk" && (-e "$bk" || -L "$bk") ]] || { err "Бэкап не существует: $bk"; return 1; }
     if [[ -e "$target" || -L "$target" ]]; then
         local cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
-        mv "$target" "$cur"
-        backup_register "$target" "$cur"
+        mv "$target" "$cur" || { err "Не удалось сохранить текущее состояние: $target"; return 1; }
+        backup_register "$target" "$cur" || warn "Текущее сохранено, но не записано в реестр: $cur"
         info "Текущее сохранено: $cur"
     fi
-    mkdir -p "$(dirname "$target")"
-    cp -a "$bk" "$target"
+    mkdir -p "$(dirname "$target")" || { err "Не удалось создать каталог: $(dirname "$target")"; return 1; }
+    cp -a "$bk" "$target" || { err "Не удалось восстановить $target из $bk"; return 1; }
     ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
 }

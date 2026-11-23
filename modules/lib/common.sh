@@ -79,7 +79,7 @@ BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
 
 backup_register() {
     local src="$1" bk="$2"
-    mkdir -p "$(dirname "$BACKUP_REGISTRY")"
+    mkdir -p "$(dirname "$BACKUP_REGISTRY")" || return 1
     printf '%s\t%s\t%s\n' "$(date '+%F %T')" "$src" "$bk" >> "$BACKUP_REGISTRY"
 }
 
@@ -88,8 +88,12 @@ stash_dir() {
     [[ -e "$dst" || -L "$dst" ]] || return 0
     local bk="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
     if mv "$dst" "$bk"; then
-        backup_register "$dst" "$bk"
-        info "Backup: $bk"
+        if backup_register "$dst" "$bk"; then
+            info "Backup: $bk"
+        else
+            err "Бэкап перемещён, но не записан в реестр: $bk"
+            return 1
+        fi
     else
         err "Не удалось создать бэкап: $dst -> $bk"
         return 1
