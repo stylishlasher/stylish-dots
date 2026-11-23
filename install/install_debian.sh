@@ -4,7 +4,7 @@
 # ==============================================================================
 # Ставит лаунчер, modules/ и config/ в ~/.local/share/arch-multitool и запускает.
 # Загрузка динамическая: из git берутся только нужные пути (sparse + blob:none),
-# git проверяет SHA объектов, всё содержимое дополнительно проходит bash -n.
+# git проверяет SHA объектов, bash -n проверяет скрипты, манифест — всё содержимое.
 # Новый набор собирается в отдельном каталоге, проверяется целиком и включается
 # одним rename символьной ссылки current -> releases/<id>; есть откат.
 # Повторный запуск проверяет весь набор и работает без сети. --refresh обновляет его.
@@ -59,6 +59,7 @@ ASCII
 [[ "$(uname -s)" == "Linux" ]] || die "Скрипт предназначен для Linux."
 command -v apt-get >/dev/null 2>&1 || die "apt-get не найден — нужна Debian/Ubuntu-based система."
 command -v tar >/dev/null 2>&1 || die "tar не найден — нужен для распаковки модулей и конфигов."
+command -v sha256sum >/dev/null 2>&1 || die "sha256sum не найден — нужен для проверки содержимого набора."
 
 banner
 
@@ -93,14 +94,25 @@ ensure_git() {
     sudo apt-get install -y git || die "Не удалось установить git."
 }
 
-# Полная проверка набора: лаунчер, обязательные модули и конфиги, синтаксис .sh.
+# Манифест фиксирует содержимое всего набора, а не только наличие каталогов.
+make_manifest() {
+    local dir="$1"
+    (cd "$dir" && find . -type f ! -name .manifest -exec sha256sum {} +) > "$dir/.manifest" || return 1
+}
+
+# Полная проверка: лаунчер, модули, синтаксис .sh и содержимое по манифесту.
 verify_bundle() {
-    local dir="$1" f
+    local dir="$1" f expected actual
     [[ -f "$dir/$LAUNCHER" ]] || return 1
     bash -n "$dir/$LAUNCHER" || return 1
     [[ -f "$dir/modules/lib/multitool.sh" && -f "$dir/modules/lib/i18n.sh" && -f "$dir/modules/lib/common.sh" ]] || return 1
     [[ -d "$dir/config/fastfetch" && -d "$dir/config/end4" ]] || return 1
     while IFS= read -r -d '' f; do bash -n "$f" || return 1; done < <(find "$dir/modules" -type f -name '*.sh' -print0 2>/dev/null)
+    [[ -s "$dir/.manifest" ]] || return 1
+    (cd "$dir" && sha256sum --check --quiet .manifest) >/dev/null 2>&1 || return 1
+    expected=$(wc -l < "$dir/.manifest")
+    actual=$(find "$dir/" -type f ! -name .manifest -print | wc -l)
+    [[ "$expected" -eq "$actual" ]]
 }
 
 # Собираем новый набор в releases/<id>, проверяем его и переключаем current одним rename.
@@ -168,6 +180,7 @@ fetch_bundle() {
         mv "$tmp/repo/modules" "$tmp/modules" || die "В репозитории нет modules/."
         mv "$tmp/repo/config" "$tmp/config" || die "В репозитории нет config/."
     fi
+    make_manifest "$tmp" || die "Не удалось создать манифест набора."
     verify_bundle "$tmp" || die "Загруженные файлы не прошли проверку целостности."
     id="$(date -u +%Y%m%dT%H%M%S)-$$"
     publish_bundle "$tmp" "$id"
