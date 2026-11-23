@@ -21,14 +21,14 @@ backup_import_legacy_dir() {
             *) continue ;;
         esac
         if ! grep -Fq $'\t'"$target"$'\t'"$bk" "$BACKUP_REGISTRY" 2>/dev/null; then
-            backup_register "$target" "$bk" || warn "Не удалось зарегистрировать legacy backup: $bk"
+            backup_register "$target" "$bk" || warn "$(t legacy_register_failed "$bk")"
         fi
     done < <(find "$dir" -mindepth 1 -maxdepth 3 \( -type f -o -type d \) -print0 2>/dev/null)
 }
 
 backup_import_legacy() {
-    mkdir -p "$(dirname "$BACKUP_REGISTRY")" || { err "Не удалось создать каталог реестра: $(dirname "$BACKUP_REGISTRY")"; return 1; }
-    touch "$BACKUP_REGISTRY" || { err "Не удалось создать реестр бэкапов: $BACKUP_REGISTRY"; return 1; }
+    mkdir -p "$(dirname "$BACKUP_REGISTRY")" || { err "$(t registry_dir_failed "$(dirname "$BACKUP_REGISTRY")")"; return 1; }
+    touch "$BACKUP_REGISTRY" || { err "$(t registry_create_failed "$BACKUP_REGISTRY")"; return 1; }
     local d
     for d in "$HOME"/.config-backup-end4-*; do backup_import_legacy_dir "$d" end4; done
     for d in "$HOME"/.config-backup-mango-*; do backup_import_legacy_dir "$d" mango; done
@@ -36,8 +36,8 @@ backup_import_legacy() {
 
 action_backup_list() {
     backup_import_legacy || return 1
-    if [[ ! -s "$BACKUP_REGISTRY" ]]; then info "Бэкапов не найдено."; return 0; fi
-    echo -e "${BOLD}${CYAN}== Бэкапы stylish-dots (последние 50) ==${NC}"
+    if [[ ! -s "$BACKUP_REGISTRY" ]]; then info "$(t no_backups)"; return 0; fi
+    echo -e "${BOLD}${CYAN}$(t backup_list_header)${NC}"
     local total start i line
     total=$(wc -l < "$BACKUP_REGISTRY")
     start=$(( total > 50 ? total - 49 : 1 ))
@@ -49,14 +49,14 @@ action_backup_list() {
 
 action_restore_profile() {
     local profile="${1:-}"
-    [[ -n "$profile" ]] || { err "Укажи профиль: end4|mango|stylish"; return 1; }
+    [[ -n "$profile" ]] || { err "$(t profile_required)"; return 1; }
     backup_import_legacy || return 1
     local -a targets=()
     case "$profile" in
         end4) targets=("$HOME/.config/hypr/custom" "$HOME/.config/hypr/hyprland/keybinds.lua" "$HOME/.config/illogical-impulse/config.json" "$HOME/.config/environment.d/10-cursor.conf" "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.icons/default/index.theme") ;;
         mango) targets=("$HOME/.config/mango" "$HOME/.config/waybar" "$HOME/.config/foot" "$HOME/.config/fuzzel" "$HOME/.config/mako" "$HOME/.config/matugen" "$HOME/.local/bin/mango-settings") ;;
         stylish) targets=("$HOME/.config/fish" "$HOME/.config/nvim" "$HOME/.config/fastfetch" "$HOME/README.md") ;;
-        *) err "Неизвестный профиль: $profile"; return 1 ;;
+        *) err "$(t unknown_profile "$profile")"; return 1 ;;
     esac
 
     echo -e "${BOLD}${CYAN}== Rollback: $profile ==${NC}"
@@ -70,13 +70,13 @@ action_restore_profile() {
             echo "  [restore] $t <- $bk"
             plan+=("restore|$t")
         elif [[ -e "$t" || -L "$t" ]]; then
-            echo "  [remove]  $t (действующего бэкапа не найдено, путь будет убран в backup)"
+            echo "  [remove]  $t $(t remove_no_backup)"
             plan+=("remove|$t")
         else
-            echo "  [skip]    $t (нет бэкапа и текущего пути)"
+            echo "  [skip]    $t $(t skip_no_path)"
         fi
     done
-    is_interactive && ! confirm "Выполнить rollback профиля $profile?" && return 1
+    is_interactive && ! confirm "$(t confirm_rollback "$profile")" && return 1
 
     local failed=0 okc=0 item
     for item in "${plan[@]}"; do
@@ -89,61 +89,61 @@ action_restore_profile() {
     done
 
     if (( failed )); then
-        err "Rollback профиля $profile завершён с ошибками: ok=$okc fail=$failed"
+        err "$(t rollback_failed "$profile" "$okc" "$failed")"
         return 1
     fi
-    ok "Rollback профиля $profile завершён: $okc действий"
+    ok "$(t rollback_done "$profile" "$okc")"
 }
 
 action_restore_backup() {
     local target="${1:-}"
     backup_import_legacy || return 1
-    [[ -f "$BACKUP_REGISTRY" ]] || { err "Реестр бэкапов пуст: $BACKUP_REGISTRY"; return 1; }
+    [[ -f "$BACKUP_REGISTRY" ]] || { err "$(t registry_empty "$BACKUP_REGISTRY")"; return 1; }
 
     local bk=""
     if [[ -z "$target" ]]; then
         action_backup_list
-        local n; read -rp "Номер для восстановления (q отмена): " n
+        local n; read -rp "$(t restore_number_prompt): " n
         [[ "$n" =~ ^[Qq]$ || -z "$n" ]] && return 0
-        [[ "$n" =~ ^[0-9]+$ ]] || { err "Неверный номер"; return 1; }
+        [[ "$n" =~ ^[0-9]+$ ]] || { err "$(t invalid_number)"; return 1; }
         target=$(sed -n "${n}p" "$BACKUP_REGISTRY" | awk -F'\t' '{print $2}')
         bk=$(sed -n "${n}p" "$BACKUP_REGISTRY" | awk -F'\t' '{print $3}')
-        [[ -n "$target" && -n "$bk" ]] || { err "Запись не найдена"; return 1; }
-        [[ -e "$bk" || -L "$bk" ]] || { err "Бэкап не существует: $bk"; return 1; }
+        [[ -n "$target" && -n "$bk" ]] || { err "$(t entry_not_found)"; return 1; }
+        [[ -e "$bk" || -L "$bk" ]] || { err "$(t backup_missing "$bk")"; return 1; }
     else
         while IFS=$'\t' read -r _ src bkp; do
             [[ "$src" == "$target" && -n "$bkp" && (-e "$bkp" || -L "$bkp") ]] && bk="$bkp"
         done < "$BACKUP_REGISTRY"
-        [[ -n "$bk" ]] || { err "Действующий бэкап для $target не найден"; return 1; }
+        [[ -n "$bk" ]] || { err "$(t no_valid_backup "$target")"; return 1; }
     fi
 
     local cur=""
     if [[ -e "$target" || -L "$target" ]]; then
         cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
-        mv "$target" "$cur" || { err "Не удалось сохранить текущее состояние: $target"; return 1; }
+        mv "$target" "$cur" || { err "$(t save_current_failed "$target")"; return 1; }
         if backup_register "$target" "$cur"; then
-            info "Текущее сохранено: $cur"
+            info "$(t current_saved "$cur")"
         else
-            err "Текущее состояние перемещено в $cur, но не записано в реестр; пробую вернуть его обратно"
+            err "$(t current_moved_unregistered "$cur")"
             if mv "$cur" "$target" 2>/dev/null; then
-                err "Возвращено прежнее состояние: $target"
+                err "$(t previous_restored "$target")"
             else
-                err "Не удалось вернуть $cur -> $target; восстанови вручную"
+                err "$(t restore_manually "$cur" "$target")"
             fi
             return 1
         fi
     fi
 
     mkdir -p "$(dirname "$target")" || {
-        err "Не удалось создать каталог: $(dirname "$target")"
-        [[ -n "$cur" && (-e "$cur" || -L "$cur") && ! -e "$target" && ! -L "$target" ]] && mv "$cur" "$target" 2>/dev/null && warn "Возвращено прежнее состояние: $target"
+        err "$(t mkdir_failed "$(dirname "$target")")"
+        [[ -n "$cur" && (-e "$cur" || -L "$cur") && ! -e "$target" && ! -L "$target" ]] && mv "$cur" "$target" 2>/dev/null && warn "$(t previous_restored "$target")"
         return 1
     }
 
     local tmpdir tmp
     tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/stylish-restore.XXXXXX") || {
-        err "Не удалось создать временный каталог"
-        [[ -n "$cur" && (-e "$cur" || -L "$cur") ]] && mv "$cur" "$target" 2>/dev/null && warn "Возвращено прежнее состояние: $target"
+        err "$(t tmpdir_failed)"
+        [[ -n "$cur" && (-e "$cur" || -L "$cur") ]] && mv "$cur" "$target" 2>/dev/null && warn "$(t previous_restored "$target")"
         return 1
     }
     tmp="$tmpdir/payload"
@@ -151,19 +151,19 @@ action_restore_backup() {
         rm -rf "$target"
         if mv "$tmp" "$target"; then
             rm -rf "$tmpdir" 2>/dev/null || true
-            ok "Восстановлено: $target <- $bk (оригинальный бэкап сохранён)"
+            ok "$(t restore_done "$target" "$bk")"
             return 0
         fi
     fi
 
-    err "Не удалось восстановить $target из $bk"
+    err "$(t restore_copy_failed "$target" "$bk")"
     rm -rf "$tmpdir" 2>/dev/null || true
     if [[ -n "$cur" && (-e "$cur" || -L "$cur") ]]; then
         rm -rf "$target" 2>/dev/null || true
         if mv "$cur" "$target" 2>/dev/null; then
-            warn "Возвращено прежнее состояние: $target"
+            warn "$(t previous_restored "$target")"
         else
-            err "Не удалось автоматически вернуть прежнее состояние; оно сохранено в: $cur"
+            err "$(t auto_rollback_failed "$cur")"
         fi
     fi
     return 1

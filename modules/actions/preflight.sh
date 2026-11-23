@@ -15,7 +15,7 @@ action_preflight() {
     fi
 
     if (( ${#missing[@]} )); then
-        err "Отсутствуют команды/зависимости: ${missing[*]}"
+        err "$(t missing_deps "${missing[*]}")"
         return 1
     fi
 
@@ -24,7 +24,7 @@ action_preflight() {
     fi
 
     if [[ "$PLATFORM" == "arch" && "${IS_CACHYOS:-0}" == "1" ]]; then
-        info "Обнаружен CachyOS: используется Arch-совместимый путь (pacman/AUR)."
+        info "$(t cachyos)"
     fi
     ok "Preflight OK ($mode, platform=$PLATFORM${IS_CACHYOS:+, cachyos=$IS_CACHYOS})"
 }

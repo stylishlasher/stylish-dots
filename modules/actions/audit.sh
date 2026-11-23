@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 action_quick_audit() {
-    echo -e "${BOLD}== Быстрый аудит ==${NC}"
+    echo -e "${BOLD}$(t audit_header)${NC}"
     echo "Host: $(hostname 2>/dev/null || echo unknown)"
     echo "OS: $(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-unknown}")"
     echo "Kernel: $(uname -r)"

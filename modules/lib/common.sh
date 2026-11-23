@@ -2,6 +2,10 @@
 # Common helpers for stylish-dots modules.
 # Опции shell (set -e/-u/pipefail) задаёт entry point, библиотека их не меняет.
 
+_I18N="$(dirname -- "${BASH_SOURCE[0]}")/i18n.sh"
+[[ -f "$_I18N" ]] && source "$_I18N"
+unset _I18N
+
 : "${REPO_SLUG:=stylishlasher/stylish-dots}"
 : "${REPO_BRANCH:=main}"
 : "${MODULES_RAW_BASE:=https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}/modules}"
@@ -30,14 +34,14 @@ warn() { echo -e "${YELLOW}$*${NC}"; log "WARN  $*"; }
 ok()   { echo -e "${GREEN}[✓] $*${NC}"; log "OK    $*"; }
 err()  { echo -e "${RED}[✗] $*${NC}" >&2; log "ERROR $*"; }
 
-pause() { echo; read -rp "${YELLOW}Нажмите Enter для продолжения...${NC}" _; }
+pause() { echo; read -rp "${YELLOW}$(t pause)${NC}" _; }
 is_interactive() { [[ -t 0 && -t 1 ]]; }
-confirm() { local ans; read -rp "${YELLOW}$1 [y/N]: ${NC}" ans; [[ "$ans" =~ ^[YyДд]$ ]]; }
+confirm() { local ans; read -rp "${YELLOW}$1 [y/N]: ${NC}" ans; [[ "$ans" =~ ^[YyДдDd]$ ]]; }
 has() { command -v "$1" &>/dev/null; }
 
 ensure_sudo() {
-    if [[ $EUID -eq 0 ]]; then err "Не запускайте скрипт от root."; return 1; fi
-    has sudo || { err "sudo не установлен."; return 1; }
+    if [[ $EUID -eq 0 ]]; then err "$(t sudo_root)"; return 1; fi
+    has sudo || { err "$(t sudo_missing)"; return 1; }
     sudo -v || return 1
     if [[ -z "$SUDO_KEEPALIVE_PID" ]]; then
         ( while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done ) 2>/dev/null &
@@ -65,8 +69,8 @@ resolve_configs() {
     # download tarball
     ensure_work_dir
     local tar="$WORK_DIR/repo.tar.gz"
-    info "Скачиваю конфиги/модули из GitHub..."
-    curl -fsSL "$CONFIG_TARBALL" -o "$tar" || { err "Не удалось скачать репозиторий."; return 1; }
+    info "$(t downloading_configs)"
+    curl -fsSL "$CONFIG_TARBALL" -o "$tar" || { err "$(t download_repo_failed)"; return 1; }
     mkdir -p "$WORK_DIR/repo"
     tar -xzf "$tar" -C "$WORK_DIR/repo" --strip-components=1
     CONFIGS_DIR="$WORK_DIR/repo/config"
@@ -91,16 +95,16 @@ stash_dir() {
         if backup_register "$dst" "$bk"; then
             info "Backup: $bk"
         else
-            err "Бэкап перемещён, но не записан в реестр: $bk; пробую вернуть"
+            err "$(t backup_moved_unregistered "$bk")"
             if mv "$bk" "$dst" 2>/dev/null; then
-                err "Исходный путь восстановлен: $dst"
+                err "$(t path_restored "$dst")"
             else
-                err "Не удалось вернуть $bk -> $dst; восстанови вручную"
+                err "$(t restore_manually "$bk" "$dst")"
             fi
             return 1
         fi
     else
-        err "Не удалось создать бэкап: $dst -> $bk"
+        err "$(t backup_move_failed "$dst" "$bk")"
         return 1
     fi
 }

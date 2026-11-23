@@ -16,7 +16,7 @@ apply_nvim_config() {
     [[ -d "$src" ]] || { err "Nvim preset not found: $preset"; return 1; }
     local dst="$HOME/.config/nvim"; stash_dir "$dst"; mkdir -p "$dst"
     cp -a "$src/." "$dst/"; normalize_paths "$dst"
-    ok "Nvim preset '$preset' применён."
+    ok "$(t nvim_preset_applied "$preset")"
 }
 
 action_install_neovim() {
@@ -26,5 +26,5 @@ action_install_neovim() {
         debian) pkg_install neovim wl-clipboard || pkg_install neovim ;;
     esac
     apply_nvim_config "${1:-$NVIM_PRESET}" || true
-    ok "Neovim готов."
+    ok "$(t nvim_ready)"
 }

@@ -1,5 +1,7 @@
 # stylish-dots
 
+🇷🇺 Русский · 🇬🇧 [English](README.en.md) · 🇷🇴 [Română](README.ro.md)
+
 Личные dotfiles и установщик для Arch Linux: **end-4 / illogical-impulse** (Hyprland + Quickshell), **fish**, **Neovim presets**, темы Serpantinum, MangoWC и универсальный `arch_multitool.sh`.
 
 > **Авторство end-4:** профиль `end4/` — это моя персональная конфигурация/надстройки поверх [**end-4/dots-hyprland** (illogical-impulse)](https://github.com/end-4/dots-hyprland). Оригинальный проект, базовая shell/архитектура и заслуга за dots-hyprland принадлежат [end-4](https://github.com/end-4).

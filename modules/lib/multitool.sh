@@ -29,19 +29,33 @@ err(){ echo -e "${RED}[✗] $*${NC}" >&2; }
 ok(){ echo -e "${GREEN}[✓] $*${NC}"; }
 has(){ command -v "$1" >/dev/null 2>&1; }
 ensure_work_dir(){ [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] || WORK_DIR="$(mktemp -d /tmp/stylish-dots.XXXXXX)"; }
-cleanup(){ [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"; }
+cleanup(){ [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"; return 0; }
 trap cleanup EXIT INT TERM
 
+# RU is the source language; i18n.sh overrides messages for en/ro when available.
+declare -gA SD_MSG=()
+t() {
+    local msg="${SD_MSG[$1]:-$1}"
+    shift
+    local i=1 a
+    for a in "$@"; do msg="${msg//\{$i\}/$a}"; i=$((i+1)); done
+    printf '%s' "$msg"
+}
+if [[ -f "$MODULES_DIR/lib/i18n.sh" ]]; then source "$MODULES_DIR/lib/i18n.sh"; fi
+
 bootstrap_module() {
-    local rel="$1" dest="$MODULES_DIR/$rel"
+    local rel="$1"
+    local dest="$MODULES_DIR/$rel"
     [[ -f "$dest" ]] && return 0
     mkdir -p "$(dirname "$dest")"
-    if has curl; then curl -fsSL "$MODULES_RAW_BASE/$rel" -o "$dest" || { err "Не удалось скачать модуль $rel"; return 1; }
-    elif has wget; then wget -qO "$dest" "$MODULES_RAW_BASE/$rel" || { err "Не удалось скачать модуль $rel"; return 1; }
-    else err "Нужен curl или wget для докачки модулей."; return 1; fi
+    if has curl; then curl -fsSL "$MODULES_RAW_BASE/$rel" -o "$dest" || { err "$(t module_download_failed_short "$rel")"; return 1; }
+    elif has wget; then wget -qO "$dest" "$MODULES_RAW_BASE/$rel" || { err "$(t module_download_failed_short "$rel")"; return 1; }
+    else err "$(t need_curl_wget)"; return 1; fi
 }
 
 load_modules() {
+    bootstrap_module lib/i18n.sh || exit 1
+    source "$MODULES_DIR/lib/i18n.sh"
     bootstrap_module lib/platform.sh || exit 1
     bootstrap_module lib/common.sh || exit 1
     bootstrap_module lib/menu.sh || exit 1
@@ -59,16 +73,16 @@ load_modules() {
 show_help() {
     cat <<EOF
 ${BOLD}${TOOL_NAME}${NC} (GUI + modules)
-  -h, --help  Справка
-  -a, --audit Быстрый аудит
-  -f, --full  Авто-установка базового профиля
-Без опций — интерактивное меню.
-Модули: ./modules или авто-докачка из ${REPO_SLUG}
+  -h, --help  $(t help)
+  -a, --audit $(t audit_short)
+  -f, --full  $(t full_auto_help)
+$(t no_options_help)
+$(t modules_help "$REPO_SLUG")
 EOF
 }
 
 quick_audit() {
-    echo -e "${BOLD}== Быстрый аудит ==${NC}"
+    echo -e "${BOLD}$(t audit_header)${NC}"
     echo "Host: $(hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo unknown)"
     local os_pretty="" os_id="" os_name=""
     if [[ -f /etc/os-release ]]; then . /etc/os-release; os_pretty="${PRETTY_NAME:-unknown}"; os_id="${ID:-}"; os_name="${NAME:-}"; fi
@@ -87,22 +101,22 @@ quick_audit() {
 main_menu() {
     while true; do
         menu_select "$TOOL_NAME" \
-            "1|Полная интерактивная установка (галочки по разделам)" \
-            "2|Dotfiles-only (без обновления системы/пакетов)" \
-            "3|Установка ПО / фетчи / пресеты" \
-            "4|Применить конфиги (stylish/end-4/mango/fastfetch)" \
-            "5|Бэкапы / восстановление / rollback профиля" \
+            "1|$(t menu_full)" \
+            "2|$(t menu_dotfiles_only)" \
+            "3|$(t menu_software)" \
+            "4|$(t menu_apply)" \
+            "5|$(t menu_backups)" \
             "6|Uninstall" \
-            "7|Обновить систему" \
-            "8|Аудит системы" \
-            "0|Выход" || exit 0
+            "7|$(t menu_update)" \
+            "8|$(t menu_audit)" \
+            "0|$(t menu_exit)" || exit 0
         case "$MENU_CHOICE" in
             1) run_action full_interactive; pause ;;
             2) run_action dotfiles_only; pause ;;
             3) run_action software_menu ;;
             4) run_action apply_configs; pause ;;
             5)
-                menu_select "Бэкапы" "1|Список бэкапов" "2|Восстановить по номеру" "3|Rollback end4" "4|Rollback mango" "5|Rollback stylish" "0|Назад" || true
+                menu_select "$(t backup_menu_title)" "1|$(t backup_menu_list)" "2|$(t backup_menu_restore)" "3|Rollback end4" "4|Rollback mango" "5|Rollback stylish" "0|$(t menu_back)" || true
                 case "$MENU_CHOICE" in
                     1) run_action backup_list ;;
                     2) run_action restore_backup ;;
@@ -125,6 +139,6 @@ multitool_main() {
         -a|--audit) load_modules; quick_audit; exit 0 ;;
         -f|--full) load_modules; run_action full_auto; exit 0 ;;
         "") load_modules; main_menu ;;
-        *) err "Неизвестная опция: $1"; show_help; exit 1 ;;
+        *) err "$(t unknown_option "$1")"; show_help; exit 1 ;;
     esac
 }

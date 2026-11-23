@@ -7,27 +7,27 @@ action_uninstall() {
     action_preflight uninstall || return 1
 
     local -a items=(
-        "rollback-end4|Откатить end4 по бэкапам (или убрать новые пути)|off"
-        "rollback-mango|Откатить mango по бэкапам (или убрать новые пути)|off"
-        "rollback-stylish|Откатить stylish по бэкапам (или убрать новые пути)|off"
-        "fish-conf|Удалить ~/.config/fish|off"
-        "nvim-conf|Удалить ~/.config/nvim|off"
-        "fastfetch-conf|Удалить ~/.config/fastfetch|off"
-        "illogical-conf|Удалить ~/.config/illogical-impulse/quickshell|off"
-        "home-readme|Удалить ~/README.md только если создан multitool|off"
-        "rust-fetches|Удалить Rust fetch binaries из ~/.local/bin|off"
-        "remove-pkgs|Удалить пакеты, установленные этим инсталлером (осторожно)|off"
+        "rollback-end4|$(t rollback_end4)|off"
+        "rollback-mango|$(t rollback_mango)|off"
+        "rollback-stylish|$(t rollback_stylish)|off"
+        "fish-conf|$(t uninstall_fish)|off"
+        "nvim-conf|$(t uninstall_nvim)|off"
+        "fastfetch-conf|$(t uninstall_fastfetch)|off"
+        "illogical-conf|$(t uninstall_quickshell)|off"
+        "home-readme|$(t uninstall_readme)|off"
+        "rust-fetches|$(t uninstall_fetches)|off"
+        "remove-pkgs|$(t uninstall_pkgs)|off"
     )
-    select_packages "Uninstall: выбери что удалить/откатить" "${items[@]}" || return 1
+    select_packages "$(t uninstall_select)" "${items[@]}" || return 1
 
     echo
     echo -e "${BOLD}${CYAN}== UNINSTALL OVERVIEW ==${NC}"
     if (( ${#SELECTED_PACKAGES[@]} )); then
         local p; for p in "${SELECTED_PACKAGES[@]}"; do echo "  - $p"; done
     else
-        echo "  - (ничего не выбрано)"
+        echo "  - $(t nothing_selected)"
     fi
-    is_interactive && ! confirm "Продолжить uninstall/rollback?" && return 1
+    is_interactive && ! confirm "$(t confirm_uninstall)" && return 1
 
     local failed=0 okc=0
     for p in "${SELECTED_PACKAGES[@]}"; do
@@ -44,7 +44,7 @@ action_uninstall() {
                 if [[ -f "$f" ]] && grep -q "stylish-dots:home-readme" "$f"; then
                     if stash_dir "$f"; then ok "home README removed/backed up"; okc=$((okc+1)); else failed=$((failed+1)); fi
                 else
-                    warn "~/README.md не помечен как созданный multitool; пропущен"
+                    warn "$(t readme_unmarked)"
                 fi
                 ;;
             rust-fetches)
@@ -60,13 +60,13 @@ action_uninstall() {
                 if [[ -f "$state" ]]; then
                     mapfile -t pkgs < <(grep -v '^#' "$state" | sed '/^$/d')
                 else
-                    warn "Нет списка пакетов, установленных installer-ом ($state). Пропускаю удаление пакетов."
+                    warn "$(t no_pkg_state "$state")"
                     continue
                 fi
-                (( ${#pkgs[@]} )) || { warn "Список установленных пакетов пуст"; continue; }
-                echo "Будут удалены только пакеты из $state:"
+                (( ${#pkgs[@]} )) || { warn "$(t pkg_state_empty)"; continue; }
+                echo "$(t pkgs_to_remove "$state")"
                 printf '  - %s\n' "${pkgs[@]}"
-                is_interactive && ! confirm "Удалить эти пакеты?" && continue
+                is_interactive && ! confirm "$(t confirm_remove_pkgs)" && continue
                 if [[ "$PLATFORM" == "arch" ]]; then
                     sudo pacman -Rns --noconfirm "${pkgs[@]}" || { warn "some packages not removed"; failed=$((failed+1)); continue; }
                 else
@@ -75,6 +75,6 @@ action_uninstall() {
                 okc=$((okc+1)) ;;
         esac
     done
-    if (( failed )); then err "Uninstall завершён с ошибками: ok=$okc fail=$failed"; return 1; fi
-    ok "Uninstall завершён: $okc действий. Бэкапы в $BACKUP_REGISTRY"
+    if (( failed )); then err "$(t uninstall_failed "$okc" "$failed")"; return 1; fi
+    ok "$(t uninstall_done "$okc" "$BACKUP_REGISTRY")"
 }

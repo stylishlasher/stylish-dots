@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 action_install_warp() {
-    [[ "$PLATFORM" == "arch" ]] || { warn "WARP auto-install пока реализован для Arch/AUR."; return 1; }
+    [[ "$PLATFORM" == "arch" ]] || { warn "$(t warp_arch_only)"; return 1; }
     ensure_sudo || return 1
     pkg_install cloudflare-warp-bin || return 1
     sudo systemctl enable --now warp-svc.service || true
     warp-cli --accept-tos registration new >/dev/null 2>&1 || true
     warp-cli --accept-tos connect >/dev/null 2>&1 || true
-    ok "WARP установлен."
+    ok "$(t warp_installed)"
 }
 
 action_configure_firewall() {

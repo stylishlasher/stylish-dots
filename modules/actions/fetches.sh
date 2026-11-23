@@ -4,11 +4,11 @@ FASTFETCH_PRESETS=(default mine micro stylish universal)
 
 fastfetch_preset_desc() {
     case "$1" in
-        default) echo "Стандартный";;
-        mine) echo "Как у меня (компактный)";;
-        micro) echo "Микро (4 строки)";;
-        stylish) echo "Стайлиш (иконки)";;
-        universal) echo "Универсал (макс инфо)";;
+        default) t preset_default;;
+        mine) t preset_mine;;
+        micro) t preset_micro;;
+        stylish) t preset_stylish;;
+        universal) t preset_universal;;
         *) echo "$1";;
     esac
 }
@@ -22,7 +22,7 @@ action_copy_fastfetch_preset() {
     local dst="$HOME/.config/fastfetch/config.jsonc"
     [[ -f "$dst" || -L "$dst" ]] && stash_dir "$dst"
     cp -a "$src" "$dst"
-    ok "Fastfetch preset '$preset' скопирован."
+    ok "$(t preset_copied "$preset")"
 }
 
 action_install_fastfetch_preset() {
@@ -41,19 +41,19 @@ action_build_rust_fetches() {
     mkdir -p "$HOME/.local/bin"
     local f
     for f in "${RUST_FETCHES[@]}"; do install -m 0755 "$src/target/release/$f" "$HOME/.local/bin/$f"; done
-    ok "Rust 3D fetches установлены."
+    ok "$(t rust_fetches_installed)"
 }
 
 action_fetches_menu() {
     require_module lib/menu.sh
     while true; do
-        menu_select "Фетчи" \
-            "1|Fastfetch пресеты" \
-            "2|Собрать/установить Rust 3D fetches" \
-            "0|Назад" || return 0
+        menu_select "$(t fetches)" \
+            "1|$(t fetches_presets)" \
+            "2|$(t fetches_build)" \
+            "0|$(t menu_back)" || return 0
         case "$MENU_CHOICE" in
             1)
-                local -a items=() i=1 p; for p in "${FASTFETCH_PRESETS[@]}"; do items+=("$i|$p — $(fastfetch_preset_desc "$p")"); i=$((i+1)); done; items+=("0|Назад")
+                local -a items=() i=1 p; for p in "${FASTFETCH_PRESETS[@]}"; do items+=("$i|$p — $(fastfetch_preset_desc "$p")"); i=$((i+1)); done; items+=("0|$(t menu_back)")
                 menu_select "Fastfetch preset" "${items[@]}" || true
                 [[ "$MENU_CHOICE" == "0" ]] && continue
                 action_install_fastfetch_preset "${FASTFETCH_PRESETS[$((MENU_CHOICE-1))]}"

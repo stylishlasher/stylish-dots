@@ -15,8 +15,8 @@ require_module() {
 
     mkdir -p "$(dirname "$path")"
     local url="$MODULES_RAW_BASE/$rel"
-    info "Докачиваю модуль: $rel"
-    curl -fsSL "$url" -o "$path" || { err "Не удалось скачать модуль: $url"; return 1; }
+    info "$(t module_downloading "$rel")"
+    curl -fsSL "$url" -o "$path" || { err "$(t module_download_failed "$url")"; return 1; }
     # shellcheck disable=SC1090
     source "$path"
 }
@@ -53,6 +53,6 @@ run_action() {
         restore_backup) require_module actions/backup.sh; action_restore_backup "$@" ;;
         restore_profile) require_module actions/backup.sh; action_restore_profile "$@" ;;
         uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
-        *) err "Неизвестное действие: $action"; return 1 ;;
+        *) err "$(t unknown_action "$action")"; return 1 ;;
     esac
 }

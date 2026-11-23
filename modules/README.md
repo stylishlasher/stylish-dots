@@ -1,5 +1,7 @@
 # modules/
 
+🇷🇺 Русский · 🇬🇧 [English](README.en.md) · 🇷🇴 [Română](README.ro.md)
+
 Модульная система stylish-dots. Мультитулы (`arch_multitool.sh`, `arch_multitool_debian.sh`) отвечают за UI/меню, а действия вынесены в модули.
 
 ## Структура

@@ -2,6 +2,7 @@
 # Регрессионные тесты backup/restore/stash. Запуск: bash tests/backup-tests.sh
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export STYLISH_LANG=ru # тесты проверяют исходные сообщения
 
 fail() { echo "FAIL: $*" >&2; [[ -f "${TMP:-}/out" ]] && { echo "--- output ---"; cat "${TMP}/out"; }; exit 1; }
 pass() { echo "PASS: $*"; }

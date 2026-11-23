@@ -3,16 +3,20 @@ on:
   push:
     paths:
       - 'modules/lib/common.sh'
+      - 'modules/lib/i18n.sh'
       - 'modules/actions/backup.sh'
       - 'modules/actions/uninstall.sh'
       - 'tests/backup-tests.sh'
+      - 'tests/i18n-tests.sh'
       - '.github/workflows/backup-tests.yml'
   pull_request:
     paths:
       - 'modules/lib/common.sh'
+      - 'modules/lib/i18n.sh'
       - 'modules/actions/backup.sh'
       - 'modules/actions/uninstall.sh'
       - 'tests/backup-tests.sh'
+      - 'tests/i18n-tests.sh'
       - '.github/workflows/backup-tests.yml'
   workflow_dispatch:
 
@@ -23,3 +27,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run backup regression tests
         run: bash tests/backup-tests.sh
+      - name: Run i18n tests
+        run: bash tests/i18n-tests.sh

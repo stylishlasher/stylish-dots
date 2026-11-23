@@ -24,7 +24,7 @@ apply_end4_config() {
 apply_stylish_configs_only() {
     local nvim_choice="${1:-3}"
     require_module actions/fish.sh
-    has fish && { apply_fish_config || warn "fish config not applied"; } || warn "fish не найден, конфиг пропущен"
+    has fish && { apply_fish_config || warn "fish config not applied"; } || warn "$(t fish_missing)"
     if [[ "$nvim_choice" != "3" ]]; then
         require_module actions/neovim.sh
         local preset="lazyvim-stylish"; [[ "$nvim_choice" == "2" ]] && preset="super-easy-casual"
@@ -50,12 +50,12 @@ action_apply_stylish() { apply_stylish_configs "${1:-$NVIM_PRESET}"; }
 
 action_apply_configs() {
     require_module lib/menu.sh
-    menu_select "Применить конфиги" \
+    menu_select "$(t apply_configs)" \
         "1|stylish-dots (fish+nvim+rust fetches)" \
         "2|end-4 / illogical-impulse" \
         "3|MangoWC" \
         "4|Fastfetch preset" \
-        "0|Назад" || return 0
+        "0|$(t menu_back)" || return 0
     case "$MENU_CHOICE" in
         1) action_apply_stylish ;;
         2) action_apply_end4 ;;

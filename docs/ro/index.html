@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#151622">
+  <title>stylish-dots — dotfiles, fetch-uri, preseturi fastfetch</title>
+  <meta name="description" content="stylish-dots: dotfiles end-4/illogical-impulse, fetch-uri 3D în Rust, preseturi fastfetch, instalator modular. Site Material You.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script>
+    (function(){var t=["lavender","ocean","sage","peach","rose","amber"];document.documentElement.dataset.theme=t[Math.floor(Math.random()*t.length)];})();
+  </script>
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+  <div class="bg-grid"></div>
+
+  <header class="topbar wrap">
+    <a class="brand" href="#top" aria-label="stylish-dots">
+      <span class="brand-mark"></span>
+      <span class="brand-name">stylish-dots</span>
+    </a>
+    <button class="menu-btn" id="menu-btn" aria-label="Meniu" aria-expanded="false" aria-controls="nav">☰</button>
+    <nav class="nav" id="nav">
+      <a href="#profiles">Profiluri</a>
+      <a href="#fetches">Fetch-uri</a>
+      <a href="#fastfetch">Fastfetch</a>
+      <a href="#install">Instalare</a>
+      <a href="#credits">Credits</a>
+      <a href="https://github.com/stylishlasher/stylish-dots" class="nav-gh">GitHub</a>
+      <a href="../index.html" hreflang="ru" aria-label="Versiunea în rusă">RU</a>
+      <a href="../en/index.html" hreflang="en" aria-label="Versiunea în engleză">EN</a>
+      <a href="../ro/index.html" hreflang="ro" aria-label="Versiunea română" aria-current="page" class="nav-gh">RO</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap reveal">
+      <div class="hero-copy">
+        <p class="eyebrow">Arch / Debian · Wayland · Material You</p>
+        <h1>Dotfiles cu <span class="accent">caracter</span>,<br>nu haos.</h1>
+        <p class="lead">Setup-ul meu personal bazat pe <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: configuri, un multitool modular, <strong>fetch-uri 3D în Rust</strong> și preseturi <strong>fastfetch</strong>. Instalare interactivă completă, cu casete de selectare; modulele se descarcă doar când sunt necesare.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#install">Instalează</a>
+          <a class="btn btn-ghost" href="https://github.com/stylishlasher/stylish-dots">Cod sursă</a>
+        </div>
+        <div class="meta-row">
+          <div class="meta"><span class="meta-k">Fetch-uri 3D</span><span class="meta-v">Rust · rulare manuală</span></div>
+          <div class="meta"><span class="meta-k">Fastfetch</span><span class="meta-v">5 preseturi</span></div>
+          <div class="meta"><span class="meta-k">Instalare</span><span class="meta-v">Arch + Debian</span></div>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="panel-window floaty">
+          <div class="panel-title"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-title-text">terminal</span></div>
+          <div class="panel-body">
+            <div class="line"><span class="p">$</span> keyfetch --rotate random</div>
+            <div class="line muted">  cheie 3D · horizontal/vertical/random</div>
+            <div class="line"><span class="p">$</span> fastfetch --config ~/.config/fastfetch/config.jsonc</div>
+            <div class="line muted">  preset: mine / micro / stylish / universal</div>
+            <div class="line"><span class="p">$</span> bash arch_multitool.sh</div>
+            <div class="line pick">  → Instalare interactivă completă (casete de selectare)</div>
+            <div class="line pick">  → Module: interfață separată, acțiuni separate</div>
+            <div class="line ok">✓ fără autostart · fără mod pinned · copie de siguranță salvată</div>
+          </div>
+        </div>
+        <div class="chip chip-a">Material You</div>
+        <div class="chip chip-b">mobile-ready</div>
+      </div>
+    </section>
+
+    <section class="section wrap reveal" id="showcase">
+      <div class="section-head">
+        <p class="eyebrow">Vizual</p>
+        <h2>Puține efecte, multe beneficii.</h2>
+        <p>Site-ul și instrumentele sunt concepute pentru navigare rapidă: arată bine pe desktop și sunt ușor de folosit pe telefon.</p>
+      </div>
+      <div class="showcase-grid">
+        <figure class="shot-card">
+          <img src="../assets/preview-fastfetch.svg" alt="Previzualizare preseturi fastfetch" loading="lazy" width="960" height="540">
+          <figcaption>Preseturi fastfetch — de la micro la universal.</figcaption>
+        </figure>
+        <figure class="shot-card">
+          <img src="../assets/preview-fetch3d.svg" alt="Previzualizare fetch-uri 3D în Rust" loading="lazy" width="960" height="540">
+          <figcaption>Fetch-uri 3D în Rust — rulare manuală, moduri de rotație.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="profiles" class="section wrap reveal">
+      <div class="section-head">
+        <p class="eyebrow">Profiluri</p>
+        <h2>Trei direcții, un singur depozit.</h2>
+        <p>Multitoolul nu impune un singur stack — alegi profilul și componentele de care ai nevoie.</p>
+      </div>
+      <div class="cards">
+        <article class="card card-featured">
+          <div class="card-icon">󰣇</div>
+          <h3>end-4 / illogical-impulse</h3>
+          <p>Suprapunerile mele peste <a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a>: Hyprland personalizat, config Quickshell, scurtături, cursor, variabile de mediu. Cheile sunt doar în keyring.</p>
+          <ul class="list"><li>bara de sus mereu, dock-ul de jos la hover</li><li>layout ru, 180 Hz, variabile NVIDIA</li><li>copie de siguranță înainte de aplicare</li></ul>
+        </article>
+        <article class="card">
+          <div class="card-icon">⌁</div>
+          <h3>serpantinum</h3>
+          <p>Instalator extern Serpantinum prin multitool, plus preseturi/teme din depozit.</p>
+          <ul class="list"><li>install.serpantinum.dev flow</li><li>teme în <code>config/themes/</code></li><li>patch pentru layout-ul tastaturii în hypr</li></ul>
+        </article>
+        <article class="card">
+          <div class="card-icon">✦</div>
+          <h3>stylish-dots</h3>
+          <p>Dotfiles-urile mele: fish, preseturi nvim, config end-4, preseturi fastfetch, fetch-uri 3D în Rust.</p>
+          <ul class="list"><li>fish + aliasuri</li><li>selector de preseturi nvim</li><li>fetch-uri rulate doar prin comandă</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="fetches" class="section wrap reveal">
+      <div class="split">
+        <div>
+          <p class="eyebrow">Fetch-uri 3D</p>
+          <h2>Fetch-urile C abandonate, rescrise în Rust.</h2>
+          <p class="muted-p">Vechile surse C, instabile, sunt păstrate ca legacy, dar binarele funcționale se construiesc acum din <code>config/fetches/stylish-fetches</code>. Fără pornire automată în terminal și fără mod pinned — doar o comandă explicită.</p>
+          <div class="chip-row">
+            <span class="pill">--rotate horizontal</span>
+            <span class="pill">--rotate vertical</span>
+            <span class="pill">--rotate random</span>
+          </div>
+          <div class="stack-grid">
+            <div class="stack-item"><span class="stack-k">keyfetch</span><span class="stack-v">cheie 3D</span></div>
+            <div class="stack-item"><span class="stack-k">treefetch</span><span class="stack-v">pom odorizant</span></div>
+            <div class="stack-item"><span class="stack-k">tomatofetch</span><span class="stack-v">roșie 3D</span></div>
+            <div class="stack-item"><span class="stack-k">stoolfetch</span><span class="stack-v">taburet 3D</span></div>
+            <div class="stack-item"><span class="stack-k">skeletonfetch</span><span class="stack-v">cheie schelet</span></div>
+            <div class="stack-item"><span class="stack-k">manual</span><span class="stack-v">rulare doar prin comandă</span></div>
+          </div>
+        </div>
+        <div class="code-card glow-card">
+          <div class="code-head"><span>Exemple</span><span class="code-badge">Rust</span></div>
+<pre><code>keyfetch --rotate random
+ treefetch --rotate horizontal --accent green
+ tomatofetch --rotate vertical --rainbow
+ stoolfetch --height 18 --no-info
+ skeletonfetch --rotate random --color gold</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="fastfetch" class="section wrap reveal">
+      <div class="section-head">
+        <p class="eyebrow">Preseturi fastfetch</p>
+        <h2>Cinci preseturi pentru toate stările.</h2>
+        <p>Instalatorul poate plasa un preset în <code>~/.config/fastfetch/config.jsonc</code> și face o copie de siguranță a fișierului vechi.</p>
+      </div>
+      <div class="preset-grid">
+        <article class="preset-card"><h3>default</h3><p>Un set echilibrat de module implicite.</p></article>
+        <article class="preset-card"><h3>mine</h3><p>Stilul tău compact: logo mic, chei scurte, zgomot vizual minim.</p></article>
+        <article class="preset-card"><h3>micro</h3><p>Ieșire ultra-scurtă: 4 linii, doar esențialul.</p></article>
+        <article class="preset-card"><h3>stylish</h3><p>Icone Nerd Font, accent pe aspect.</p></article>
+        <article class="preset-card"><h3>universal</h3><p>O gamă largă de informații pentru majoritatea sistemelor.</p></article>
+      </div>
+      <div class="code-card" style="margin-top:18px">
+        <div class="code-head"><span>Instalarea unui preset</span><span class="code-badge">multitool</span></div>
+<pre><code>bash arch_multitool.sh
+# Instalare software → Fetch-uri → Preseturi fastfetch
+# alege: default / mine / micro / stylish / universal</code></pre>
+      </div>
+    </section>
+
+    <section id="install" class="section wrap reveal">
+      <div class="section-head">
+        <p class="eyebrow">Instalare</p>
+        <h2>Pornire rapidă.</h2>
+      </div>
+      <div class="install-grid">
+        <div class="install-card">
+          <h3>Arch Linux</h3>
+          <p>Printr-o singură comandă:</p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool.sh | bash</code></pre>
+        </div>
+        <div class="install-card">
+          <h3>Debian / Ubuntu</h3>
+          <p>Varianta adaptată:</p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/arch_multitool_debian.sh | bash</code></pre>
+        </div>
+      </div>
+      <div class="install-grid" style="margin-top:18px">
+        <div class="install-card">
+          <h3>Doar configul end-4</h3>
+          <pre><code>git clone https://github.com/stylishlasher/stylish-dots.git
+cd stylish-dots
+bash config/end4/install.sh</code></pre>
+        </div>
+        <div class="install-card">
+          <h3>Fetch-uri 3D în Rust</h3>
+          <pre><code>cd stylish-dots/config/fetches/stylish-fetches
+cargo build --release
+install -m755 target/release/*fetch ~/.local/bin/</code></pre>
+        </div>
+      </div>
+      <div class="note"><strong>Important:</strong> Cheile API nu sunt stocate în depozit. Cheile AI pentru illogical-impulse sunt în keyring. Fetch-urile 3D se rulează manual și nu pornesc la deschiderea terminalului. Multitoolul este un GUI/meniu; acțiunile sunt executate de modulele din <code>modules/</code>.</div>
+    </section>
+
+    <section id="credits" class="section wrap reveal">
+      <div class="section-head">
+        <p class="eyebrow">Mulțumiri</p>
+        <h2>Proiectele pe care se bazează acest setup.</h2>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <h3>end-4 / dots-hyprland</h3>
+          <p><a class="inline-link" href="https://github.com/end-4/dots-hyprland">end-4/dots-hyprland</a> de <a class="inline-link" href="https://github.com/end-4">end-4</a> — illogical-impulse original. <code>config/end4/</code> al meu conține suprapuneri personalizate.</p>
+        </article>
+        <article class="card">
+          <h3>Serpantinum</h3>
+          <p><a class="inline-link" href="https://github.com/ilyamiro/serpantinum">Serpantinum</a> de <a class="inline-link" href="https://github.com/ilyamiro">Illia Miroshnichenko</a> — un mediu Wayland și preseturi.</p>
+        </article>
+        <article class="card">
+          <h3>Fastfetch / Rust</h3>
+          <p><a class="inline-link" href="https://github.com/fastfetch-cli/fastfetch">fastfetch</a> pentru informații despre sistem, iar Rust pentru fetch-urile 3D rescrise, cu moduri de rotație adecvate.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <section class="section wrap yawstrich-section reveal" id="yawstrich">
+    <div class="yawstrich-card">
+      <div class="yawstrich-copy">
+        <p class="eyebrow">Surpriză ascunsă</p>
+        <h2>Monștrii MSM</h2>
+        <p class="muted-p">Apasă un buton și apare un GIF. Funcționează și pe telefon.</p>
+        <div class="monster-actions">
+          <button class="btn btn-primary yawstrich-btn" id="yawstrich-toggle" type="button">Yawstrich / Stravok</button>
+          <button class="btn btn-ghost yawstrich-btn" id="pixolotl-toggle" type="button">Pixolotl</button>
+        </div>
+      </div>
+      <div class="yawstrich-media">
+        <div id="yawstrich-media" hidden><img src="https://s15.gifyu.com/images/bcRl1.gif" alt="Yawstrich" loading="lazy" width="360" height="360"></div>
+        <div id="pixolotl-media" hidden><img src="https://s15.gifyu.com/images/bcR8O.gif" alt="Pixolotl" loading="lazy" width="360" height="360"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer wrap">
+    <div>© stylishlasher · stylish-dots</div>
+    <div class="footer-links">
+      <a href="https://github.com/stylishlasher/stylish-dots">GitHub</a>
+      <a href="https://github.com/end-4/dots-hyprland">end-4</a>
+      <a href="https://github.com/ilyamiro/serpantinum">Serpantinum</a>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      var menu=document.getElementById('menu-btn'), nav=document.getElementById('nav');
+      if(menu && nav){
+        menu.addEventListener('click', function(){
+          var open=nav.classList.toggle('open');
+          menu.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click', function(){nav.classList.remove('open'); menu.setAttribute('aria-expanded','false');});});
+      }
+      function setup(btnId, mediaId, show, hide){
+        var b=document.getElementById(btnId), m=document.getElementById(mediaId); if(!b||!m) return;
+        b.addEventListener('click', function(){var s=m.hasAttribute('hidden'); if(s){m.removeAttribute('hidden'); b.textContent=hide;} else {m.setAttribute('hidden',''); b.textContent=show;}});
+      }
+      setup('yawstrich-toggle','yawstrich-media','Yawstrich / Stravok','Ascunde Stravok');
+      setup('pixolotl-toggle','pixolotl-media','Pixolotl','Ascunde Pixolotl');
+
+      var obs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? null : new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target);} });
+      }, {threshold: 0.12});
+      document.querySelectorAll('.reveal').forEach(function(el){ if(obs) obs.observe(el); else el.classList.add('visible'); });
+    })();
+  </script>
+</body>
+</html>
