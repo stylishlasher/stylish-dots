@@ -6,8 +6,11 @@ on:
       - 'modules/lib/i18n.sh'
       - 'modules/actions/backup.sh'
       - 'modules/actions/uninstall.sh'
+      - 'install/install.sh'
+      - 'install/install_debian.sh'
       - 'tests/backup-tests.sh'
       - 'tests/i18n-tests.sh'
+      - 'tests/bootstrap-tests.sh'
       - '.github/workflows/backup-tests.yml'
   pull_request:
     paths:
@@ -15,8 +18,11 @@ on:
       - 'modules/lib/i18n.sh'
       - 'modules/actions/backup.sh'
       - 'modules/actions/uninstall.sh'
+      - 'install/install.sh'
+      - 'install/install_debian.sh'
       - 'tests/backup-tests.sh'
       - 'tests/i18n-tests.sh'
+      - 'tests/bootstrap-tests.sh'
       - '.github/workflows/backup-tests.yml'
   workflow_dispatch:
 
@@ -29,3 +35,5 @@ jobs:
         run: bash tests/backup-tests.sh
       - name: Run i18n tests
         run: bash tests/i18n-tests.sh
+      - name: Run bootstrap tests
+        run: bash tests/bootstrap-tests.sh

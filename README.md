@@ -95,7 +95,7 @@ cd stylish-dots
 bash arch_multitool_debian.sh
 ```
 
-> Оба мультитула теперь работают как GUI/меню-оболочки: логика установки вынесена в `modules/`. При запуске через `curl | bash` недостающие модули докачиваются из GitHub автоматически.
+> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут мультитул, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). При прямом `curl | bash` недостающие модули докачиваются из GitHub автоматически.
 > Arch-версия рассчитана на pacman/AUR, Debian-версия — best-effort для apt/dpkg.
 
 ---

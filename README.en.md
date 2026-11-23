@@ -95,7 +95,7 @@ cd stylish-dots
 bash arch_multitool_debian.sh
 ```
 
-> Both multitools now act as GUI/menu shells: the installation logic lives in `modules/`. When launched via `curl | bash`, missing modules are downloaded from GitHub automatically.
+> Both multitools are GUI/menu shells: the logic lives in `modules/`. The bootstrap installers (`install/install.sh`, `install/install_debian.sh`) place the launcher, `modules/` and `config/` into `~/.local/share/arch-multitool`, so everything works offline after the first run; `bash install/install.sh --refresh` (or `install_debian.sh --refresh`) refreshes the cache. With a direct `curl | bash`, missing modules are downloaded from GitHub on demand.
 > The Arch version targets pacman/AUR; the Debian version is best-effort for apt/dpkg.
 
 ---

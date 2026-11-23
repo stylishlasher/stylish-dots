@@ -2,14 +2,17 @@
 # ==============================================================================
 # ARCH MULTITOOL — установщик (bootstrap)
 # ==============================================================================
-# Скачивает актуальный arch_multitool.sh из репозитория и запускает его.
-# Все аргументы пробрасываются в мультитул (например, -f или -a).
+# Ставит мультитул, модули и конфиги в ~/.local/share/arch-multitool и запускает.
+# После этого мультитул работает без интернета. --refresh обновляет кэш.
 #
 # Быстрый запуск:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
 #
 # Полная установка без меню:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash -s -- -f
+#
+# Обновить кэш модулей/конфигов:
+#   bash install/install.sh --refresh
 # ==============================================================================
 
 set -euo pipefail
@@ -18,8 +21,9 @@ set -euo pipefail
 REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 RAW_BASE="https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}"
+CONFIG_TARBALL="https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${REPO_BRANCH}"
 
-# Куда сохранить мультитул (чтобы можно было перезапускать без интернета)
+# Куда положить мультитул, модули и конфиги (перезапуск без интернета)
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/arch-multitool"
 MULTITOOL="$INSTALL_DIR/arch_multitool.sh"
 
@@ -49,17 +53,26 @@ ASCII
 # --------------------------------- Проверки ----------------------------------
 [[ "$(uname -s)" == "Linux" ]] || die "Скрипт предназначен для Linux."
 command -v pacman >/dev/null 2>&1 || die "pacman не найден — нужен Arch Linux или производный дистрибутив."
+command -v tar >/dev/null 2>&1 || die "tar не найден — нужен для распаковки модулей и конфигов."
 
 banner
 
+# --refresh не пробрасываем в мультитул
+REFRESH=0
+ARGS=()
+for a in "$@"; do
+    if [[ "$a" == "--refresh" ]]; then REFRESH=1; else ARGS+=("$a"); fi
+done
+if (( ${#ARGS[@]} )); then set -- "${ARGS[@]}"; else set --; fi
+
 # Ищем локальную копию мультитула (если запущено из клонированного репозитория)
-LOCAL_MULTITOOL=""
+LOCAL_DIR=""
 SELF="${BASH_SOURCE[0]:-}"
 if [[ -n "$SELF" && -f "$SELF" ]]; then
     self_dir="$(cd -- "$(dirname -- "$(realpath "$SELF")")" && pwd)"
-    for cand in "$self_dir/arch_multitool.sh" "$self_dir/../arch_multitool.sh"; do
-        if [[ -f "$cand" ]]; then
-            LOCAL_MULTITOOL="$cand"
+    for cand in "$self_dir" "$self_dir/.."; do
+        if [[ -f "$cand/arch_multitool.sh" ]]; then
+            LOCAL_DIR="$(cd -- "$cand" && pwd)"
             break
         fi
     done
@@ -67,23 +80,55 @@ fi
 
 mkdir -p "$INSTALL_DIR"
 
-# ------------------------------- Получение файла -----------------------------
-if [[ -n "$LOCAL_MULTITOOL" ]]; then
-    say "Использую локальную копию: $LOCAL_MULTITOOL"
-    cp -f "$LOCAL_MULTITOOL" "$MULTITOOL"
+ensure_curl() {
+    command -v curl >/dev/null 2>&1 && return 0
+    say "Устанавливаю curl..."
+    sudo pacman -S --needed --noconfirm curl || die "Не удалось установить curl."
+}
+
+# Кладёт modules/ и config/ в кэш: из локального репо или tarball с GitHub.
+cache_repo() {
+    local tmp
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap.XXXXXX")" || die "Не удалось создать временный каталог."
+    if [[ -n "$LOCAL_DIR" && -d "$LOCAL_DIR/modules" && -d "$LOCAL_DIR/config" ]]; then
+        say "Копирую modules/ и config/ из $LOCAL_DIR"
+        cp -a "$LOCAL_DIR/modules" "$tmp/modules" || die "Не удалось скопировать modules/."
+        cp -a "$LOCAL_DIR/config" "$tmp/config" || die "Не удалось скопировать config/."
+    else
+        ensure_curl
+        say "Скачиваю модули и конфиги из ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH})..."
+        curl -fsSL --connect-timeout 20 --retry 3 "$CONFIG_TARBALL" -o "$tmp/repo.tar.gz" || die "Не удалось скачать репозиторий."
+        tar -xzf "$tmp/repo.tar.gz" -C "$tmp" --strip-components=1 modules config || die "Не удалось распаковать репозиторий."
+    fi
+    rm -rf "$INSTALL_DIR/modules.new" "$INSTALL_DIR/config.new"
+    mv "$tmp/modules" "$INSTALL_DIR/modules.new" || die "Не удалось обновить кэш modules/."
+    mv "$tmp/config" "$INSTALL_DIR/config.new" || die "Не удалось обновить кэш config/."
+    rm -rf "$tmp"
+    rm -rf "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
+    mv "$INSTALL_DIR/modules.new" "$INSTALL_DIR/modules"
+    mv "$INSTALL_DIR/config.new" "$INSTALL_DIR/config"
+}
+
+# --------------------------- Получение лаунчера ------------------------------
+if [[ -n "$LOCAL_DIR" ]]; then
+    say "Использую локальную копию: $LOCAL_DIR/arch_multitool.sh"
+    cp -f "$LOCAL_DIR/arch_multitool.sh" "$MULTITOOL"
 else
-    if ! command -v curl >/dev/null 2>&1; then
-        say "Устанавливаю curl..."
-        sudo pacman -S --needed --noconfirm curl || die "Не удалось установить curl."
-    fi
+    ensure_curl
     say "Скачиваю Arch Multitool из ${B}${REPO_SLUG}${N}${C} (ветка ${REPO_BRANCH})..."
-    if ! curl -fsSL --connect-timeout 20 --retry 3 "${RAW_BASE}/arch_multitool.sh" -o "$MULTITOOL"; then
-        die "Не удалось скачать arch_multitool.sh (проверьте интернет и имя репозитория)."
-    fi
+    curl -fsSL --connect-timeout 20 --retry 3 "${RAW_BASE}/arch_multitool.sh" -o "$MULTITOOL" || die "Не удалось скачать arch_multitool.sh."
+fi
+chmod +x "$MULTITOOL"
+
+# ------------------------------- Кэш модулей --------------------------------
+if [[ "$REFRESH" == "1" || ! -f "$INSTALL_DIR/modules/lib/multitool.sh" || ! -d "$INSTALL_DIR/config/fastfetch" ]]; then
+    cache_repo
+else
+    say "Кэш modules/ и config/ уже есть — работаю офлайн (--refresh для обновления)."
 fi
 
-chmod +x "$MULTITOOL"
-ok "Мультитул сохранён: $MULTITOOL"
+ok "Мультитул готов: $MULTITOOL"
+ok "Модули: $INSTALL_DIR/modules · конфиги: $INSTALL_DIR/config"
 echo >&2
 
 # ---------------------------------- Запуск -----------------------------------

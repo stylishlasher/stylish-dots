@@ -95,7 +95,7 @@ cd stylish-dots
 bash arch_multitool_debian.sh
 ```
 
-> Ambele utilitare funcționează acum ca interfețe GUI/cu meniu: logica de instalare se află în `modules/`. La lansarea prin `curl | bash`, modulele lipsă se descarcă automat de pe GitHub.
+> Ambele utilitare sunt interfețe GUI/cu meniu: logica se află în `modules/`. Instalatoarele bootstrap (`install/install.sh`, `install/install_debian.sh`) pun launcherul, `modules/` și `config/` în `~/.local/share/arch-multitool`, deci totul funcționează offline după prima rulare; `bash install/install.sh --refresh` (sau `install_debian.sh --refresh`) actualizează cache-ul. La `curl | bash` direct, modulele lipsă se descarcă automat de pe GitHub.
 > Versiunea Arch vizează pacman/AUR; versiunea Debian este o încercare de tip best-effort pentru apt/dpkg.
 
 ---
