@@ -5,8 +5,9 @@
 # Ставит лаунчер, modules/ и config/ в ~/.local/share/arch-multitool и запускает.
 # Загрузка динамическая: из git берутся только нужные пути (sparse + blob:none),
 # git проверяет SHA объектов, всё содержимое дополнительно проходит bash -n.
-# Замена лаунчера и кэша атомарная: при любой ошибке возвращается прежняя версия.
-# Повторный запуск работает без сети. --refresh обновляет весь набор.
+# Новый набор собирается в отдельном каталоге, проверяется целиком и включается
+# одним rename символьной ссылки current -> releases/<id>; есть откат.
+# Повторный запуск проверяет весь набор и работает без сети. --refresh обновляет его.
 #
 # Быстрый запуск:
 #   curl -fsSL https://raw.githubusercontent.com/stylishlasher/stylish-dots/main/install/install.sh | bash
@@ -25,9 +26,10 @@ REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 REPO_URL="https://github.com/${REPO_SLUG}.git"
 
-# Куда положить мультитул, модули и конфиги (перезапуск без интернета)
+# current — символьная ссылка на releases/<id>; переключается одним rename.
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/arch-multitool"
-MULTITOOL="$INSTALL_DIR/arch_multitool.sh"
+CURRENT="$INSTALL_DIR/current"
+MULTITOOL="$CURRENT/arch_multitool.sh"
 LAUNCHER="${MULTITOOL##*/}"
 
 # --------------------------------- Цвета -------------------------------------
@@ -82,6 +84,7 @@ if [[ -n "$SELF" && -f "$SELF" ]]; then
 fi
 
 mkdir -p "$INSTALL_DIR"
+[[ ! -e "$CURRENT" || -L "$CURRENT" ]] || die "$CURRENT занят не-символьной ссылкой — откат невозможен."
 
 ensure_git() {
     command -v git >/dev/null 2>&1 && return 0
@@ -89,7 +92,7 @@ ensure_git() {
     sudo pacman -S --needed --noconfirm git || die "Не удалось установить git."
 }
 
-# Проверяем весь набор до попадания в кэш: лаунчер, модули и конфиги.
+# Полная проверка набора: лаунчер, обязательные модули и конфиги, синтаксис .sh.
 verify_bundle() {
     local dir="$1" f
     [[ -f "$dir/$LAUNCHER" ]] || return 1
@@ -99,36 +102,54 @@ verify_bundle() {
     while IFS= read -r -d '' f; do bash -n "$f" || return 1; done < <(find "$dir/modules" -type f -name '*.sh' -print0 2>/dev/null)
 }
 
-# Меняем лаунчер + кэш целиком; при любой ошибке возвращаем прежнюю версию.
-swap_bundle() {
-    local src="$1" tmp had_old=0 item
-    tmp="$(mktemp -d "$INSTALL_DIR/.old.XXXXXX")" || die "Не удалось создать каталог для отката."
-    for item in "$LAUNCHER" modules config; do
-        if [[ -e "$INSTALL_DIR/$item" ]]; then
-            had_old=1
-            mv "$INSTALL_DIR/$item" "$tmp/$item"
-        fi
-    done
-    if ! cp -a "$src/$LAUNCHER" "$INSTALL_DIR/$LAUNCHER" \
-        || ! cp -a "$src/modules" "$INSTALL_DIR/modules" \
-        || ! cp -a "$src/config" "$INSTALL_DIR/config" \
-        || ! verify_bundle "$INSTALL_DIR"; then
-        rm -rf "$INSTALL_DIR/$LAUNCHER" "$INSTALL_DIR/modules" "$INSTALL_DIR/config"
-        if (( had_old )); then
-            for item in "$LAUNCHER" modules config; do
-                [[ -e "$tmp/$item" ]] && mv "$tmp/$item" "$INSTALL_DIR/$item"
-            done
-        fi
-        rm -rf "$tmp"
-        die "Не удалось обновить кэш — прежняя версия восстановлена."
+# Собираем новый набор в releases/<id>, проверяем его и переключаем current одним rename.
+publish_bundle() {
+    local src="$1" id="$2" rel="releases/$id" stage="$INSTALL_DIR/releases/$id"
+    local prev="" backup="" newlink="" switched=0
+    mkdir -p "$INSTALL_DIR/releases" || die "Не удалось создать каталог releases."
+    rm -rf "$stage"
+    cp -a "$src" "$stage" || die "Не удалось подготовить новый набор."
+    chmod +x "$stage/$LAUNCHER" || die "Не удалось сделать лаунчер исполняемым."
+    if ! verify_bundle "$stage"; then
+        rm -rf "$stage"
+        die "Новый набор не прошёл проверку целостности."
     fi
-    chmod +x "$MULTITOOL"
-    rm -rf "$tmp"
+
+    if [[ -L "$CURRENT" ]]; then
+        prev="$(readlink "$CURRENT")"
+        backup="$(mktemp -d "$INSTALL_DIR/.lnk.XXXXXX")" || die "Не удалось зарезервировать имя для отката."
+        rmdir "$backup"
+        cp -P "$CURRENT" "$backup" || die "Не удалось сохранить прежнюю ссылку."
+    fi
+    newlink="$(mktemp -d "$INSTALL_DIR/.lnk.XXXXXX")" || die "Не удалось зарезервировать имя ссылки."
+    rmdir "$newlink"
+    ln -s "$rel" "$newlink" || die "Не удалось создать новую ссылку."
+
+    if mv -Tf "$newlink" "$CURRENT" && verify_bundle "$CURRENT"; then
+        switched=1
+    fi
+    if (( ! switched )); then
+        if [[ -n "$backup" ]]; then
+            mv -Tf "$backup" "$CURRENT" || die "Не удалось откатить ссылку: $backup"
+        else
+            rm -f "$CURRENT"
+        fi
+        rm -rf "$stage"
+        die "Не удалось переключить набор — прежняя версия восстановлена."
+    fi
+
+    rm -f "$backup"
+    # Предыдущий release остаётся доступным для отката; удаляем только более старые.
+    local old
+    while IFS= read -r old; do
+        [[ "$old" == "$id" || "$INSTALL_DIR/releases/$old" == "$INSTALL_DIR/$prev" ]] && continue
+        rm -rf "$INSTALL_DIR/releases/$old"
+    done < <(find "$INSTALL_DIR/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -r | tail -n +3)
 }
 
 # Динамическая загрузка: только лаунчер, modules/ и config/, ничего лишнего.
 fetch_bundle() {
-    local tmp
+    local tmp id
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap.XXXXXX")" || die "Не удалось создать временный каталог."
     if [[ -n "$LOCAL_DIR" ]]; then
         say "Копирую $LAUNCHER, modules/ и config/ из $LOCAL_DIR"
@@ -147,19 +168,20 @@ fetch_bundle() {
         mv "$tmp/repo/config" "$tmp/config" || die "В репозитории нет config/."
     fi
     verify_bundle "$tmp" || die "Загруженные файлы не прошли проверку целостности."
-    swap_bundle "$tmp"
+    id="$(date -u +%Y%m%dT%H%M%S)-$$"
+    publish_bundle "$tmp" "$id"
     rm -rf "$tmp"
 }
 
 # -------------------------- Лаунчер + кэш модулей -----------------------------
-if [[ "$REFRESH" == "1" || ! -f "$MULTITOOL" || ! -f "$INSTALL_DIR/modules/lib/multitool.sh" || ! -d "$INSTALL_DIR/config/fastfetch" ]]; then
+if [[ "$REFRESH" == "1" ]] || ! verify_bundle "$CURRENT"; then
     fetch_bundle
 else
-    say "Лаунчер и кэш готовы — работаю офлайн (--refresh для обновления)."
+    say "Набор проверен — работаю офлайн (--refresh для обновления)."
 fi
 
 ok "Мультитул готов: $MULTITOOL"
-ok "Модули: $INSTALL_DIR/modules · конфиги: $INSTALL_DIR/config"
+ok "Модули: $CURRENT/modules · конфиги: $CURRENT/config"
 echo >&2
 
 # ---------------------------------- Запуск -----------------------------------

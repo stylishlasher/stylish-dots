@@ -27,7 +27,7 @@ for d in "${DIRS[@]}"; do
   fi
 done
 
-BK="$HOME/.config-backup-mango-$(date +%Y%m%d_%H%M%S)"
+BK="$HOME/.config-backup-mango-$(date +%Y%m%d_%H%M%S_%N)_$$"
 BACKED_UP=0
 BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
 register_backup() {

@@ -17,7 +17,7 @@ else
   exit 1
 fi
 
-TS="$(date +%Y%m%d_%H%M%S)"
+TS="$(date +%Y%m%d_%H%M%S_%N)_$$"
 BK="$HOME/.config-backup-end4-$TS"
 BACKED_UP=0
 

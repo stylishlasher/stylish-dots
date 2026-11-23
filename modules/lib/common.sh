@@ -81,16 +81,41 @@ resolve_configs() {
 
 BACKUP_REGISTRY="${XDG_STATE_HOME:-$HOME/.local/state}/stylish-dots/backups.tsv"
 
+backup_stamp() {
+    printf '%s_%s' "$(date +%Y%m%d_%H%M%S_%N 2>/dev/null)" "$$"
+}
+
 backup_register() {
     local src="$1" bk="$2"
     mkdir -p "$(dirname "$BACKUP_REGISTRY")" || return 1
     printf '%s\t%s\t%s\n' "$(date '+%F %T')" "$src" "$bk" >> "$BACKUP_REGISTRY"
 }
 
+# Убираем записи о бэкапах, которых уже нет на диске.
+backup_prune_registry() {
+    [[ -f "$BACKUP_REGISTRY" ]] || return 0
+    local tmp ts src bk kept=0 total=0
+    tmp="$(mktemp "${BACKUP_REGISTRY}.tmp.XXXXXX")" || return 1
+    while IFS=$'\t' read -r ts src bk; do
+        [[ -n "$ts" && -n "$src" && -n "$bk" ]] || continue
+        total=$((total+1))
+        if [[ -e "$bk" || -L "$bk" ]]; then
+            printf '%s\t%s\t%s\n' "$ts" "$src" "$bk" >> "$tmp" || { rm -f "$tmp"; return 1; }
+            kept=$((kept+1))
+        fi
+    done < "$BACKUP_REGISTRY"
+    if (( kept == total )); then rm -f "$tmp"; return 0; fi
+    mv -f "$tmp" "$BACKUP_REGISTRY" || { rm -f "$tmp"; return 1; }
+}
+
 stash_dir() {
     local dst="$1"
     [[ -e "$dst" || -L "$dst" ]] || return 0
-    local bk="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
+    local bk="${dst}.bak.$(backup_stamp)" n=0
+    while [[ -e "$bk" || -L "$bk" ]]; do
+        n=$((n+1))
+        bk="${dst}.bak.$(backup_stamp).$n"
+    done
     if mv "$dst" "$bk"; then
         if backup_register "$dst" "$bk"; then
             info "Backup: $bk"

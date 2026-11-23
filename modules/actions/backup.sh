@@ -29,6 +29,7 @@ backup_import_legacy_dir() {
 backup_import_legacy() {
     mkdir -p "$(dirname "$BACKUP_REGISTRY")" || { err "$(t registry_dir_failed "$(dirname "$BACKUP_REGISTRY")")"; return 1; }
     touch "$BACKUP_REGISTRY" || { err "$(t registry_create_failed "$BACKUP_REGISTRY")"; return 1; }
+    backup_prune_registry || warn "$(t registry_prune_failed "$BACKUP_REGISTRY")"
     local d
     for d in "$HOME"/.config-backup-end4-*; do backup_import_legacy_dir "$d" end4; done
     for d in "$HOME"/.config-backup-mango-*; do backup_import_legacy_dir "$d" mango; done
@@ -117,9 +118,13 @@ action_restore_backup() {
         [[ -n "$bk" ]] || { err "$(t no_valid_backup "$target")"; return 1; }
     fi
 
-    local cur=""
+    local cur="" n=0
     if [[ -e "$target" || -L "$target" ]]; then
-        cur="${target}.before-restore.$(date +%Y%m%d_%H%M%S)"
+        cur="${target}.before-restore.$(backup_stamp)"
+        while [[ -e "$cur" || -L "$cur" ]]; do
+            n=$((n+1))
+            cur="${target}.before-restore.$(backup_stamp).$n"
+        done
         mv "$target" "$cur" || { err "$(t save_current_failed "$target")"; return 1; }
         if backup_register "$target" "$cur"; then
             info "$(t current_saved "$cur")"

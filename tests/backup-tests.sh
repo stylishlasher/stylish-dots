@@ -8,7 +8,7 @@ fail() { echo "FAIL: $*" >&2; [[ -f "${TMP:-}/out" ]] && { echo "--- output ---"
 pass() { echo "PASS: $*"; }
 
 fresh() {
-    unset -f cp backup_register 2>/dev/null || true
+    unset -f cp backup_register date 2>/dev/null || true
     TMP=$(mktemp -d)
     HOME="$TMP/home"; mkdir -p "$HOME"
     export HOME XDG_STATE_HOME="$HOME/.local/state"
@@ -86,5 +86,50 @@ set +e; action_restore_profile stylish </dev/null >"$TMP/out" 2>&1; rc=$?; set -
 [[ $rc -eq 0 ]] || fail "clean rollback rc=$rc"
 [[ -f "$HOME/.local/state/stylish-dots/backups.tsv" ]] || fail "registry not created"
 pass "clean system rollback"
+
+# 7. секундная Collision: два stash подряд с одним и тем же timestamps дают разные имена.
+fresh
+date() { [[ "$1" == '+%Y%m%d_%H%M%S_%N' ]] && { echo 20260101_000000_000000000; return; }; command date "$@"; }
+mkdir -p "$HOME/.config/fish"
+echo one > "$HOME/.config/fish/config.fish"
+stash_dir "$HOME/.config/fish" >/dev/null
+mkdir -p "$HOME/.config/fish"
+echo two > "$HOME/.config/fish/config.fish"
+stash_dir "$HOME/.config/fish" >/dev/null
+mapfile -t made < <(find "$HOME/.config" -maxdepth 1 -name 'fish.bak.*' -print | sort)
+[[ ${#made[@]} -eq 2 ]] || fail "expected 2 distinct backups, got ${#made[@]}"
+[[ "$(cat "${made[0]}/config.fish")" == one && "$(cat "${made[1]}/config.fish")" == two ]] || fail "backup content overwritten"
+pass "stash names unique even with identical clock"
+
+# 8. устаревшие записи реестра удаляются, живые остаются.
+fresh
+mkdir -p "$TMP/bk/live"
+echo x > "$TMP/bk/live/config.fish"
+REG="$HOME/.local/state/stylish-dots/backups.tsv"
+mkdir -p "$(dirname "$REG")"
+printf '2020-01-01\t%s\t%s\n' "$HOME/.config/fish" "$TMP/bk/live" > "$REG"
+printf '2020-01-02\t%s\t%s\n' "$HOME/.config/nvim" "$TMP/bk/gone" >> "$REG"
+set +e; action_backup_list >"$TMP/out" 2>&1; rc=$?; set -e
+[[ $rc -eq 0 ]] || fail "backup list rc=$rc"
+[[ $(wc -l < "$REG") -eq 1 ]] || fail "stale registry entry not pruned"
+grep -Fq "$TMP/bk/live" "$REG" || fail "live registry entry lost"
+! grep -Fq "$TMP/bk/gone" "$TMP/out" || fail "stale entry still listed"
+pass "stale registry entries pruned on list"
+
+# 9. before-restore имя тоже уникально при одинаковом времени.
+fresh
+date() { [[ "$1" == '+%Y%m%d_%H%M%S_%N' ]] && { echo 20260101_000000_000000000; return; }; command date "$@"; }
+mkdir -p "$HOME/.config/fish" "$TMP/bk/fish"
+echo old > "$TMP/bk/fish/config.fish"
+echo one > "$HOME/.config/fish/config.fish"
+backup_register "$HOME/.config/fish" "$TMP/bk/fish" >/dev/null
+action_restore_backup "$HOME/.config/fish" >/dev/null
+echo two > "$HOME/.config/fish/config.fish"
+backup_register "$HOME/.config/fish" "$TMP/bk/fish" >/dev/null
+action_restore_backup "$HOME/.config/fish" >/dev/null
+mapfile -t saved < <(find "$HOME/.config" -maxdepth 1 -name 'fish.before-restore.*' -print | sort)
+[[ ${#saved[@]} -eq 2 ]] || fail "expected 2 restore snapshots, got ${#saved[@]}"
+[[ "$(cat "${saved[0]}/config.fish")" == one && "$(cat "${saved[1]}/config.fish")" == two ]] || fail "restore snapshot overwritten"
+pass "before-restore names unique even with identical clock"
 
 echo "ALL TESTS PASSED"
