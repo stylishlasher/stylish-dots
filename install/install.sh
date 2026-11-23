@@ -2,9 +2,11 @@
 # ==============================================================================
 # ARCH MULTITOOL — установщик (bootstrap)
 # ==============================================================================
-# Ставит лаунчер, modules/ и config/ в ~/.local/share/arch-multitool и запускает.
-# Загрузка динамическая: из git берутся только нужные пути (sparse + blob:none),
-# git проверяет SHA объектов, bash -n проверяет скрипты, манифест — всё содержимое.
+# Ставит лаунчеры, modules/ и config/ в ~/.local/share/arch-multitool и запускает.
+# Загрузка динамическая: из git берутся только нужные пути (sparse + blob:none).
+# Набор проверяется по подписанному манифесту: SHA-256 содержимого, права доступа
+# и символьные ссылки. Публичный ключ вшит сюда — подмена файлов вместе с
+# манифестом не пройдёт проверку. bash -n дополнительно проверяет скрипты.
 # Новый набор собирается в отдельном каталоге, проверяется целиком и включается
 # одним rename символьной ссылки current -> releases/<id>; есть откат.
 # Повторный запуск проверяет весь набор и работает без сети. --refresh обновляет его.
@@ -25,6 +27,23 @@ set -euo pipefail
 REPO_SLUG="${REPO_SLUG:-stylishlasher/stylish-dots}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 REPO_URL="https://github.com/${REPO_SLUG}.git"
+
+# Якорь доверия: публичный ключ вшит в установщик, а не берётся из репозитория.
+# Переопределение — только для регрессионных тестов со своим ключом.
+BUNDLE_PUBKEY="${STYLISH_BUNDLE_PUBKEY:-$(cat <<'SD_PUBKEY'
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlcXFELtdbF+4vzRC2O9+
+sN/el2OncAavgxdEYk0ZRTtnVKKjhylXB99qljqja9AtwaDywEE2DBjViTb275s9
+QaNOfO+g/+eG211Q7sq24QfsGztX1m5d3ACCbDI5ABQvBNd7e93EsOHCtdqgySNm
+Go1/lwe7SgSpQDyJCb+9jBQTaZGA4nV53jXGYH1TC5TRLI2oVXa02cnkO4+4Gw2A
+CPrCoR9Vlts3EEpskk77IaSypvC6dJNrOnsRYSxCqnbKhF5JLypOwAtAv6Fmd7wB
+d7H+tTVegW8CgKDzDXoLIPrSbL8tA4plb4h52jwL9zxlLTF/Nd5ntPGukmPXjjqL
+yQIDAQAB
+-----END PUBLIC KEY-----
+SD_PUBKEY
+)}"
+MANIFEST=bundle.sha256
+SIG="$MANIFEST.sig"
 
 # current — символьная ссылка на releases/<id>; переключается одним rename.
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/arch-multitool"
@@ -60,6 +79,7 @@ ASCII
 command -v pacman >/dev/null 2>&1 || die "pacman не найден — нужен Arch Linux или производный дистрибутив."
 command -v tar >/dev/null 2>&1 || die "tar не найден — нужен для распаковки модулей и конфигов."
 command -v sha256sum >/dev/null 2>&1 || die "sha256sum не найден — нужен для проверки содержимого набора."
+command -v openssl >/dev/null 2>&1 || die "openssl не найден — нужен для проверки подписи набора."
 
 banner
 
@@ -71,13 +91,15 @@ for a in "$@"; do
 done
 if (( ${#ARGS[@]} )); then set -- "${ARGS[@]}"; else set --; fi
 
-# Ищем локальную копию с лаунчером, modules/ и config/ (клонированный репозиторий)
+# Ищем локальную копию с лаунчерами, modules/, config/ и подписанным манифестом
 LOCAL_DIR=""
 SELF="${BASH_SOURCE[0]:-}"
 if [[ -n "$SELF" && -f "$SELF" ]]; then
     self_dir="$(cd -- "$(dirname -- "$SELF")" && pwd -P)"
     for cand in "$self_dir" "$self_dir/.."; do
-        if [[ -f "$cand/$LAUNCHER" && -d "$cand/modules" && -d "$cand/config" ]]; then
+        if [[ -f "$cand/arch_multitool.sh" && -f "$cand/arch_multitool_debian.sh" \
+           && -f "$cand/modules/lib/multitool.sh" && -d "$cand/config" \
+           && -s "$cand/$MANIFEST" && -s "$cand/$SIG" ]]; then
             LOCAL_DIR="$(cd -- "$cand" && pwd -P)"
             break
         fi
@@ -93,25 +115,34 @@ ensure_git() {
     sudo pacman -S --needed --noconfirm git || die "Не удалось установить git."
 }
 
-# Манифест фиксирует содержимое всего набора, а не только наличие каталогов.
-make_manifest() {
-    local dir="$1"
-    (cd "$dir" && find . -type f ! -name .manifest -exec sha256sum {} +) > "$dir/.manifest" || return 1
-}
-
-# Полная проверка: лаунчер, модули, синтаксис .sh и содержимое по манифесту.
+# Подпись манифеста + SHA-256 файлов + права доступа + символьные ссылки.
 verify_bundle() {
-    local dir="$1" f expected actual
-    [[ -f "$dir/$LAUNCHER" ]] || return 1
-    bash -n "$dir/$LAUNCHER" || return 1
+    local dir="$1" f line rest path target mode expected actual links
+    [[ -f "$dir/arch_multitool.sh" && -f "$dir/arch_multitool_debian.sh" ]] || return 1
+    bash -n "$dir/arch_multitool.sh" || return 1
+    bash -n "$dir/arch_multitool_debian.sh" || return 1
     [[ -f "$dir/modules/lib/multitool.sh" && -f "$dir/modules/lib/i18n.sh" && -f "$dir/modules/lib/common.sh" ]] || return 1
     [[ -d "$dir/config/fastfetch" && -d "$dir/config/end4" ]] || return 1
     while IFS= read -r -d '' f; do bash -n "$f" || return 1; done < <(find "$dir/modules" -type f -name '*.sh' -print0 2>/dev/null)
-    [[ -s "$dir/.manifest" ]] || return 1
-    (cd "$dir" && sha256sum --check --quiet .manifest) >/dev/null 2>&1 || return 1
-    expected=$(wc -l < "$dir/.manifest")
-    actual=$(find "$dir/" -type f ! -name .manifest -print | wc -l)
-    [[ "$expected" -eq "$actual" ]]
+    [[ -s "$dir/$MANIFEST" && -s "$dir/$SIG" ]] || return 1
+    openssl dgst -sha256 -verify <(printf '%s\n' "$BUNDLE_PUBKEY") -signature "$dir/$SIG" "$dir/$MANIFEST" >/dev/null 2>&1 || return 1
+    (cd "$dir" && sha256sum --check --quiet "$MANIFEST") >/dev/null 2>&1 || return 1
+    expected=$(grep -c '^[0-9a-f]\{64\}  ' "$dir/$MANIFEST" || true)
+    actual=$(find "$dir/" -type f ! -name "$MANIFEST" ! -name "$SIG" -print | wc -l)
+    [[ "$expected" -eq "$actual" ]] || return 1
+    links=$(grep -c '^# link ' "$dir/$MANIFEST" || true)
+    [[ "$links" -eq "$(find "$dir/" -type l -print | wc -l)" ]] || return 1
+    while IFS= read -r line; do
+        case "$line" in
+            '# mode '*)
+                rest="${line#\# mode }"; mode="${rest%% *}"; path="${rest#* }"
+                [[ "$(stat -c %a "$dir/$path")" == "$mode" ]] || return 1 ;;
+            '# link '*)
+                rest="${line#\# link }"; path="${rest%% -> *}"; target="${rest#* -> }"
+                [[ -L "$dir/$path" && "$(readlink "$dir/$path")" == "$target" ]] || return 1 ;;
+        esac
+    done < "$dir/$MANIFEST"
+    return 0
 }
 
 # Собираем новый набор в releases/<id>, проверяем его и переключаем current одним rename.
@@ -121,7 +152,6 @@ publish_bundle() {
     mkdir -p "$INSTALL_DIR/releases" || die "Не удалось создать каталог releases."
     rm -rf "$stage"
     cp -a "$src" "$stage" || die "Не удалось подготовить новый набор."
-    chmod +x "$stage/$LAUNCHER" || die "Не удалось сделать лаунчер исполняемым."
     if ! verify_bundle "$stage"; then
         rm -rf "$stage"
         die "Новый набор не прошёл проверку целостности."
@@ -159,14 +189,15 @@ publish_bundle() {
     done < <(find "$INSTALL_DIR/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -r | tail -n +3)
 }
 
-# Динамическая загрузка: только лаунчер, modules/ и config/, ничего лишнего.
+# Динамическая загрузка: только лаунчеры, modules/, config/ и подписанный манифест.
 fetch_bundle() {
     local tmp id
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap.XXXXXX")" || die "Не удалось создать временный каталог."
     if [[ -n "$LOCAL_DIR" ]]; then
-        say "Копирую $LAUNCHER, modules/ и config/ из $LOCAL_DIR"
+        say "Копирую лаунчеры, modules/, config/ и манифест из $LOCAL_DIR"
         # tar с исключениями: в кэш не попадают target/, __pycache__ и прочие артефакты сборки
-        tar -C "$LOCAL_DIR" -cf - --exclude='*/target' --exclude='*__pycache__' "$LAUNCHER" modules config | tar -xf - -C "$tmp" \
+        tar -C "$LOCAL_DIR" -cf - --exclude='*/target' --exclude='*__pycache__' \
+            arch_multitool.sh arch_multitool_debian.sh modules config "$MANIFEST" "$SIG" | tar -xf - -C "$tmp" \
             || die "Не удалось скопировать файлы из локальной копии."
     else
         ensure_git
@@ -175,12 +206,13 @@ fetch_bundle() {
             || die "Не удалось скачать репозиторий."
         git -C "$tmp/repo" sparse-checkout set modules config || die "Не удалось выбрать нужные пути."
         say "Коммит: $(git -C "$tmp/repo" rev-parse --short HEAD)"
-        cp "$tmp/repo/$LAUNCHER" "$tmp/$LAUNCHER" || die "В репозитории нет $LAUNCHER."
+        cp "$tmp/repo/arch_multitool.sh" "$tmp/repo/arch_multitool_debian.sh" "$tmp/repo/$MANIFEST" "$tmp/repo/$SIG" "$tmp/" \
+            || die "В репозитории нет лаунчеров или подписанного манифеста."
         mv "$tmp/repo/modules" "$tmp/modules" || die "В репозитории нет modules/."
         mv "$tmp/repo/config" "$tmp/config" || die "В репозитории нет config/."
+        rm -rf "$tmp/repo" # в наборе не должно быть клона с .git и дублями файлов
     fi
-    make_manifest "$tmp" || die "Не удалось создать манифест набора."
-    verify_bundle "$tmp" || die "Загруженные файлы не прошли проверку целостности."
+    verify_bundle "$tmp" || die "Набор не прошёл проверку подписи и целостности."
     id="$(date -u +%Y%m%dT%H%M%S)-$$"
     publish_bundle "$tmp" "$id"
     rm -rf "$tmp"
@@ -190,7 +222,7 @@ fetch_bundle() {
 if [[ "$REFRESH" == "1" ]] || ! verify_bundle "$CURRENT"; then
     fetch_bundle
 else
-    say "Набор проверен — работаю офлайн (--refresh для обновления)."
+    say "Набор проверен (подпись, содержимое, права) — работаю офлайн (--refresh для обновления)."
 fi
 
 ok "Мультитул готов: $MULTITOOL"

@@ -38,7 +38,8 @@ pass "all UI keys translated in EN and RO"
 
 for f in README.en.md README.ro.md modules/README.en.md modules/README.ro.md docs/en/index.html docs/ro/index.html; do
     [[ -s "$f" ]] || fail "missing translation: $f"
-    bad=$(grep -E '[А-Яа-яЁё]' "$f" | grep -v 'Русский' || true)
+    # Цитата автора намеренно оставлена дословной во всех языках.
+    bad=$(grep -E '[А-Яа-яЁё]' "$f" | grep -v 'Русский' | grep -v 'это уже паранойя, но комфорт юзера - главное' || true)
     [[ -z "$bad" ]] || fail "untranslated Cyrillic in $f: $bad"
 done
 pass "documentation translations present"

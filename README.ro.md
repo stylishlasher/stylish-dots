@@ -95,8 +95,12 @@ cd stylish-dots
 bash arch_multitool_debian.sh
 ```
 
-> Ambele utilitare sunt interfețe GUI/cu meniu: logica se află în `modules/`. Instalatoarele bootstrap (`install/install.sh`, `install/install_debian.sh`) pun launcherul, `modules/` și `config/` în `~/.local/share/arch-multitool`, deci totul funcționează offline după prima rulare; `bash install/install.sh --refresh` (sau `install_debian.sh --refresh`) actualizează cache-ul. La `curl | bash` direct, modulele lipsă se descarcă automat de pe GitHub.
+> Ambele utilitare sunt interfețe GUI/cu meniu: logica se află în `modules/`. Instalatoarele bootstrap (`install/install.sh`, `install/install_debian.sh`) pun launcherele, `modules/` și `config/` în `~/.local/share/arch-multitool`, deci totul funcționează offline după prima rulare; `bash install/install.sh --refresh` (sau `install_debian.sh --refresh`) actualizează cache-ul. La `curl | bash` direct, modulele lipsă se descarcă automat de pe GitHub.
 > Versiunea Arch vizează pacman/AUR; versiunea Debian este o încercare de tip best-effort pentru apt/dpkg.
+>
+> Manifestul setului (`bundle.sha256`) este semnat RSA: cheia publică este încorporată în ambele `install/*.sh`, iar cheia privată nu ajunge în repository. Se verifică SHA-256 al fiecărui fișier, permisiunile și legăturile simbolice, deci înlocuirea fișierelor împreună cu manifestul nu trece. După modificări în `modules/` sau `config/`, resemnează cu `bash scripts/sign-bundle.sh` (cheia privată: `STYLISH_SIGNING_KEY` sau `~/.local/share/stylish-dots/signing.key`). Numai `install/*.sh` rămâne nesemnat — el se descarcă prin HTTPS.
+>
+> это уже паранойя, но комфорт юзера - главное
 
 ---
 

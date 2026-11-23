@@ -1,0 +1,425 @@
+# stylish-dots bundle v2
+# mode 644 config/bin/hackerlarp.config.example.json
+# mode 644 config/end4/environment.d/10-cursor.conf
+# mode 644 config/end4/gtk-3.0/settings.ini
+# mode 644 config/end4/gtk-4.0/settings.ini
+# mode 644 config/end4/hypr/custom/env.lua
+# mode 644 config/end4/hypr/custom/execs.lua
+# mode 644 config/end4/hypr/custom/general.lua
+# mode 644 config/end4/hypr/custom/keybinds.lua
+# mode 644 config/end4/hypr/custom/rules.lua
+# mode 644 config/end4/hypr/custom/scripts/__restore_video_wallpaper.sh
+# mode 644 config/end4/hypr/custom/variables.lua
+# mode 644 config/end4/hypr/hyprland/keybinds.lua
+# mode 644 config/end4/icons-default/index.theme
+# mode 644 config/end4/illogical-impulse/config.json
+# mode 644 config/fastfetch/README.md
+# mode 644 config/fastfetch/presets/default.jsonc
+# mode 644 config/fastfetch/presets/micro.jsonc
+# mode 644 config/fastfetch/presets/mine.jsonc
+# mode 644 config/fastfetch/presets/stylish.jsonc
+# mode 644 config/fastfetch/presets/universal.jsonc
+# mode 644 config/fetches/stylish-fetches/.gitignore
+# mode 644 config/fetches/stylish-fetches/Cargo.lock
+# mode 644 config/fetches/stylish-fetches/Cargo.toml
+# mode 644 config/fetches/stylish-fetches/README.md
+# mode 644 config/fetches/stylish-fetches/src/bin/keyfetch.rs
+# mode 644 config/fetches/stylish-fetches/src/bin/skeletonfetch.rs
+# mode 644 config/fetches/stylish-fetches/src/bin/stoolfetch.rs
+# mode 644 config/fetches/stylish-fetches/src/bin/tomatofetch.rs
+# mode 644 config/fetches/stylish-fetches/src/bin/treefetch.rs
+# mode 644 config/fetches/stylish-fetches/src/lib.rs
+# mode 644 config/fetches/unstable/keyfetch.c
+# mode 644 config/fetches/unstable/skeletonfetch.c
+# mode 644 config/fetches/unstable/stoolfetch.c
+# mode 644 config/fetches/unstable/tomatofetch.c
+# mode 644 config/fetches/unstable/treefetch.c
+# mode 644 config/fish/auto-Hypr.fish
+# mode 644 config/fish/conf.d/99-local-bin.fish
+# mode 644 config/fish/conf.d/fish_frozen_key_bindings.fish
+# mode 644 config/fish/functions/clipkeep.fish
+# mode 644 config/fish/functions/converttool.fish
+# mode 644 config/fish/functions/extract.fish
+# mode 644 config/fish/functions/fakefetch.fish
+# mode 644 config/fish/functions/fire.fish
+# mode 644 config/fish/functions/keyfetch.fish
+# mode 644 config/fish/functions/mkcd.fish
+# mode 644 config/fish/functions/quicknote.fish
+# mode 644 config/fish/functions/servehere.fish
+# mode 644 config/fish/functions/skeletonfetch.fish
+# mode 644 config/fish/functions/stoolfetch.fish
+# mode 644 config/fish/functions/styletext.fish
+# mode 644 config/fish/functions/tomatofetch.fish
+# mode 644 config/fish/functions/treefetch.fish
+# mode 644 config/foot/foot.ini
+# mode 644 config/fuzzel/fuzzel.ini
+# mode 644 config/install.txt
+# mode 644 config/mako/config
+# mode 644 config/mango/config.conf
+# mode 644 config/mango/dock-apps.list
+# mode 644 config/mango/settings.env
+# mode 644 config/matugen/config.toml
+# mode 644 config/matugen/templates/accent.env
+# mode 644 config/matugen/templates/colors.css
+# mode 644 config/matugen/templates/foot.ini
+# mode 644 config/matugen/templates/fuzzel.ini
+# mode 644 config/matugen/templates/mako
+# mode 644 config/nvim-presets/lazyvim-stylish/.gitignore
+# mode 644 config/nvim-presets/lazyvim-stylish/.neoconf.json
+# mode 644 config/nvim-presets/lazyvim-stylish/LICENSE
+# mode 644 config/nvim-presets/lazyvim-stylish/README.md
+# mode 644 config/nvim-presets/lazyvim-stylish/cheatsheet.md
+# mode 644 config/nvim-presets/lazyvim-stylish/colors/dots.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/init.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lazy-lock.json
+# mode 644 config/nvim-presets/lazyvim-stylish/lazyvim.json
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/config/autocmds.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/config/cheatsheet.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/config/keymaps.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/config/lazy.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/config/options.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/plugins/colorscheme.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/plugins/editor.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/plugins/markdown.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/lua/plugins/ui.lua
+# mode 644 config/nvim-presets/lazyvim-stylish/stylua.toml
+# mode 644 config/nvim-presets/super-easy-casual/init.lua
+# mode 644 config/nvim/.gitignore
+# mode 644 config/nvim/.neoconf.json
+# mode 644 config/nvim/LICENSE
+# mode 644 config/nvim/README.md
+# mode 644 config/nvim/cheatsheet.md
+# mode 644 config/nvim/colors/dots.lua
+# mode 644 config/nvim/init.lua
+# mode 644 config/nvim/lazy-lock.json
+# mode 644 config/nvim/lazyvim.json
+# mode 644 config/nvim/lua/config/autocmds.lua
+# mode 644 config/nvim/lua/config/cheatsheet.lua
+# mode 644 config/nvim/lua/config/keymaps.lua
+# mode 644 config/nvim/lua/config/lazy.lua
+# mode 644 config/nvim/lua/config/options.lua
+# mode 644 config/nvim/lua/plugins/colorscheme.lua
+# mode 644 config/nvim/lua/plugins/editor.lua
+# mode 644 config/nvim/lua/plugins/markdown.lua
+# mode 644 config/nvim/lua/plugins/ui.lua
+# mode 644 config/nvim/stylua.toml
+# mode 644 config/placeholders/archy-style.png
+# mode 644 config/placeholders/glass.png
+# mode 644 config/placeholders/ultra-minimalist.png
+# mode 644 config/themes/amber-crt.json
+# mode 644 config/themes/archy-style.json
+# mode 644 config/themes/arctic-glass.json
+# mode 644 config/themes/ayu-mirage.json
+# mode 644 config/themes/blueprint.json
+# mode 644 config/themes/catppuccin-latte.json
+# mode 644 config/themes/catppuccin-mocha.json
+# mode 644 config/themes/cyberpunk-neon.json
+# mode 644 config/themes/dracula-night.json
+# mode 644 config/themes/dwm-suckless.json
+# mode 644 config/themes/everforest-forest.json
+# mode 644 config/themes/glass.json
+# mode 644 config/themes/gruvbox-light.json
+# mode 644 config/themes/gruvbox-terminal.json
+# mode 644 config/themes/i3-classic.json
+# mode 644 config/themes/kanagawa-wave.json
+# mode 644 config/themes/macos-dark.json
+# mode 644 config/themes/macos-light.json
+# mode 644 config/themes/material-you-dynamic.json
+# mode 644 config/themes/midnight-sidebar.json
+# mode 644 config/themes/minimal-dusk.json
+# mode 644 config/themes/minimal-mist.json
+# mode 644 config/themes/minimal-mocha.json
+# mode 644 config/themes/minimal-sage.json
+# mode 644 config/themes/minimal-sepia.json
+# mode 644 config/themes/minimal-snow.json
+# mode 644 config/themes/minimal-void.json
+# mode 644 config/themes/minimalist-premium.json
+# mode 644 config/themes/monochrome-ink.json
+# mode 644 config/themes/nord-frost.json
+# mode 644 config/themes/nothing-amber.json
+# mode 644 config/themes/nothing-cobalt.json
+# mode 644 config/themes/nothing-dots.json
+# mode 644 config/themes/nothing-graphite.json
+# mode 644 config/themes/nothing-lime.json
+# mode 644 config/themes/nothing-mint-light.json
+# mode 644 config/themes/nothing-pink-void.json
+# mode 644 config/themes/oxocarbon.json
+# mode 644 config/themes/pacman-arcade.json
+# mode 644 config/themes/paper-light.json
+# mode 644 config/themes/rose-pine-moon.json
+# mode 644 config/themes/sakura-blossom.json
+# mode 644 config/themes/solarized-dark.json
+# mode 644 config/themes/sunset-peach.json
+# mode 644 config/themes/synthwave-sunset.json
+# mode 644 config/themes/terminal-green.json
+# mode 644 config/themes/tokyo-night.json
+# mode 644 config/themes/ultra-dashboard.json
+# mode 644 config/themes/ultra-minimalist.json
+# mode 644 config/themes/work-focus.json
+# mode 644 config/waybar/colors.css
+# mode 644 config/waybar/config.jsonc
+# mode 644 config/waybar/dock.css
+# mode 644 config/waybar/dock.jsonc
+# mode 644 config/waybar/style.css
+# mode 644 modules/README.en.md
+# mode 644 modules/README.md
+# mode 644 modules/README.ro.md
+# mode 644 modules/actions/audit.sh
+# mode 644 modules/actions/backup.sh
+# mode 644 modules/actions/dotfiles.sh
+# mode 644 modules/actions/extras.sh
+# mode 644 modules/actions/fetches.sh
+# mode 644 modules/actions/fish.sh
+# mode 644 modules/actions/flatpak.sh
+# mode 644 modules/actions/interactive.sh
+# mode 644 modules/actions/media.sh
+# mode 644 modules/actions/neovim.sh
+# mode 644 modules/actions/network.sh
+# mode 644 modules/actions/preflight.sh
+# mode 644 modules/actions/software.sh
+# mode 644 modules/actions/system.sh
+# mode 644 modules/actions/uninstall.sh
+# mode 644 modules/lib/common.sh
+# mode 644 modules/lib/i18n.sh
+# mode 644 modules/lib/loader.sh
+# mode 644 modules/lib/menu.sh
+# mode 644 modules/lib/multitool.sh
+# mode 644 modules/lib/platform.sh
+# mode 755 arch_multitool.sh
+# mode 755 arch_multitool_debian.sh
+# mode 755 config/bin/clipkeep
+# mode 755 config/bin/converttool
+# mode 755 config/bin/fakefetch
+# mode 755 config/bin/hackerlarp
+# mode 755 config/bin/mango-settings
+# mode 755 config/bin/quicknote
+# mode 755 config/bin/styletext
+# mode 755 config/end4/install.sh
+# mode 755 config/fish/config.fish
+# mode 755 config/mango/install.sh
+# mode 755 config/mango/install_debian.sh
+# mode 755 config/mango/scripts/apply-matugen-accent
+# mode 755 config/mango/scripts/autostart.sh
+# mode 755 config/mango/scripts/bar-menu
+# mode 755 config/mango/scripts/clipboard
+# mode 755 config/mango/scripts/dock
+# mode 755 config/mango/scripts/launch
+# mode 755 config/mango/scripts/lock
+# mode 755 config/mango/scripts/power-menu
+# mode 755 config/mango/scripts/screenshot
+# mode 755 config/mango/scripts/toggle-scroller
+# mode 755 config/mango/scripts/wallpaper
+# mode 755 config/mango/scripts/wallpaper-pick
+# mode 755 config/waybar/scripts/distro-icon.sh
+d3d57ce10b5c1589704048e720f6478e08340c90cf57357891a25ba22f2354d6  arch_multitool.sh
+8e11adfe56fcea5a0d7f821e5cd44057d6f389151a6824a453529c4e094f8c45  arch_multitool_debian.sh
+111199969a87c1cdf51b2f219daba6405503801a5d8b5ffeb6528d7b6f48e842  config/bin/clipkeep
+ad5b54a7d3048b8b8c7797a18f0aafcd1adc30fbe8a80b6083e875b94b47895a  config/bin/converttool
+6f075b1cee0be84b1ebeeb2b8c0c3452c69a07474e510b06dcc3f8a9f7c257c4  config/bin/fakefetch
+dc0ffb78f5ff3858c7d2851337116c7cc3feb73cc660ec1c145c60a2ff13ae5a  config/bin/hackerlarp
+bce659a5fbf86827189c01a78ba072ca9136a207ca66a69ea11354eec41ad3b6  config/bin/hackerlarp.config.example.json
+f9a9332dbf532906e654bb1ca43c3f4ac36b514a91e319977ef63bcc3dc8b8b5  config/bin/mango-settings
+febaa18ae610992e9d18705113ffbfec7c2c55d1d2ebfed0b2b8f785e0728803  config/bin/quicknote
+1d1e21d5900c553921ed8d0c03afffff603d46b370a734a250c557f43c624fee  config/bin/styletext
+eb61b501d3e6d3730572db85abad3f556154c2322a0fbce5b37d9fcae76ebe76  config/end4/environment.d/10-cursor.conf
+698817a15e4d9b735492230cb785b2d5bfd2d1d51705c9d334b767cba9e9b06b  config/end4/gtk-3.0/settings.ini
+698817a15e4d9b735492230cb785b2d5bfd2d1d51705c9d334b767cba9e9b06b  config/end4/gtk-4.0/settings.ini
+e0dd25fc6c5f1bd72208b0e7fe0af9f640d2ec8098498f1b33a2ac5ea73e3d60  config/end4/hypr/custom/env.lua
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  config/end4/hypr/custom/execs.lua
+5fdc1383216032d35417202500e1b0d8fb835506a58cb0fd5400b9f0c9282080  config/end4/hypr/custom/general.lua
+edea7e0ae66d19079fa6b7ea57b35e395212de043b2e4db01b81c53ccacd51b9  config/end4/hypr/custom/keybinds.lua
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  config/end4/hypr/custom/rules.lua
+2cc9894f75c217e8733839369f2bcf60121505a8645ee363956c16230a627909  config/end4/hypr/custom/scripts/__restore_video_wallpaper.sh
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  config/end4/hypr/custom/variables.lua
+f3e48b353606baf86b0115c30a2ca3491218ede34a27131557af3c99510702be  config/end4/hypr/hyprland/keybinds.lua
+ba23c710b1993cdb60be45739c320bcaa2057de5e1608110978b62a15ccb9eff  config/end4/icons-default/index.theme
+aa2a47edae3d4bd1a773412fbd69afe6d8301b98f6aa6d5f12ec25369f095a53  config/end4/illogical-impulse/config.json
+91356815a8186c0e362f556ae710a52ab6336c67139f25de4fec31715bb12698  config/end4/install.sh
+7d4dda03739eba587bd3088481f2bd9cc789b1ffd360e57b87ccc61730e9f5ee  config/fastfetch/README.md
+1098b7e1d120b013b584f58a427f951c93deebacc9fd33eb6b40940feb9e485e  config/fastfetch/presets/default.jsonc
+40faafcb2b2bf992bc5187c0d6f7fe30e1328a1ed598947baf5eb8a95475254b  config/fastfetch/presets/micro.jsonc
+844b44b5519e3e343a40114f301ba27da95caa3fe7ebe2701886ee803c843f51  config/fastfetch/presets/mine.jsonc
+b5e59dffc097e2195292f2104de62a39e6aa923b480477cc91678afebf40fbb7  config/fastfetch/presets/stylish.jsonc
+a122a4a0ab3e501034ba86a0867f34ef5772e09dbe6fdd431c7125edb7ca07ff  config/fastfetch/presets/universal.jsonc
+44c92e3a70ad3307b7056871c2bdb096d8bfa9373f5bf06a79bb6324a20ff2fb  config/fetches/stylish-fetches/.gitignore
+b2b09e28d074c1f2b5864f1f8aea0fd394c80272704829cf0be417af2d046ee0  config/fetches/stylish-fetches/Cargo.lock
+a39e7a2ab3eaf30b4a535080183ef5b4075a314a28081bae85d50ae485b92405  config/fetches/stylish-fetches/Cargo.toml
+0df18fdd210f08d3578fdabf19cccf0571f67ff8ad38adeb409b8163598a9e44  config/fetches/stylish-fetches/README.md
+d642ca0ccf8bca171385f120fc02d771105b632e9e22947d8beac9eef4d8ab11  config/fetches/stylish-fetches/src/bin/keyfetch.rs
+d3b9429479a71e732274b2688dc44b324073c008aae9ac144833f4026aba0968  config/fetches/stylish-fetches/src/bin/skeletonfetch.rs
+d2b8617ff19fde388c85dbd16cc8864710f844af0d5dc81838f7a1e49cef3951  config/fetches/stylish-fetches/src/bin/stoolfetch.rs
+cf2a62bd6d5453448805ac4d1f5ccbb8a5b333d7b027bc4b6705d2a959a24492  config/fetches/stylish-fetches/src/bin/tomatofetch.rs
+7fa3a4e0102c00c323a213eebf3498fd215ca98a4f6b224482c319927af4337c  config/fetches/stylish-fetches/src/bin/treefetch.rs
+08e65a5a67218128db1a20bf5270f0f92506d26a385a4798ca2d8593d2ce50ca  config/fetches/stylish-fetches/src/lib.rs
+6022c60fb02311ccfb68c688b6f784d22f14946f197ccea23bde2042a24b12ad  config/fetches/unstable/keyfetch.c
+266667cca596dc1782af4c89644a84cdb533ad6dad3dd050cb90618059d71a39  config/fetches/unstable/skeletonfetch.c
+f9f8b73c3a6298f4e37c3d814a01f47ad5e8395158f9b075ee53ad97c4c845e3  config/fetches/unstable/stoolfetch.c
+e950d675c752d43f96c1d56d188e653ddea265015c300bdde89cac4382e6db00  config/fetches/unstable/tomatofetch.c
+401ac8906711f710b385a89174309fc9fc024586d84f5d875ce045f6928e910a  config/fetches/unstable/treefetch.c
+9a01dce266cc01cb3b70eefdbd1da06ce0a17d4c974c117ffce91ac001a51b8b  config/fish/auto-Hypr.fish
+6b31479139ba1b63cf4267cb4527e66e925bc61b170e863662664c75f1db931d  config/fish/conf.d/99-local-bin.fish
+f6e3ff467396b16d0ce255657d05111b044ce638f712c3802deb9ca2e1507e03  config/fish/conf.d/fish_frozen_key_bindings.fish
+d44a8c31e3bcf8d5046affa4055bdb304df04f63580f0a3143ea7b1c5a989dff  config/fish/config.fish
+e65bb698ba2342fb0da80d80e758e45ff32f500deda4c917ae11a8cba1b54101  config/fish/functions/clipkeep.fish
+9749d9232d26c33f3b4107cb119f22cda9382f6a3d1eacfeca51fc2d85e857e6  config/fish/functions/converttool.fish
+014dde565ea19092b03445a0a1112087e9b48605825b0e74561fe2d3b6557828  config/fish/functions/extract.fish
+d0deea4b480ca683694d0f6580bfac3babc7685222a9009113d05a0d81626564  config/fish/functions/fakefetch.fish
+24c3e8d64d5a4c76a040ee3b479f054cd9eb2f8aa880d1c8aa14accc38740025  config/fish/functions/fire.fish
+5da43ccd7b91516bf71424a025be3dcd433e4f435b083e4a54d77a76d21ba75d  config/fish/functions/keyfetch.fish
+81488376a7d508060c2a7192a97a40ef97997c4ad23d6045e08ade7e4eb6da10  config/fish/functions/mkcd.fish
+7d7c133e650e68251f40ba2d2e732c68adfb3e247991f18b089b6d9a3093e7e8  config/fish/functions/quicknote.fish
+75b8529f0b028cb70ec3749d427b4c310f4e483e389bc380d4c834dad64e5b50  config/fish/functions/servehere.fish
+fe93e54c6645bb54a1ff60aa32a357568e4e3d927ae797ea1fbd220783cc3500  config/fish/functions/skeletonfetch.fish
+37a777756c7ad669e56b99ff1681df3f8fea9c085bc996633fb2a93674fd00b8  config/fish/functions/stoolfetch.fish
+d84d659bfd080260501e2abc73d73373cfa3323def5f736978460bd2c6763379  config/fish/functions/styletext.fish
+c4c239b8ad96927aa120061b6d7b940c054b3e96cfaed5389de68534d3e80635  config/fish/functions/tomatofetch.fish
+6fe3470fb60a104205f85a9dffc7dcfebd75ce1cac39446e97e29c7df846a09f  config/fish/functions/treefetch.fish
+c6b4f46732f4d16d777e834d62898fb2fd69e6727d1cc2755916c4bcdcc1c9e4  config/foot/foot.ini
+ee60ab2793d7bf5b0717ff7a982745b8bc11927bb04d7493cb762e9ba3d4d648  config/fuzzel/fuzzel.ini
+d2de1d7d62159ebda5d7eb339f3783b786f2f179a1b03bde0ff805952b5bc140  config/install.txt
+2f9bbce8b03d81fa7c657edf60d21544d2cc5e79aa026c578284c5a8a4f7adb0  config/mako/config
+f58e1f37e64bcca820a45d4a108cc809416d490ef192c94f74ec6f3bb2411b53  config/mango/config.conf
+088a3b204c9d26ee359016deeb9b7062ff3f823a40ddae708bcdb9a00a8066ba  config/mango/dock-apps.list
+e655c834917ef7270343dccb97b4aa201cb5a74728bdd929ae7e3cae5a70f9b6  config/mango/install.sh
+47f0a501ce11ede3857bfa1f8451985ba49c50ebfb5ef6c23dd496beb5af81e0  config/mango/install_debian.sh
+4857a5672389241651c03c9160c07e208aaecdb0c4ca362cacc7c820310c467f  config/mango/scripts/apply-matugen-accent
+7fb1a3dde8cf16ccc6f34b7dd73bd190ecbe4772db827052abc5382bb049af1f  config/mango/scripts/autostart.sh
+592a689213675519fb4f6b6517a360366b7b74f404fbca94c049547c2854b92f  config/mango/scripts/bar-menu
+987e153bcb8f854bce343479ed7f280b36ea4d8410d713c92ece78ac31786b04  config/mango/scripts/clipboard
+d7d740bd87f260d7e14b7bcb681a4d3d236ccd026bc7395aa3d265b8cbc7274a  config/mango/scripts/dock
+53a4e541dd82bb34f5ee761f4fdc6847498c6c4dc99ce6b494b94f10587aece3  config/mango/scripts/launch
+db22df9a1ef568a1e8c7f042b1ddba4175d2f6adacb4aa0bca4dd0f35b3ba10b  config/mango/scripts/lock
+801bb8ca7732a8ada90ed5262417fdceb5f8fbae4b04c6162db093da7434a2ce  config/mango/scripts/power-menu
+26117ba2d7478922b9748b2cdb52ac545fcaacdf0f9105323d02967c0622ad3e  config/mango/scripts/screenshot
+e308edfaf71d3a553d6f30e65583082c521aed6760f0c6754b6e76582f2d3b2a  config/mango/scripts/toggle-scroller
+bc0579f949f51e4fbc57ef77e62db46dacea48abdffafa1d4a3078f9f67c0149  config/mango/scripts/wallpaper
+ac798aab5d7d645955556a0b66f2b51e7a16585c81818e88c8527f774ff59177  config/mango/scripts/wallpaper-pick
+782301cb251e37b3dd02af85b45f45c104c9e9f79254f850ae15500474e0ec66  config/mango/settings.env
+ab854cfcda5b9c7bab4439a30e6015423aeac71fbe3c63e50e4b26816c603e4c  config/matugen/config.toml
+077994ee6b7c0ba7df1a9787abdc0d0ceb4a85273461b242360d209d247dbe0d  config/matugen/templates/accent.env
+bec47418ea90412eef9eff3821cd2c46f1162a3cb64cdf4cb4518b2137ab7777  config/matugen/templates/colors.css
+e7955a2baa7fe165c8c687cbbf7d6aa090bd1edf6a6e1d4afd2b1b1501e16877  config/matugen/templates/foot.ini
+f1750ba04beaac29f042a5df6cc07f65bf905e20152fb4fcca1899e1e4a189e2  config/matugen/templates/fuzzel.ini
+0d2b9ac89b589e5321f457eff828f39e4df98b295853309cb4e80edc82fd3255  config/matugen/templates/mako
+f284e46933d658c493bafc852fe1bb46f54e5dbe479c251a739139517d4683ec  config/nvim-presets/lazyvim-stylish/.gitignore
+1819a5b64b71521f214b374bdb3b4dd7531a2b91b881c0803e0029811da7f3e4  config/nvim-presets/lazyvim-stylish/.neoconf.json
+c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4  config/nvim-presets/lazyvim-stylish/LICENSE
+9969960a98455417b5f3781772f01528a64bb450e5f9db57734713ae920bd84a  config/nvim-presets/lazyvim-stylish/README.md
+e86909462a80418a6e7a60bbd4e3d0c2dbd18fbe2ec4e932e287b0d74b39a4f8  config/nvim-presets/lazyvim-stylish/cheatsheet.md
+8d5de8e0d98e31c05a709cfe9d15f33a1bb2d8b5093eeb2873446557f16cd42c  config/nvim-presets/lazyvim-stylish/colors/dots.lua
+3b2d6e9976a515b7c8df08ed7c7f61a5751e9c08a6ff5579d621b87312c9e2c6  config/nvim-presets/lazyvim-stylish/init.lua
+e7549ae2502b6979a6d9a2b55d8800184944250195b45ec83c93d3ca1eff17ef  config/nvim-presets/lazyvim-stylish/lazy-lock.json
+c5e6e47a04e9afbf60e324cdbc6728357a63ef1eb10b68eb46539e57c02eb56b  config/nvim-presets/lazyvim-stylish/lazyvim.json
+134eacdd5dcc4581fdf172eb512e83104cf1c8eca3b508c700551b61a729d973  config/nvim-presets/lazyvim-stylish/lua/config/autocmds.lua
+cd860c3dcabc72e14224070c4c011b6eba0889d50b394231520091aaa40c15d7  config/nvim-presets/lazyvim-stylish/lua/config/cheatsheet.lua
+2f7e3b20ec16aad7e9916130626af9090183e24b19bc9368e3a70d0387374ab3  config/nvim-presets/lazyvim-stylish/lua/config/keymaps.lua
+27402ed48dd5d97c5f3f0fd89351943d6debb40ff02f36ad16c371bf50c36545  config/nvim-presets/lazyvim-stylish/lua/config/lazy.lua
+e8134ebe856406000dfe7218503d4e5a6ac434ef71cd67d2ed6fc964e1dbe7f9  config/nvim-presets/lazyvim-stylish/lua/config/options.lua
+b57e471092f21393a8785d56aa623a9c3c9285ebc41095bbc7ab4f43fc6f5b93  config/nvim-presets/lazyvim-stylish/lua/plugins/colorscheme.lua
+323bf86b14ca725658935e1b3b29abe7610b94bf981144d8a7d5770a32f97201  config/nvim-presets/lazyvim-stylish/lua/plugins/editor.lua
+2079f916afbd37bac875da3cc98710f53e0b39b9982b0bca6ef7d3e949c31b56  config/nvim-presets/lazyvim-stylish/lua/plugins/markdown.lua
+7fd102b6bd231b8dc2be46898f50bba3c9cbafb61545576c0a1b70be82a741d3  config/nvim-presets/lazyvim-stylish/lua/plugins/ui.lua
+59841fbcee7b707144c6a470e96e96e96062d7a59d2e45bac445984d863e1af2  config/nvim-presets/lazyvim-stylish/stylua.toml
+fdaa3b94046ca1b3cd91a2533b06cb68baf8b1f3a4e87aa2817bbcec0f772301  config/nvim-presets/super-easy-casual/init.lua
+f284e46933d658c493bafc852fe1bb46f54e5dbe479c251a739139517d4683ec  config/nvim/.gitignore
+1819a5b64b71521f214b374bdb3b4dd7531a2b91b881c0803e0029811da7f3e4  config/nvim/.neoconf.json
+c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4  config/nvim/LICENSE
+9969960a98455417b5f3781772f01528a64bb450e5f9db57734713ae920bd84a  config/nvim/README.md
+e86909462a80418a6e7a60bbd4e3d0c2dbd18fbe2ec4e932e287b0d74b39a4f8  config/nvim/cheatsheet.md
+8d5de8e0d98e31c05a709cfe9d15f33a1bb2d8b5093eeb2873446557f16cd42c  config/nvim/colors/dots.lua
+3b2d6e9976a515b7c8df08ed7c7f61a5751e9c08a6ff5579d621b87312c9e2c6  config/nvim/init.lua
+e7549ae2502b6979a6d9a2b55d8800184944250195b45ec83c93d3ca1eff17ef  config/nvim/lazy-lock.json
+c5e6e47a04e9afbf60e324cdbc6728357a63ef1eb10b68eb46539e57c02eb56b  config/nvim/lazyvim.json
+134eacdd5dcc4581fdf172eb512e83104cf1c8eca3b508c700551b61a729d973  config/nvim/lua/config/autocmds.lua
+cd860c3dcabc72e14224070c4c011b6eba0889d50b394231520091aaa40c15d7  config/nvim/lua/config/cheatsheet.lua
+2f7e3b20ec16aad7e9916130626af9090183e24b19bc9368e3a70d0387374ab3  config/nvim/lua/config/keymaps.lua
+27402ed48dd5d97c5f3f0fd89351943d6debb40ff02f36ad16c371bf50c36545  config/nvim/lua/config/lazy.lua
+e8134ebe856406000dfe7218503d4e5a6ac434ef71cd67d2ed6fc964e1dbe7f9  config/nvim/lua/config/options.lua
+b57e471092f21393a8785d56aa623a9c3c9285ebc41095bbc7ab4f43fc6f5b93  config/nvim/lua/plugins/colorscheme.lua
+323bf86b14ca725658935e1b3b29abe7610b94bf981144d8a7d5770a32f97201  config/nvim/lua/plugins/editor.lua
+2079f916afbd37bac875da3cc98710f53e0b39b9982b0bca6ef7d3e949c31b56  config/nvim/lua/plugins/markdown.lua
+7fd102b6bd231b8dc2be46898f50bba3c9cbafb61545576c0a1b70be82a741d3  config/nvim/lua/plugins/ui.lua
+59841fbcee7b707144c6a470e96e96e96062d7a59d2e45bac445984d863e1af2  config/nvim/stylua.toml
+774427d622cc561643b69f42eed1599f302c5714be14dd3f44d5e6bc7251f027  config/placeholders/archy-style.png
+94021e1edaf4f214317593ac6978aee0fb4717568475d9e69253f3f87811b1cc  config/placeholders/glass.png
+21933d36676e3709407d124319a438e50b856b0b0c78bf5d9aa1f347ec2013e2  config/placeholders/ultra-minimalist.png
+39bbfe445125b27c2f6bac7a4d0da757ac4568d1bab14582f973e36d6f83a868  config/themes/amber-crt.json
+71e66f70f0ca30e421e64d89baab5be2dd8bacf7ab3262578a0d15fb9722cd0f  config/themes/archy-style.json
+a9820ca5f4091829ac5d3a296bb562d47072841230cad76ba95d8caa01bd5167  config/themes/arctic-glass.json
+cb710691f8bacc3d87a53aff255407172b2ba61f3d85ef40be8bc35bf8770ac7  config/themes/ayu-mirage.json
+1525f70e2b39f784c9ad34d02efaae4f9995e4d2cab4884d0ae60879f6b5b10b  config/themes/blueprint.json
+7730b7dc19d2ab5b7b9169dd493ec9139e96c4bfcfec1215079c0f829782dba8  config/themes/catppuccin-latte.json
+940defa25221dd1cbf5a51349d078a027ec0512de367c91102fd057e64081481  config/themes/catppuccin-mocha.json
+7d48fec99cd2263a2b02f6843992c25050c0003ad56e4a4b324ecabb800fad4e  config/themes/cyberpunk-neon.json
+d3c9537565fa973be0f5c058d035e9ddeff2f2446e0eb08033915ee2f018de56  config/themes/dracula-night.json
+47b9499e2ba905aba73d3f37d47caf117d587182837416e49822dbaa5f2e24e0  config/themes/dwm-suckless.json
+92743d6f371b5072f69b774350e2bb7fcba0c6f7168bb9cb299aa0bbedf9e48f  config/themes/everforest-forest.json
+d3ff1cd8fe61b5b8ab946e1748464d23673f544a7fb3fd34a069554cf737a3c2  config/themes/glass.json
+92ed5cd4396c9f11583bf1c48362ec761aff658f53d92496e52c748cb72b6a4c  config/themes/gruvbox-light.json
+35cdaf72787e465ab5a968cba58cc6e495a143c48f8116a025040698149a564e  config/themes/gruvbox-terminal.json
+b64ce34dd865fba4cc01423cb1a78bf3033ca47acf34e3cc21d6bfcd84120c29  config/themes/i3-classic.json
+c04281c8037012a30f1130d65f06782d0c4e05d07d09f5ea6374327f8bada65e  config/themes/kanagawa-wave.json
+88d38d23410f83d5364b2f7d950833ab64f3f1b6d1bae57840f4d9e6ea05d80a  config/themes/macos-dark.json
+3fe117fb49be1fa7de78046721f896cfff929c0989b86d101c13a52670a11be8  config/themes/macos-light.json
+92be6a67dcffbc5b1efefc9b7a6c37a02783eedc966e353347a51477853d10c3  config/themes/material-you-dynamic.json
+56b6fee028ff448d67fb8866d57a10a7d220e0063b7be9e13e08a7b00481157c  config/themes/midnight-sidebar.json
+3998c3ceeac05cc0b9d6f1a5470bebd5005ee5aaf334cf6a173dd32caa084004  config/themes/minimal-dusk.json
+65227c5255519246eb2fb72e0bd1a333558df639dc7eb12af727d8670dee197b  config/themes/minimal-mist.json
+53d3d20cefaec943490afa0959df2da6695bc8dc641a34396b208aeeec56e264  config/themes/minimal-mocha.json
+fee71491864a2a7126f2d7cdaeb6313224f7eeb0daa8c4d6b55c15c391849942  config/themes/minimal-sage.json
+38212c415cc67b2d06d1a1fbec78ffba32b8477d60bf4da79f7f584f7ff54b6b  config/themes/minimal-sepia.json
+4d473c492ed473b9bc0e4ad1a65d666075dda1dd2bd348382f2c6eb024ecffe8  config/themes/minimal-snow.json
+a80d32c0cfb0037031bf43218b490dff097580d079edddc4144c4c33a058bf44  config/themes/minimal-void.json
+3ffb1a5dfb015a34689819f0db40d78d30a29e60af8e6380c64cd48baab3235b  config/themes/minimalist-premium.json
+8fec0ba61813d140f9188d35c4afe0cea453cb2d5bb7a4e237b00d38286b3675  config/themes/monochrome-ink.json
+d6becd7a6f59c34a1687c1647d66ab31c1d9a88c3a772468baad0c2cb97269f4  config/themes/nord-frost.json
+38b0f379db185700d4996bae5d53368c30fd8798fcf2fb31effa4d8e8e8b3994  config/themes/nothing-amber.json
+ad4e221d12f6938963ebfaf8f23acd46d705ea3012cc7cf450e91b9e7530f57a  config/themes/nothing-cobalt.json
+815eeb91bdb173b0ff2d5e915ca21c93e2806d77cbcaba3693b1103b7b0df394  config/themes/nothing-dots.json
+400769091bb4a1d7dedac9bb0528c9ee6c39010c07140a4dc29e5df8d9585da6  config/themes/nothing-graphite.json
+a3d787574c9cc4f32fe417d36e3b598f77e81d077933fc7734e0151120526243  config/themes/nothing-lime.json
+5154a2c8dc7041ea1b3857a82cce757000ce1ab262fd5ad29c9705ff0cb598b0  config/themes/nothing-mint-light.json
+20d98ac76a0c5a29708513b8e6c3eeff032798e84b7fe5935de9c5f5aea58d71  config/themes/nothing-pink-void.json
+321544ea7762b5565a0ee3436fcce231a0fa796dac398eba8f5f33239325249c  config/themes/oxocarbon.json
+555ea6bee9a73634e7cdc21f31c0f340508cf543ba3c96ca946147c3bca08d23  config/themes/pacman-arcade.json
+75d61e8f55ff1b95da387b909ab2758eebb367710e02569e9d22e8c6ebfcf25d  config/themes/paper-light.json
+a7e851539b92ed87a8c160da9707f4d25650220462e3c2a9a4303dc8233efaf9  config/themes/rose-pine-moon.json
+87417e4e903d757bb91843675970e534e82f39432da341cc66188f21d5020a1e  config/themes/sakura-blossom.json
+6e3918ad7aaaf94c32e3536aeb589675e8d0ada4cdd46655b2e6a7881bb53c55  config/themes/solarized-dark.json
+f70c159b5ab6ae3028d1c213da6579993434ac35d6f5780a9a99efa9e2ef23c2  config/themes/sunset-peach.json
+3b3f362deb15aac4d5747e6428c5f4a1dcd5f498631f774817bd37a4e9d620ad  config/themes/synthwave-sunset.json
+855b959e651bbb1f38925a640b4b65ee683a9ae4b3b234a669a99e96989b265f  config/themes/terminal-green.json
+8829366937259ced3991a395666d12538e05c550da20ddb36dbe1e3d63df8aaf  config/themes/tokyo-night.json
+90a1ef7f87549676473e21e4744221ee8d7eb1ec11f192a917fdf52af8d30ae6  config/themes/ultra-dashboard.json
+53ac0dc99a763e4da59527d603651ef928465b10f96e9f4fa24c7539769fd78c  config/themes/ultra-minimalist.json
+2ce16491b3527a7c2e396b6c6a5b973799ee73d206fc48c84c633771486eaf17  config/themes/work-focus.json
+0f2cd9f96333c0f6e152a02c47425a40be9982b7ca37fe2ab6aabc1defcbf2cd  config/waybar/colors.css
+fe460f1f726fbdd626f7a8e1991d3df8a07980fe3499f17706e86dd5e0dfd75a  config/waybar/config.jsonc
+6f73ad83b6035c49d0bd8602a3613118df69c3bd0659e5db1b7d31c4268ca2ff  config/waybar/dock.css
+3bad2298c2101089ddd24f6d987cdce3b1593e59e4cc3c48250bf765e4ea2297  config/waybar/dock.jsonc
+777ca5b185e94f130ec3004055cd4f44018b7af96ba497206c13594605ca1248  config/waybar/scripts/distro-icon.sh
+07d7f200ed46ae3e695121cc929bd4931a12a8c81838fac659de81f2a69db687  config/waybar/style.css
+8ec7825427eec142c442b14b39e9064ec86c4c9c53516d2a82363e87b900423d  modules/README.en.md
+a974fc30cb9b093abcf197b7f7b4f88ada9802bc9e48378b99271a00d5f965da  modules/README.md
+bfe44d71f633a4bae5bc2db30da5cd43bf19fdc8c71bb6ec70fffb4706a9896a  modules/README.ro.md
+0996db8388a147678550b8d151837d7c6fc2753275161de734c6e8120d0b3811  modules/actions/audit.sh
+f93cf2e906d487afc1fc738fdfc40acb66836b5fcccc65c46f797bfcf4779938  modules/actions/backup.sh
+ce103957098a94790aecfa87ee883655120961b7163106839cafddea812ed5aa  modules/actions/dotfiles.sh
+28f2b65c4d9c77735dff3482e8bf5fcea0adab65febe912e52dca2cc0c880ccf  modules/actions/extras.sh
+0127fce50021c9ac2c4e74a774c553a92f9cb57e528cef35f3cdb07735f4684f  modules/actions/fetches.sh
+6199502ce2c86899d79879c106ef3f14964d2052271c632302c6b144b723efee  modules/actions/fish.sh
+12a00f1bbb18efa1639098c6717834154f60773bbf6190c4e2dce4756c57dedd  modules/actions/flatpak.sh
+0e216d38ffb125a45054c28d7bf2d70c863816661eb2d6fdc6caef0bbd9d2ba0  modules/actions/interactive.sh
+92fa26439b919359162336207042889a40b9f148d3b3e2d0e898bd545cb7964e  modules/actions/media.sh
+675db2db878cf2b7bae7f0b69d6e5454cb1f7c2625af430a9060ff30aa924191  modules/actions/neovim.sh
+fbdaf87a4b04d01fb4e47d9fe5a47e8b976a752f78e4e75fd07361974b02ba65  modules/actions/network.sh
+a0e1946b1f0885c392a8e5b562154b80b57be14a66c666971c1dedd203961b41  modules/actions/preflight.sh
+bce583f53420df135145beb57afe9599683a3a145b216194fc1e89d5473f9e26  modules/actions/software.sh
+92344e824939915ebca259e6cb5a07486314330ef8c084893a52c03ce783391c  modules/actions/system.sh
+b4f3dfadea03ad403149fe16cb83bd114498c5945b215fac7dfe6058f2fe61d5  modules/actions/uninstall.sh
+73f3be01da4e7b1007144ee08ee598f26a27748989289c6cd95c3a5ab27358b0  modules/lib/common.sh
+8be0c2c7b215b8656cbe211a2d2c25e6b19968581eda1a9baeccf5f77f53636c  modules/lib/i18n.sh
+4d39fd68664c79c4f0b5452a6033a649df8c562fcd52180eeb87c2ac4aafc9b0  modules/lib/loader.sh
+b077ff300fa1617e1fb03ca3ccdbafeddf6a7457bc70ee9b153e9ed21bbcd616  modules/lib/menu.sh
+c77cb8813d5d539a94280b9b9e60f3f1d3f5ea7559bead00855c626df7e217fd  modules/lib/multitool.sh
+bef714ac4dc76f1ee602e48f00021029dfd1f107f0e0496ac43ab1e233e5472f  modules/lib/platform.sh

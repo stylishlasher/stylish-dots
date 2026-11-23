@@ -12,6 +12,14 @@ on:
       - 'tests/i18n-tests.sh'
       - 'tests/bootstrap-tests.sh'
       - '.github/workflows/backup-tests.yml'
+      - 'arch_multitool.sh'
+      - 'arch_multitool_debian.sh'
+      - 'bundle.sha256'
+      - 'bundle.sha256.sig'
+      - 'bundle.pub'
+      - 'scripts/sign-bundle.sh'
+      - 'modules/**'
+      - 'config/**'
   pull_request:
     paths:
       - 'modules/lib/common.sh'
@@ -24,6 +32,14 @@ on:
       - 'tests/i18n-tests.sh'
       - 'tests/bootstrap-tests.sh'
       - '.github/workflows/backup-tests.yml'
+      - 'arch_multitool.sh'
+      - 'arch_multitool_debian.sh'
+      - 'bundle.sha256'
+      - 'bundle.sha256.sig'
+      - 'bundle.pub'
+      - 'scripts/sign-bundle.sh'
+      - 'modules/**'
+      - 'config/**'
   workflow_dispatch:
 
 jobs:
@@ -31,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify signed bundle manifest
+        run: bash scripts/sign-bundle.sh --check
       - name: Run backup regression tests
         run: bash tests/backup-tests.sh
       - name: Run i18n tests

@@ -1,20 +1,57 @@
 #!/usr/bin/env bash
-# Тесты bootstrap: динамическая загрузка, полная проверка, атомарное переключение, офлайн, откат.
+# Тесты bootstrap: подпись, динамическая загрузка,Atomic swap, офлайн, откат, миграция.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 pass() { echo "PASS: $*"; }
 
-stub_launcher() {
-    printf '#!/usr/bin/env bash\nprintf "ARGS:%%s\\n" "$*"\n' > "$1"
+PUB=""
+
+stub_launchers() {
+    local dir="$1" f
+    for f in arch_multitool.sh arch_multitool_debian.sh; do
+        printf '#!/usr/bin/env bash\nprintf "ARGS:%%s\\n" "$*"\n' > "$dir/$f"
+        chmod +x "$dir/$f"
+    done
+}
+
+setup_test_key() {
+    local dir="$1"
+    openssl genrsa -out "$dir/test.key" 2048 2>/dev/null
+    openssl rsa -in "$dir/test.key" -pubout -out "$dir/test.pub" 2>/dev/null
+    PUB="$(cat "$dir/test.pub")"
+}
+
+# Манифест фикстуры повторяет формат scripts/sign-bundle.sh (включая исключения сборки).
+sign_fixture() {
+    local dir="$1" key="$2"
+    (
+        cd "$dir"
+        {
+            echo '# stylish-dots bundle v2'
+            find arch_multitool.sh arch_multitool_debian.sh modules config -path '*/target' -prune -o -path '*__pycache__' -prune -o -type f -printf '# mode %m %p\n' | LC_ALL=C sort
+            find arch_multitool.sh arch_multitool_debian.sh modules config -path '*/target' -prune -o -path '*__pycache__' -prune -o -type l -printf '# link %p -> %l\n' | LC_ALL=C sort
+            find arch_multitool.sh arch_multitool_debian.sh modules config -path '*/target' -prune -o -path '*__pycache__' -prune -o -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum
+        } > bundle.sha256
+    )
+    openssl dgst -sha256 -sign "$key" -out "$dir/bundle.sha256.sig" "$dir/bundle.sha256"
+}
+
+make_payload() {
+    local dir="$1" m
+    mkdir -p "$dir/modules/lib" "$dir/config/fastfetch" "$dir/config/end4"
+    stub_launchers "$dir"
+    for m in multitool i18n common; do echo marker > "$dir/modules/lib/$m.sh"; done
+    echo preset > "$dir/config/fastfetch/config.jsonc"
+    ln -s ../fastfetch/config.jsonc "$dir/config/end4/link.jsonc"
 }
 
 # PATH только с разрешёнными утилитами; git/curl/sudo подменены и оставляют метку.
 make_offline_bin() {
     local dir="$1" marker="$2" tool
     mkdir -p "$dir"
-    for tool in bash cat chmod cp date dirname find ln mkdir mktemp mv readlink rm rmdir sha256sum tar uname wc; do
+    for tool in bash cat cp date dirname find grep ln mkdir mktemp mv openssl readlink rm rmdir sha256sum sort stat tail tar uname wc; do
         ln -s "$(command -v "$tool")" "$dir/$tool"
     done
     for tool in pacman apt-get; do
@@ -35,24 +72,26 @@ assert_no_network() {
 run_variant() {
     local script="$1" launcher="$2" pkg="$3"
     local tmp repo home data offlinebin marker current
+    local -a E EO
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-bootstrap-test.XXXXXX")"
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
-    mkdir -p "$repo/install" "$repo/modules/lib" "$repo/config/fastfetch" "$tmp/bin"
+    setup_test_key "$tmp"
+    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    EO=(env "STYLISH_BUNDLE_PUBKEY=$PUB" PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
+
+    mkdir -p "$repo/install" "$tmp/bin"
     cp "$ROOT/install/$script" "$repo/install/$script"
-    stub_launcher "$repo/$launcher"
-    for m in multitool i18n common; do echo marker > "$repo/modules/lib/$m.sh"; done
-    mkdir -p "$repo/config/end4"
-    echo preset > "$repo/config/fastfetch/config.jsonc"
+    make_payload "$repo"
     mkdir -p "$repo/config/fetches/stylish-fetches/target" "$repo/config/bin/__pycache__"
     echo artifact > "$repo/config/fetches/stylish-fetches/target/keyfetch"
     echo artifact > "$repo/config/bin/__pycache__/x.pyc"
+    sign_fixture "$repo" "$tmp/test.key"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/$pkg"
     make_offline_bin "$offlinebin" "$marker"
 
     local out
-    if ! out="$(PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -a --refresh 2>&1)"; then
+    if ! out="$("${E[@]}" bash "$repo/install/$script" -a --refresh 2>&1)"; then
         echo "$out" >&2; fail "$script: first run failed"
     fi
     [[ -L "$current" ]] || fail "$script: current is not a symlink"
@@ -61,42 +100,50 @@ run_variant() {
     [[ -f "$current/modules/lib/multitool.sh" ]] || fail "$script: modules cache missing"
     [[ -f "$current/config/fastfetch/config.jsonc" ]] || fail "$script: config cache missing"
     grep -q '^ARGS:-a$' <<<"$out" || { echo "$out" >&2; fail "$script: --refresh leaked to multitool"; }
-    pass "$script: installs launcher + modules + config in a release"
+    pass "$script: installs signed launcher + modules + config in a release"
     [[ ! -e "$current/config/fetches/stylish-fetches/target" ]] || fail "$script: build artifacts in cache"
     [[ ! -e "$current/config/bin/__pycache__" ]] || fail "$script: __pycache__ in cache"
     pass "$script: build artifacts excluded"
 
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -h 2>&1)"; then
+    if ! out="$("${EO[@]}" bash "$repo/install/$script" -h 2>&1)"; then
         echo "$out" >&2; fail "$script: offline run failed"
     fi
     assert_no_network "$marker" "$script offline"
     grep -q 'Набор проверен' <<<"$out" || { echo "$out" >&2; fail "$script: verify message missing"; }
     pass "$script: offline run with only whitelisted binaries"
 
-    # П.3: существующий набор проверяется целиком, битый модуль починится без --refresh.
+    # Битый модуль, подменённый конфиг, права и симлинк чинятся без --refresh.
     printf 'if [[ ' > "$current/modules/lib/i18n.sh"
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -h 2>&1)"; then
-        echo "$out" >&2; fail "$script: broken cached module not repaired"
+    echo tampered > "$current/config/fastfetch/config.jsonc"
+    chmod 600 "$current/modules/lib/common.sh"
+    rm "$current/config/end4/link.jsonc"
+    ln -s /nowhere "$current/config/end4/link.jsonc"
+    if ! out="$("${EO[@]}" bash "$repo/install/$script" -h 2>&1)"; then
+        echo "$out" >&2; fail "$script: tampered cache not repaired"
     fi
     assert_no_network "$marker" "$script cache repair"
     [[ "$(cat "$current/modules/lib/i18n.sh")" == marker ]] || fail "$script: broken module not repaired"
-    pass "$script: full verify_bundle on cached run repairs broken module"
-
-    echo tampered > "$current/config/fastfetch/config.jsonc"
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -h 2>&1)"; then
-        echo "$out" >&2; fail "$script: tampered config not repaired"
-    fi
-    assert_no_network "$marker" "$script config repair"
     [[ "$(cat "$current/config/fastfetch/config.jsonc")" == preset ]] || fail "$script: config content not restored"
-    pass "$script: manifest detects and repairs tampered config content"
+    [[ "$(stat -c %a "$current/modules/lib/common.sh")" == 644 ]] || fail "$script: mode not restored"
+    [[ "$(readlink "$current/config/end4/link.jsonc")" == ../fastfetch/config.jsonc ]] || fail "$script: symlink not restored"
+    pass "$script: manifest repairs content, permissions and symlinks offline"
+
+    # Подмена и манифеста, и подписи чужим ключом не принимается.
+    echo '# tampered' >> "$current/bundle.sha256"
+    openssl genrsa -out "$tmp/wrong.key" 2048 2>/dev/null
+    openssl dgst -sha256 -sign "$tmp/wrong.key" -out "$current/bundle.sha256.sig" "$current/bundle.sha256"
+    if ! out="$("${EO[@]}" bash "$repo/install/$script" -h 2>&1)"; then
+        echo "$out" >&2; fail "$script: foreign signature not rejected"
+    fi
+    assert_no_network "$marker" "$script signature repair"
+    if [[ "$(tail -1 "$current/bundle.sha256")" == '# tampered' ]]; then
+        fail "$script: forged manifest survived"
+    fi
+    pass "$script: manifest+signature replaced by a foreign key is rejected"
 
     local before
     before="$(readlink "$current")"
-    PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" --refresh >/dev/null 2>&1 || fail "$script: refresh failed"
+    "${E[@]}" bash "$repo/install/$script" --refresh >/dev/null 2>&1 || fail "$script: refresh failed"
     [[ "$(cat "$current/modules/lib/multitool.sh")" == marker ]] || fail "$script: --refresh did not refresh cache"
     [[ "$(readlink "$current")" != "$before" ]] || fail "$script: --refresh did not switch release"
     local -a rels=()
@@ -106,29 +153,29 @@ run_variant() {
 
     before="$(readlink "$current")"
     rm -f "$repo/modules/lib/i18n.sh"
-    if PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
+    if "${E[@]}" bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
         fail "$script: broken bundle was accepted"
     fi
     [[ "$(readlink "$current")" == "$before" ]] || fail "$script: broken refresh moved current"
     [[ -f "$current/modules/lib/i18n.sh" ]] || fail "$script: bad refresh destroyed the cache"
-    pass "$script: broken bundle rejected, current unchanged"
     echo marker > "$repo/modules/lib/i18n.sh"
+    sign_fixture "$repo" "$tmp/test.key"
+    pass "$script: broken bundle rejected, current unchanged"
 
     printf 'if [[ ' > "$repo/$launcher"
-    if PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
+    if "${E[@]}" bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
         fail "$script: broken launcher was accepted"
     fi
     [[ "$(readlink "$current")" == "$before" ]] || fail "$script: broken launcher moved current"
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -a 2>&1)"; then
+    stub_launchers "$repo"
+    sign_fixture "$repo" "$tmp/test.key"
+    if ! out="$("${EO[@]}" bash "$repo/install/$script" -a 2>&1)"; then
         echo "$out" >&2; fail "$script: launcher not restored"
     fi
     grep -q '^ARGS:-a$' <<<"$out" || { echo "$out" >&2; fail "$script: restored launcher broken"; }
     pass "$script: broken launcher rejected, current unchanged"
 
-    # П.1: отказ на единственном rename не должен сдвинуть current.
+    # Отказ самого rename не должен сдвинуть current.
     cat > "$tmp/bin/mv" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${1:-}" == "-Tf" ]]; then echo SWITCH_FAILED >&2; exit 7; fi
@@ -136,15 +183,14 @@ exec /usr/bin/mv "$@"
 EOF
     chmod +x "$tmp/bin/mv"
     before="$(readlink "$current")"
-    if PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
+    if "${E[@]}" bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
         fail "$script: switch failure was ignored"
     fi
     [[ "$(readlink "$current")" == "$before" ]] || fail "$script: failed switch moved current"
     [[ -x "$current/$launcher" ]] || fail "$script: failed switch broke launcher"
     pass "$script: failed rename rolls back to previous release"
 
-    # П.1: ссылка уже переключилась, но проверка нового релиза провалилась -> откат.
+    # Ссылка уже переключилась, но проверка нового релиза провалилась -> откат.
     cat > "$tmp/bin/mv" <<EOF
 #!/usr/bin/env bash
 if [[ "\${1:-}" == "-Tf" ]]; then
@@ -160,20 +206,17 @@ EOF
     before="$(readlink "$current")"
     local -a rels_before=() rels_after=()
     mapfile -t rels_before < <(find "$data/arch-multitool/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
-    if PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
+    if "${E[@]}" bash "$repo/install/$script" --refresh >/dev/null 2>&1; then
         fail "$script: post-switch verification failure was ignored"
     fi
     [[ "$(readlink "$current")" == "$before" ]] || fail "$script: post-switch failure kept broken current"
     mapfile -t rels_after < <(find "$data/arch-multitool/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
     [[ ${#rels_after[@]} -eq ${#rels_before[@]} ]] || fail "$script: broken release not removed on rollback"
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -a 2>&1)"; then
+    if ! out="$("${EO[@]}" bash "$repo/install/$script" -a 2>&1)"; then
         echo "$out" >&2; fail "$script: rollback left unusable bundle"
     fi
     grep -q '^ARGS:-a$' <<<"$out" || { echo "$out" >&2; fail "$script: rollback launcher broken"; }
     pass "$script: failed post-switch verify rolls back to previous release"
-    rm -f "$tmp/bin/mv"
     rm -rf "$tmp"
 }
 
@@ -181,14 +224,16 @@ EOF
 run_clone_variant() {
     local script="$1" launcher="$2" pkg="$3"
     local tmp fixture home data offlinebin marker current
+    local -a E EO
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-clone-test.XXXXXX")"
     fixture="$tmp/fixture"; home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"
     marker="$tmp/NETWORK_USED"; current="$data/arch-multitool/current"
-    mkdir -p "$fixture/modules/lib" "$fixture/config/fastfetch" "$fixture/config/end4" \
-        "$tmp/bin" "$offlinebin" "$tmp/standalone"
-    for m in multitool i18n common; do echo marker > "$fixture/modules/lib/$m.sh"; done
-    echo preset > "$fixture/config/fastfetch/config.jsonc"
-    stub_launcher "$fixture/$launcher"
+    setup_test_key "$tmp"
+    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    EO=(env "STYLISH_BUNDLE_PUBKEY=$PUB" PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data")
+    mkdir -p "$tmp/bin" "$tmp/standalone"
+    make_payload "$fixture"
+    sign_fixture "$fixture" "$tmp/test.key"
     cp "$ROOT/install/$script" "$tmp/standalone/$script"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/$pkg"
     make_offline_bin "$offlinebin" "$marker"
@@ -200,9 +245,7 @@ if [[ "\${1:-}" == "clone" ]]; then
     [[ " \$* " == *" --sparse "* ]] || { echo NO_SPARSE >&2; exit 3; }
     dest="\${@: -1}"
     mkdir -p "\$dest"
-    cp -a "$fixture/modules" "\$dest/modules"
-    cp -a "$fixture/config" "\$dest/config"
-    cp -a "$fixture/$launcher" "\$dest/$launcher"
+    cp -a "$fixture/." "\$dest/"
     exit 0
 fi
 if [[ "\${1:-}" == "-C" ]]; then
@@ -214,15 +257,15 @@ if [[ "\${1:-}" == "-C" ]]; then
 fi
 exit 5
 EOF
-    chmod +x "$tmp/bin/git" "$tmp/bin/$pkg"
+    chmod +x "$tmp/bin/git"
 
     local out
-    if ! out="$(PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$tmp/standalone/$script" -a 2>&1)"; then
+    if ! out="$("${E[@]}" bash "$tmp/standalone/$script" -a 2>&1)"; then
         echo "$out" >&2; fail "$script: clone path failed"
     fi
     [[ -L "$current" ]] || fail "$script: clone path: current is not a symlink"
     [[ -f "$current/$launcher" ]] || fail "$script: clone path: launcher missing"
+    [[ -f "$current/bundle.sha256.sig" ]] || fail "$script: clone path: signature missing"
     [[ -f "$current/modules/lib/i18n.sh" ]] || fail "$script: clone path: modules missing"
     [[ -f "$current/config/fastfetch/config.jsonc" ]] || fail "$script: clone path: config missing"
     grep -q 'только нужные пути' <<<"$out" || { echo "$out" >&2; fail "$script: sparse fetch not used"; }
@@ -230,8 +273,7 @@ EOF
     grep -q '^ARGS:-a$' <<<"$out" || { echo "$out" >&2; fail "$script: clone path: args lost"; }
     pass "$script: sparse git clone installs verified bundle"
 
-    if ! out="$(PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$tmp/standalone/$script" -h 2>&1)"; then
+    if ! out="$("${EO[@]}" bash "$tmp/standalone/$script" -h 2>&1)"; then
         echo "$out" >&2; fail "$script: clone path: offline rerun failed"
     fi
     assert_no_network "$marker" "$script clone offline"
@@ -246,25 +288,25 @@ EOF
 run_migration_variant() {
     local script="$1" launcher="$2" pkg="$3"
     local tmp repo home data old
+    local -a E
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-migration-test.XXXXXX")"
     repo="$tmp/repo"; home="$tmp/home"; data="$home/.local/share"; old="$data/arch-multitool"
-    mkdir -p "$repo/install" "$repo/modules/lib" "$repo/config/fastfetch" "$repo/config/end4" \
-        "$old/modules/lib" "$old/config/fastfetch" "$tmp/bin"
+    setup_test_key "$tmp"
+    E=(env "STYLISH_BUNDLE_PUBKEY=$PUB" "PATH=$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data")
+    mkdir -p "$repo/install" "$old/modules/lib" "$old/config/fastfetch" "$tmp/bin"
     cp "$ROOT/install/$script" "$repo/install/$script"
-    stub_launcher "$repo/$launcher"
-    for m in multitool i18n common; do echo marker > "$repo/modules/lib/$m.sh"; done
-    echo preset > "$repo/config/fastfetch/config.jsonc"
+    make_payload "$repo"
+    sign_fixture "$repo" "$tmp/test.key"
     printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/$pkg"
 
     # Состояние пользователя после установки старой версии bootstrap.
-    stub_launcher "$old/$launcher"
+    stub_launchers "$old"
     echo legacy > "$old/modules/lib/multitool.sh"
     echo legacy > "$old/config/fastfetch/config.jsonc"
     [[ ! -e "$old/current" ]] || fail "$script: migration fixture already has current"
 
     local out
-    if ! out="$(PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
-        bash "$repo/install/$script" -a 2>&1)"; then
+    if ! out="$("${E[@]}" bash "$repo/install/$script" -a 2>&1)"; then
         echo "$out" >&2; fail "$script: migration failed"
     fi
     [[ -L "$old/current" ]] || fail "$script: migration did not create current symlink"
@@ -279,11 +321,35 @@ run_migration_variant() {
     rm -rf "$tmp"
 }
 
+# Реальный репозиторий: вшитый публичный ключ проверяет закоммиченную подпись.
+run_real_repo_test() {
+    local tmp home data offlinebin marker out
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-real-test.XXXXXX")"
+    home="$tmp/home"; data="$home/.local/share"; offlinebin="$tmp/offlinebin"; marker="$tmp/NETWORK_USED"
+    mkdir -p "$tmp/bin"
+    printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp/bin/pacman"
+    make_offline_bin "$offlinebin" "$marker"
+    if ! out="$(env -u STYLISH_BUNDLE_PUBKEY PATH="$tmp/bin:$PATH" HOME="$home" XDG_DATA_HOME="$data" \
+        bash "$ROOT/install/install.sh" --help 2>&1)"; then
+        echo "$out" >&2; fail "real repo: embedded public key rejected committed signature"
+    fi
+    if ! out="$(env -u STYLISH_BUNDLE_PUBKEY PATH="$offlinebin" HOME="$home" XDG_DATA_HOME="$data" \
+        bash "$ROOT/install/install.sh" --help 2>&1)"; then
+        echo "$out" >&2; fail "real repo: offline verification failed"
+    fi
+    assert_no_network "$marker" "real repo offline"
+    grep -q 'Набор проверен' <<<"$out" || { echo "$out" >&2; fail "real repo: cache not verified"; }
+    grep -q 'Модули:' <<<"$out" || { echo "$out" >&2; fail "real repo: launcher did not start"; }
+    pass "real repo installs with embedded key and verifies offline"
+    rm -rf "$tmp"
+}
+
 run_variant install.sh arch_multitool.sh pacman
 run_variant install_debian.sh arch_multitool_debian.sh apt-get
 run_clone_variant install.sh arch_multitool.sh pacman
 run_clone_variant install_debian.sh arch_multitool_debian.sh apt-get
 run_migration_variant install.sh arch_multitool.sh pacman
 run_migration_variant install_debian.sh arch_multitool_debian.sh apt-get
+run_real_repo_test
 
 echo "ALL BOOTSTRAP TESTS PASSED"
