@@ -81,6 +81,13 @@ jobs:
           [[ $rc -ne 0 ]] || fail "should fail"
           [[ "$(cat "$HOME/.config/fish/config.fish")" == "new" ]] || fail "not rolled back"
           pass "registry failure rollback"
+      - name: Print test log
+        if: always()
+        shell: bash
+        run: |
+          echo "=== backup-test.log ==="
+          cat /tmp/backup-test.log || true
+          echo "::notice title=backup-test-log::$(base64 -w0 /tmp/backup-test.log 2>/dev/null || echo none)"
       - name: Upload test log
         if: always()
         uses: actions/upload-artifact@v4
