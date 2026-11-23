@@ -28,3 +28,15 @@ action_install_neovim() {
     apply_nvim_config "${1:-$NVIM_PRESET}" || true
     ok "$(t nvim_ready)"
 }
+
+action_neovim_menu() {
+    require_module lib/menu.sh
+    menu_select "Neovim" \
+        "1|$(t nvim_light)" \
+        "2|$(t nvim_complex)" \
+        "0|$(t menu_back)" || return 0
+    case "$MENU_CHOICE" in
+        1) action_install_neovim super-easy-casual ;;
+        2) action_install_neovim lazyvim-stylish ;;
+    esac
+}

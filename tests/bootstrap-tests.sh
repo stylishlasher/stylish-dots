@@ -393,4 +393,23 @@ run_noninteractive_test() {
 }
 run_noninteractive_test
 
+# «Установка ПО → Neovim»: лёгкий и сложный пресеты выбираются в самом меню.
+run_nvim_submenu_test() {
+    local choice preset out
+    for choice in 1 2; do
+        preset=super-easy-casual; [[ "$choice" == 2 ]] && preset=lazyvim-stylish
+        out="$(printf '%s\n' "$choice" | timeout 5 bash -c '
+            require_module() { :; }
+            t() { echo "$1"; }
+            warn() { echo "$*"; }
+            source "$1"; source "$2"
+            action_install_neovim() { echo "INSTALL:$1"; }
+            action_neovim_menu
+        ' _ "$ROOT/modules/lib/menu.sh" "$ROOT/modules/actions/neovim.sh" 2>&1)"
+        grep -q "INSTALL:$preset" <<<"$out" || { echo "$out" >&2; fail "nvim submenu: choice $choice did not install $preset"; }
+    done
+    pass "Neovim submenu installs light and complex presets"
+}
+run_nvim_submenu_test
+
 echo "ALL BOOTSTRAP TESTS PASSED"

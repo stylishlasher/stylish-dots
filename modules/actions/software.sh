@@ -28,7 +28,7 @@ action_software_menu() {
             2) action_install_flatpak; pause ;;
             3) action_fetches_menu; pause ;;
             4) require_module actions/fish.sh; action_install_fish; pause ;;
-            5) require_module actions/neovim.sh; action_install_neovim; pause ;;
+            5) require_module actions/neovim.sh; action_neovim_menu; pause ;;
             0) return 0 ;;
         esac
     done
