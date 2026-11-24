@@ -1,0 +1,335 @@
+#!/usr/bin/env python3
+"""csorting - ambient sorting visualizer: dots in a circle or bars in a line.
+
+Real in-place sorting algorithms, one visible step at a time. When the array is
+sorted it is shuffled again and the next algorithm takes over. Ctrl+C, Ctrl+D
+or q exits. No dependencies beyond the Python standard library.
+"""
+import argparse
+import math
+import random
+import select
+import shutil
+import sys
+import termios
+import time
+import tty
+
+
+def bubble(a):
+    n = len(a)
+    for end in range(n - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            if a[i] > a[i + 1]:
+                a[i], a[i + 1] = a[i + 1], a[i]
+                swapped = True
+                yield i, i + 1
+        if not swapped:
+            break
+
+
+def cocktail(a):
+    lo, hi = 0, len(a) - 1
+    while lo < hi:
+        swapped = False
+        for i in range(lo, hi):
+            if a[i] > a[i + 1]:
+                a[i], a[i + 1] = a[i + 1], a[i]
+                swapped = True
+                yield i, i + 1
+        hi -= 1
+        for i in range(hi, lo, -1):
+            if a[i - 1] > a[i]:
+                a[i - 1], a[i] = a[i], a[i - 1]
+                swapped = True
+                yield i - 1, i
+        lo += 1
+        if not swapped:
+            break
+
+
+def gnome(a):
+    i = 1
+    while i < len(a):
+        if i == 0 or a[i - 1] <= a[i]:
+            i += 1
+        else:
+            a[i - 1], a[i] = a[i], a[i - 1]
+            yield i - 1, i
+            i -= 1
+
+
+def insertion(a):
+    for i in range(1, len(a)):
+        j = i
+        while j > 0 and a[j - 1] > a[j]:
+            a[j], a[j - 1] = a[j - 1], a[j]
+            yield j, j - 1
+            j -= 1
+
+
+def selection(a):
+    n = len(a)
+    for i in range(n):
+        m = i
+        for j in range(i + 1, n):
+            if a[j] < a[m]:
+                m = j
+                yield j, m
+        if m != i:
+            a[i], a[m] = a[m], a[i]
+            yield i, m
+
+
+def shell(a):
+    n = len(a)
+    gap = n // 2
+    while gap:
+        for i in range(gap, n):
+            j = i
+            while j >= gap and a[j - gap] > a[j]:
+                a[j], a[j - gap] = a[j - gap], a[j]
+                yield j, j - gap
+                j -= gap
+        gap //= 2
+
+
+def comb(a):
+    n = len(a)
+    gap = n
+    swapped = True
+    while gap > 1 or swapped:
+        gap = max(1, int(gap / 1.3))
+        swapped = False
+        for i in range(n - gap):
+            if a[i] > a[i + gap]:
+                a[i], a[i + gap] = a[i + gap], a[i]
+                swapped = True
+                yield i, i + gap
+
+
+def oddeven(a):
+    n = len(a)
+    ordered = False
+    while not ordered:
+        ordered = True
+        for start in (0, 1):
+            for i in range(start, n - 1, 2):
+                if a[i] > a[i + 1]:
+                    a[i], a[i + 1] = a[i + 1], a[i]
+                    ordered = False
+                    yield i, i + 1
+
+
+def quick(a):
+    stack = [(0, len(a) - 1)]
+    while stack:
+        lo, hi = stack.pop()
+        if lo >= hi:
+            continue
+        pivot = a[hi]
+        i = lo
+        for j in range(lo, hi):
+            if a[j] < pivot:
+                a[i], a[j] = a[j], a[i]
+                yield i, j
+                i += 1
+        a[i], a[hi] = a[hi], a[i]
+        yield i, hi
+        stack.append((lo, i - 1))
+        stack.append((i + 1, hi))
+
+
+def heap(a):
+    n = len(a)
+
+    def sift(root, end):
+        while True:
+            child = 2 * root + 1
+            if child > end:
+                return
+            if child + 1 <= end and a[child] < a[child + 1]:
+                child += 1
+            if a[root] >= a[child]:
+                return
+            a[root], a[child] = a[child], a[root]
+            yield root, child
+            root = child
+
+    for root in range(n // 2 - 1, -1, -1):
+        yield from sift(root, n - 1)
+    for end in range(n - 1, 0, -1):
+        a[0], a[end] = a[end], a[0]
+        yield 0, end
+        yield from sift(0, end - 1)
+
+
+def merge(a):
+    n = len(a)
+    width = 1
+    while width < n:
+        for left in range(0, n, 2 * width):
+            mid, right = min(left + width, n), min(left + 2 * width, n)
+            if mid >= right:
+                continue
+            i, j = left, mid
+            out = []
+            while i < mid and j < right:
+                src = i if a[i] <= a[j] else j
+                out.append(a[src])
+                yield src, left + len(out) - 1
+                i += src == i
+                j += src == j
+            while i < mid:
+                out.append(a[i])
+                yield i, left + len(out) - 1
+                i += 1
+            while j < right:
+                out.append(a[j])
+                yield j, left + len(out) - 1
+                j += 1
+            a[left:right] = out
+        width *= 2
+
+
+ALGORITHMS = {
+    "bubble": bubble,
+    "cocktail": cocktail,
+    "gnome": gnome,
+    "insertion": insertion,
+    "selection": selection,
+    "shell": shell,
+    "comb": comb,
+    "oddeven": oddeven,
+    "quick": quick,
+    "heap": heap,
+    "merge": merge,
+}
+
+
+def paint(value, n, active=False):
+    color = 21 + int(value / max(1, n - 1) * 180)
+    return f"\x1b[38;5;{color}m" + ("\x1b[7m" if active else "")
+
+
+def frame(values, mode, active, algorithm, steps, cols, rows, sorted_=False):
+    active = set(active or ())
+    n = len(values)
+    title = f" csorting | {mode} | {algorithm}"
+    if sorted_:
+        title += " | SORTED - reshuffling..."
+    else:
+        title += f" | steps {steps}"
+    title += " | ctrl+c / ctrl+d / q: exit"
+
+    if mode == "line":
+        height = max(5, rows - 2)
+        grid = [[" "] * n for _ in range(height)]
+        for i, value in enumerate(values):
+            bar = max(1, round(value / max(1, n - 1) * height))
+            for y in range(height - bar, height):
+                grid[y][i] = paint(value, n, i in active) + "█" + "\x1b[0m"
+        lines = ["".join(row) for row in grid]
+    else:
+        height = max(7, rows - 2)
+        grid = [[" "] * cols for _ in range(height)]
+        cx, cy = cols // 2, height // 2
+        radius_max = max(2, min(cx - 2, height - 2))
+        for i, value in enumerate(values):
+            angle = 2 * math.pi * i / n - math.pi / 2
+            radius = 1 + value / max(1, n - 1) * (radius_max - 1)
+            x = round(cx + radius * math.cos(angle))
+            y = round(cy + radius * math.sin(angle) * 0.5)
+            if 0 <= x < cols and 0 <= y < height:
+                cell = "◉" if i in active else "●"
+                grid[y][x] = paint(value, n, i in active) + cell + "\x1b[0m"
+        lines = ["".join(row).rstrip() for row in grid]
+
+    body = [title] + lines
+    sys.stdout.write("\x1b[H" + "\r\n".join(line + "\x1b[K" for line in body))
+    sys.stdout.flush()
+
+
+def quit_requested():
+    if not select.select([sys.stdin], [], [], 0)[0]:
+        return False
+    return sys.stdin.read(1) in ("\x03", "\x04", "q", "Q", "\x1b")
+
+
+def self_test():
+    rng = random.Random(20261124)
+    for name, algorithm in ALGORITHMS.items():
+        for size in (0, 1, 2, 7, 31, 64):
+            source = [rng.randrange(1000) for _ in range(size)]
+            values = list(source)
+            for _ in algorithm(values):
+                pass
+            assert values == sorted(source), f"{name} failed for size {size}"
+    print(f"OK: {len(ALGORITHMS)} sorting algorithms sort correctly")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    view = parser.add_mutually_exclusive_group()
+    view.add_argument("--circle", action="store_true", help="dots on a circle (spiral when sorted)")
+    view.add_argument("--line", action="store_true", help="vertical bars (default)")
+    parser.add_argument("algorithm_pos", nargs="?", help="algorithm name (same as -a)")
+    parser.add_argument("-a", "--algorithm", help="algorithm name or 'all' to cycle through them")
+    parser.add_argument("-n", "--items", type=int, default=0, help="number of elements")
+    parser.add_argument("--delay", type=float, default=0.012, help="seconds per step")
+    parser.add_argument("--list", action="store_true", help="list algorithms and exit")
+    parser.add_argument("--self-test", action="store_true", help="verify every algorithm and exit")
+    args = parser.parse_args()
+    algorithm = args.algorithm or args.algorithm_pos or "all"
+    if args.items < 0:
+        parser.error("--items must not be negative")
+
+    if args.self_test:
+        self_test()
+        return 0
+    if args.list:
+        print(" ".join(ALGORITHMS))
+        return 0
+    if algorithm != "all" and algorithm not in ALGORITHMS:
+        parser.error(f"unknown algorithm {algorithm!r}; choose from: {' '.join(ALGORITHMS)}")
+    if not sys.stdout.isatty():
+        parser.error("csorting needs a terminal")
+
+    mode = "circle" if args.circle else "line"
+    size = shutil.get_terminal_size((80, 24))
+    cols, rows = size.columns, size.lines
+    n = args.items or (72 if mode == "circle" else min(60, cols - 2))
+    if mode == "line":
+        n = min(n, cols)
+    names = list(ALGORITHMS) if algorithm == "all" else [algorithm]
+    current = 0
+
+    sys.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J")
+    settings = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        while True:
+            values = list(range(n))
+            random.shuffle(values)
+            name = names[current]
+            current = (current + 1) % len(names)
+            steps = 0
+            for active in ALGORITHMS[name](values):
+                if quit_requested():
+                    return 0
+                steps += 1
+                frame(values, mode, active, name, steps, cols, rows)
+                time.sleep(max(0.0, args.delay))
+            frame(values, mode, (), name, steps, cols, rows, sorted_=True)
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        return 0
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        sys.stdout.write("\x1b[?25h\x1b[?1049l\x1b[0m")
+        sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

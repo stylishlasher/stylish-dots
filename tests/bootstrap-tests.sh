@@ -433,7 +433,7 @@ run_clear_cache_test
 # Мастер установки передаёт имена пресетов, а не номера пунктов меню.
 run_wizard_test() {
     local out
-    out="$(printf '2\n9\n15\nd\n2\n6\n2\n' | timeout 10 bash -c '
+    out="$(printf '2\n9\n15\n18\nd\n2\n6\n2\n' | timeout 10 bash -c '
         require_module(){ :; }
         t(){ echo "$1"; }
         info(){ :; }; warn(){ echo "$*"; }; err(){ echo "$*"; }; ok(){ echo "$*"; }
@@ -455,6 +455,7 @@ run_wizard_test() {
         apply_bibata_theme(){ echo "CURSOR:$1"; }
         action_setup_monitors(){ :; }
         action_create_home_readme(){ :; }
+        action_install_console_toys(){ echo "CONSOLE:toys"; }
         action_install_neovim(){ echo "NVIM:$1"; }
         action_install_fastfetch_preset(){ echo "FF:$1"; }
         action_install_caelestia(){ :; }
@@ -467,8 +468,9 @@ run_wizard_test() {
     grep -q 'PROFILE:stylish:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "wizard: profile got a menu number"; }
     grep -q 'CURSOR:Bibata-Modern-Ice' <<<"$out" || { echo "$out" >&2; fail "wizard: wrong cursor theme"; }
     grep -q 'THEME:stylish' <<<"$out" || { echo "$out" >&2; fail "wizard: SDDM theme does not match the dotfiles profile"; }
+    grep -q 'CONSOLE:toys' <<<"$out" || { echo "$out" >&2; fail "wizard: console pranks checkbox was ignored"; }
     ! grep -q 'NVIM:1' <<<"$out" || fail "wizard: numeric preset leaked into action"
-    pass "wizard maps dotfiles profile, SDDM theme, Neovim preset and cursor by name"
+    pass "wizard maps profile, SDDM theme, Neovim preset, cursor and console pranks"
 }
 run_wizard_test
 
@@ -542,5 +544,25 @@ run_sddm_themes_test() {
     pass "four SDDM themes install and accept a custom image"
 }
 run_sddm_themes_test
+
+# Консольные приколы: csorting ставится точечно, fish-функция и алгоритмы на месте.
+run_console_toys_test() {
+    local tmp out
+    python3 "$ROOT/config/bin/csorting" --self-test >/dev/null || fail "csorting: self-test failed"
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-console-test.XXXXXX")"
+    out="$(HOME="$tmp/home" CONFIGS_DIR="$ROOT/config" bash -c '
+        t(){ echo "$1"; }; info(){ :; }; warn(){ echo "$*"; }; err(){ echo "$*"; }; ok(){ echo "$*"; }
+        resolve_configs(){ :; }
+        has(){ [[ "$1" == fish ]]; }
+        source "$1"; action_install_console_toy csorting
+    ' _ "$ROOT/modules/actions/console.sh" 2>&1)"
+    grep -q 'console_toy_installed' <<<"$out" || { echo "$out" >&2; fail "console toy: install failed"; }
+    [[ -x "$tmp/home/.local/bin/csorting" ]] || fail "console toy: csorting not executable"
+    [[ -f "$tmp/home/.config/fish/functions/csorting.fish" ]] || fail "console toy: fish function missing"
+    [[ ! -e "$tmp/home/.local/bin/hackerlarp" ]] || fail "console toy: installed unrelated prank"
+    rm -rf "$tmp"
+    pass "csorting installs with fish function and all algorithms pass self-test"
+}
+run_console_toys_test
 
 echo "ALL BOOTSTRAP TESTS PASSED"

@@ -14,6 +14,7 @@ action_full_interactive() {
     require_module actions/flatpak.sh
     require_module actions/network.sh
     require_module actions/extras.sh
+    require_module actions/console.sh
 
     action_preflight install || return 1
     info "$(t interactive_start)"
@@ -68,10 +69,11 @@ action_full_interactive() {
         [cursors]="$(t comp_cursors)"
         [monitors]="$(t comp_monitors)"
         [home-readme]="$(t comp_home_readme)"
+        [console-toys]="$(t comp_console)"
     )
     local -a comp_order=(update basic browser discord telegram steam aur sddm)
     [[ -n "$theme_name" ]] && comp_order+=(sddm-theme)
-    comp_order+=(fish rust-fetches flatpak warp firewall cursors monitors home-readme)
+    comp_order+=(fish rust-fetches flatpak warp firewall cursors monitors home-readme console-toys)
     local -a items=()
     local comp
     for comp in "${comp_order[@]}"; do
@@ -158,6 +160,7 @@ action_full_interactive() {
             cursors) action_install_bibata && apply_bibata_theme "$cursor_theme" || warn "cursors failed" ;;
             monitors) action_setup_monitors || warn "monitors failed" ;;
             home-readme) require_module actions/extras.sh; action_create_home_readme || warn "home readme failed" ;;
+            console-toys) action_install_console_toys || warn "console toys failed" ;;
         esac
     done
 

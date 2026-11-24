@@ -169,6 +169,7 @@ stylish-dots/
 | MangoWC | `~/.config/mango/`, `~/.config/waybar/`, `~/.config/foot/`, `~/.config/fuzzel/`, `~/.config/mako/`, `~/.config/matugen/`, `~/.local/bin/mango-settings` |
 | Serpantinum themes | `~/.local/state/serpantinum/presets/` |
 | Stylish 3D fetches (Rust) | `~/.local/bin/{keyfetch,treefetch,tomatofetch,stoolfetch,skeletonfetch}` |
+| Console pranks | `~/.local/bin/{csorting,hackerlarp}`, `~/.config/fish/functions/csorting.fish` |
 
 > Before replacing existing configs, the multitool/scripts make a backup (`*.bak.<timestamp>` or a backup directory).
 
@@ -250,6 +251,24 @@ python3 config/bin/hackerlarp --no-disclaimer --once
 ```
 
 Install via the multitool: **Console pranks → LARP / movie hacker (hackerlarp)**.
+
+## csorting (ambient sorting)
+
+`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). Dots gather into a gradient circle (a neat spiral once sorted); bars grow vertically from small to large. Every swap/comparison is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over.
+
+- Views: `--circle` (dots) and `--line` (bars, default)
+- Algorithms: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
+- `--algorithm all` (default) cycles through them; `--algorithm shell` or the positional form `csorting --circle shell` pins one
+- Exit: `Ctrl+C`, `Ctrl+D`, `q` or `Esc`
+- Algorithm check: `python3 config/bin/csorting --self-test`
+
+```bash
+csorting --circle
+csorting --line --algorithm gnome --delay 0.02
+csorting --circle shell
+```
+
+Install via the multitool: **Console pranks → csorting** (copied to `~/.local/bin`, fish function to `~/.config/fish/functions`).
 
 ---
 

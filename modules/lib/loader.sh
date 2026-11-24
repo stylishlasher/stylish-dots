@@ -37,6 +37,9 @@ run_action() {
         install_fastfetch_preset) require_module actions/fetches.sh; action_install_fastfetch_preset "$@" ;;
         build_rust_fetches) require_module actions/fetches.sh; action_build_rust_fetches "$@" ;;
         fetches_menu) require_module actions/fetches.sh; action_fetches_menu "$@" ;;
+        console_menu) require_module actions/console.sh; action_console_menu "$@" ;;
+        install_console_toy) require_module actions/console.sh; action_install_console_toy "$@" ;;
+        install_console_toys) require_module actions/console.sh; action_install_console_toys "$@" ;;
         apply_mango) require_module actions/dotfiles.sh; action_apply_mango "$@" ;;
         apply_end4) require_module actions/dotfiles.sh; action_apply_end4 "$@" ;;
         apply_stylish) require_module actions/dotfiles.sh; action_apply_stylish "$@" ;;

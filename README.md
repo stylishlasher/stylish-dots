@@ -169,6 +169,7 @@ stylish-dots/
 | MangoWC | `~/.config/mango/`, `~/.config/waybar/`, `~/.config/foot/`, `~/.config/fuzzel/`, `~/.config/mako/`, `~/.config/matugen/`, `~/.local/bin/mango-settings` |
 | Темы Serpantinum | `~/.local/state/serpantinum/presets/` |
 | Stylish 3D fetches (Rust) | `~/.local/bin/{keyfetch,treefetch,tomatofetch,stoolfetch,skeletonfetch}` |
+| Консольные приколы | `~/.local/bin/{csorting,hackerlarp}`, `~/.config/fish/functions/csorting.fish` |
 
 > Перед заменой существующих конфигов мультитул/скрипты делают бэкап (`*.bak.<timestamp>` или backup dir).
 
@@ -250,6 +251,24 @@ python3 config/bin/hackerlarp --no-disclaimer --once
 ```
 
 Установка через мультитул: **Консольные приколы → LARP / кино-хакер (hackerlarp)**.
+
+## csorting (фоновая сортировка)
+
+`config/bin/csorting` — лёгкий визуализатор сортировок без зависимостей (только stdlib Python). Точки собираются в круг по градиенту (по мере сортировки превращаются в аккуратную спираль), полоски растут вертикально от маленькой к большой. Каждая перестановка/сравнение показывается отдельным кадром; когда массив отсортирован — рандомизация и следующий алгоритм.
+
+- Виды: `--circle` (точки) и `--line` (полоски, по умолчанию)
+- Алгоритмы: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
+- `--algorithm all` (по умолчанию) перебирает их по очереди; `--algorithm shell` или позиционный аргумент `csorting --circle shell` закрепляет один
+- Выход: `Ctrl+C`, `Ctrl+D`, `q` или `Esc`
+- Проверка алгоритмов: `python3 config/bin/csorting --self-test`
+
+```bash
+csorting --circle
+csorting --line --algorithm gnome --delay 0.02
+csorting --circle shell
+```
+
+Установка через мультитул: **Консольные приколы → csorting** (копируется в `~/.local/bin`, fish-функция — в `~/.config/fish/functions`).
 
 ---
 

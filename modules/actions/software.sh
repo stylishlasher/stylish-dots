@@ -16,6 +16,7 @@ action_software_menu() {
     require_module actions/fetches.sh
     require_module actions/flatpak.sh
     require_module actions/extras.sh
+    require_module actions/console.sh
     while true; do
         menu_select "$(t software_install)" \
             "1|$(t software_basic)" \
@@ -29,6 +30,7 @@ action_software_menu() {
             "9|$(t comp_monitors)" \
             "10|$(t sddm_themes_install)" \
             "11|$(t sddm_image_change)" \
+            "12|$(t console_toys)" \
             "0|$(t menu_back)" || return 0
         case "$MENU_CHOICE" in
             1) action_install_basic; pause ;;
@@ -42,6 +44,7 @@ action_software_menu() {
             9) action_setup_monitors; pause ;;
             10) action_install_sddm_themes; pause ;;
             11) action_set_sddm_image; pause ;;
+            12) action_console_menu; pause ;;
             0) return 0 ;;
         esac
     done

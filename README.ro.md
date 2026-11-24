@@ -169,6 +169,7 @@ stylish-dots/
 | MangoWC | `~/.config/mango/`, `~/.config/waybar/`, `~/.config/foot/`, `~/.config/fuzzel/`, `~/.config/mako/`, `~/.config/matugen/`, `~/.local/bin/mango-settings` |
 | Teme Serpantinum | `~/.local/state/serpantinum/presets/` |
 | Fetch-uri 3D Stylish (Rust) | `~/.local/bin/{keyfetch,treefetch,tomatofetch,stoolfetch,skeletonfetch}` |
+| Glume în consolă | `~/.local/bin/{csorting,hackerlarp}`, `~/.config/fish/functions/csorting.fish` |
 
 > Înainte de a înlocui configurațiile existente, utilitarul/scripturile fac o copie de siguranță (`*.bak.<timestamp>` sau un dosar backup).
 
@@ -250,6 +251,24 @@ python3 config/bin/hackerlarp --no-disclaimer --once
 ```
 
 Instalare prin utilitar: **Glume în consolă → LARP / hacker de film (hackerlarp)**.
+
+## csorting (sortare ambientală)
+
+`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). Punctele se adună într-un cerc cu gradient (devin o spirală ordonată când array-ul e sortat), iar barele cresc vertical de la mic la mare. Fiecare schimb/comparație este afișat ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor.
+
+- Vederi: `--circle` (puncte) și `--line` (bare, implicit)
+- Algoritmi: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
+- `--algorithm all` (implicit) îi parcurge pe rând; `--algorithm shell` sau forma pozițională `csorting --circle shell` îl fixează pe unul
+- Ieșire: `Ctrl+C`, `Ctrl+D`, `q` sau `Esc`
+- Verificare algoritmi: `python3 config/bin/csorting --self-test`
+
+```bash
+csorting --circle
+csorting --line --algorithm gnome --delay 0.02
+csorting --circle shell
+```
+
+Instalare prin utilitar: **Glume în consolă → csorting** (copiat în `~/.local/bin`, funcția fish în `~/.config/fish/functions`).
 
 ---
 
