@@ -120,7 +120,6 @@
 # mode 644 config/sddm-themes/caelestia/components/Logo.qml
 # mode 644 config/sddm-themes/caelestia/components/MainClock.qml
 # mode 644 config/sddm-themes/caelestia/components/MaterialIcon.qml
-# mode 644 config/sddm-themes/caelestia/components/MaterialIcon.qml.save
 # mode 644 config/sddm-themes/caelestia/components/PasswordInput.qml
 # mode 644 config/sddm-themes/caelestia/components/RandomQuote.qml
 # mode 644 config/sddm-themes/caelestia/components/SessionPicker.qml
@@ -159,7 +158,6 @@
 # mode 644 config/sddm-themes/end4/components/Logo.qml
 # mode 644 config/sddm-themes/end4/components/MainClock.qml
 # mode 644 config/sddm-themes/end4/components/MaterialIcon.qml
-# mode 644 config/sddm-themes/end4/components/MaterialIcon.qml.save
 # mode 644 config/sddm-themes/end4/components/PasswordInput.qml
 # mode 644 config/sddm-themes/end4/components/RandomQuote.qml
 # mode 644 config/sddm-themes/end4/components/SessionPicker.qml
@@ -198,7 +196,6 @@
 # mode 644 config/sddm-themes/serpantinum/components/Logo.qml
 # mode 644 config/sddm-themes/serpantinum/components/MainClock.qml
 # mode 644 config/sddm-themes/serpantinum/components/MaterialIcon.qml
-# mode 644 config/sddm-themes/serpantinum/components/MaterialIcon.qml.save
 # mode 644 config/sddm-themes/serpantinum/components/PasswordInput.qml
 # mode 644 config/sddm-themes/serpantinum/components/RandomQuote.qml
 # mode 644 config/sddm-themes/serpantinum/components/SessionPicker.qml
@@ -237,7 +234,6 @@
 # mode 644 config/sddm-themes/stylish/components/Logo.qml
 # mode 644 config/sddm-themes/stylish/components/MainClock.qml
 # mode 644 config/sddm-themes/stylish/components/MaterialIcon.qml
-# mode 644 config/sddm-themes/stylish/components/MaterialIcon.qml.save
 # mode 644 config/sddm-themes/stylish/components/PasswordInput.qml
 # mode 644 config/sddm-themes/stylish/components/RandomQuote.qml
 # mode 644 config/sddm-themes/stylish/components/SessionPicker.qml
@@ -516,7 +512,6 @@ fb755fa3280d1d215a20df2e64fe6a0f75f8208439b11671978214aae60d2997  config/sddm-th
 4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/caelestia/components/Logo.qml
 1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/caelestia/components/MainClock.qml
 a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/caelestia/components/MaterialIcon.qml
-5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/caelestia/components/MaterialIcon.qml.save
 8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/caelestia/components/PasswordInput.qml
 f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/caelestia/components/RandomQuote.qml
 47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/caelestia/components/SessionPicker.qml
@@ -555,7 +550,6 @@ a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-th
 4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/end4/components/Logo.qml
 1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/end4/components/MainClock.qml
 a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/end4/components/MaterialIcon.qml
-5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/end4/components/MaterialIcon.qml.save
 8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/end4/components/PasswordInput.qml
 f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/end4/components/RandomQuote.qml
 47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/end4/components/SessionPicker.qml
@@ -594,7 +588,6 @@ a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-th
 4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/serpantinum/components/Logo.qml
 1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/serpantinum/components/MainClock.qml
 a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/serpantinum/components/MaterialIcon.qml
-5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/serpantinum/components/MaterialIcon.qml.save
 8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/serpantinum/components/PasswordInput.qml
 f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/serpantinum/components/RandomQuote.qml
 47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/serpantinum/components/SessionPicker.qml
@@ -634,7 +627,6 @@ c1ab36d9a4f4a6a6ade6dd34398059c4d7fef606c540e79f26130de139f8f3e5  config/sddm-th
 4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/stylish/components/Logo.qml
 1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/stylish/components/MainClock.qml
 a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/stylish/components/MaterialIcon.qml
-5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/stylish/components/MaterialIcon.qml.save
 8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/stylish/components/PasswordInput.qml
 f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/stylish/components/RandomQuote.qml
 47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/stylish/components/SessionPicker.qml
