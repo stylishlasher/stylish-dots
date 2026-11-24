@@ -254,7 +254,7 @@ Instalare prin utilitar: **Glume în consolă → LARP / hacker de film (hackerl
 
 ## csorting (sortare ambientală)
 
-`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). Punctele formează un cerc uniform de puncte de-a lungul gradientului, iar barele ocupă toată lățimea terminalului și cresc vertical de la mic la mare. Fiecare operație este afișată ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor. Titlul arată numărul de operații din trecerea curentă și din toate trecerile.
+`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). În modul cerc, punctele pornesc împrăștiate prin terminal și se adună într-un cerc uniform cu gradient pe măsură ce sortarea avansează, iar barele ocupă toată lățimea terminalului și cresc vertical de la mic la mare. Fiecare operație este afișată ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor. Titlul arată numărul de operații din trecerea curentă și din toate trecerile, plus procentul de adunare.
 
 - Vederi: `--circle` (cerc uniform de puncte) și `--line` (bare, implicit)
 - Algoritmi: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`

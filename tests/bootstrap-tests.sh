@@ -566,12 +566,19 @@ assert cs.paint(0, 100, rainbow).startswith("\x1b[38;2;")
 cols, rows = 110, 32
 height, ring = cs.circle_geometry(cols, rows)
 assert len(ring) > 150
-buf = io.StringIO()
-with contextlib.redirect_stdout(buf):
-    cs.frame(list(range(len(ring))), "circle", (), "shell", 1, 1,
-             cols, rows, rainbow, "test", ring)
-clean = [re.sub(r"\x1b\[[0-9;]*m", "", line) for line in buf.getvalue().splitlines()[1:]]
-points = [(x, y) for y, line in enumerate(clean) for x, ch in enumerate(line) if ch in "●◉"]
+values = list(range(len(ring)))
+scatter = [(2 + (v % 20), 2 + (v // 20)) for v in values]
+
+def drawn(values, progress):
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        cs.frame(values, "circle", (), "shell", 1, 1,
+                 cols, rows, rainbow, "test", ring, progress, scatter)
+    clean = [re.sub(r"\x1b\[[0-9;]*m", "", line) for line in buf.getvalue().splitlines()[1:]]
+    return [(x, y) for y, line in enumerate(clean) for x, ch in enumerate(line) if ch in "●◉"]
+
+assert set(drawn(values, 0)) == set(scatter), "dots are not scattered at the start"
+points = drawn(values, 1)
 assert len(points) == len(ring), f"circle has gaps: {len(points)}/{len(ring)}"
 cx, cy = cols // 2, height // 2
 radii = [(x - cx) ** 2 + ((y - cy) * 2) ** 2 for x, y in points]

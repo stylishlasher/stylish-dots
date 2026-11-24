@@ -254,9 +254,9 @@ Install via the multitool: **Console pranks → LARP / movie hacker (hackerlarp)
 
 ## csorting (ambient sorting)
 
-`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). Dots form an even dotted ring along a gradient; bars fill the terminal width and grow vertically from small to large. Every operation is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over. The title shows operation counts for the current and all runs.
+`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). In circle mode the dots start scattered across the terminal and gather into an even gradient ring as the sort advances; bars fill the terminal width and grow vertically from small to large. Every operation is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over. The title shows operation counts for the current and all runs plus the gather percentage.
 
-- Views: `--circle` (even dotted ring) and `--line` (bars, default)
+- Views: `--circle` (scattered dots gathering into an even ring) and `--line` (bars, default)
 - Algorithms: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (default) cycles through them; `--algorithm shell` or the positional form `csorting --circle shell` pins one
 - Color: without `--color` it uses matugen from `~/.local/state/quickshell/user/generated/colors.json` (or `$MATUGEN_COLORS_FILE`), falling back to `rainbow`. The gradient is a smooth 24-bit RGB interpolation between stops
