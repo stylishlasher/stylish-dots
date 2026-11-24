@@ -36,16 +36,26 @@ action_install_sddm() {
     info "$(t sddm_hint)"
 }
 
-action_install_sddm_themes() {
+action_install_sddm_theme() {
+    local name="${1:-}"
+    case "$name" in
+        caelestia|end4|stylish|serpantinum) ;;
+        *) warn "$(t sddm_theme_unknown "$name")"; return 1 ;;
+    esac
     local src="${CONFIGS_DIR:-${REPO_ROOT:-$PWD}/config}/sddm-themes"
-    [[ -d "$src" ]] || { warn "$(t sddm_themes_missing)"; return 1; }
-    local dst="$HOME/.local/share/sddm/themes" name
+    [[ -d "$src/$name" ]] || { warn "$(t sddm_themes_missing)"; return 1; }
+    local dst="$HOME/.local/share/sddm/themes"
     mkdir -p "$dst" || return 1
-    stash_dir "$dst/_assets" || return 1
-    cp -a "$src/_assets" "$dst/" || return 1
+    [[ -e "$dst/_assets" ]] || cp -a "$src/_assets" "$dst/" || return 1
+    stash_dir "$dst/$name" || return 1
+    cp -a "$src/$name" "$dst/" || return 1
+    ok "$(t sddm_theme_ready "$name" "$dst")"
+}
+
+action_install_sddm_themes() {
+    local name dst="$HOME/.local/share/sddm/themes"
     for name in caelestia end4 stylish serpantinum; do
-        stash_dir "$dst/$name" || return 1
-        cp -a "$src/$name" "$dst/" || return 1
+        action_install_sddm_theme "$name" || return 1
     done
     ok "$(t sddm_themes_ready "$dst")"
 }

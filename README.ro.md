@@ -94,7 +94,7 @@ bash install/install_debian.sh
 
 ## Profiluri dotfiles
 
-**Instalarea interactivă completă** (opțiunea 1) este un asistent în patru pași: profilul dotfiles, software-ul, configurațiile și presetările, apoi un rezumat cu confirmare. Totul este opțional: nimic nu se instalează fără bifă, iar profilul poate fi omis.
+**Instalarea interactivă completă** (opțiunea 1) este un asistent în patru pași: profilul dotfiles, software-ul, configurațiile și presetările, apoi un rezumat cu confirmare. Totul este opțional: nimic nu se instalează fără bifă, iar profilul poate fi omis. Bifarea „Temei SDDM pentru profil” instalează doar tema dotfile-urilor alese; dacă profilul este omis, o întrebare separată alege tema.
 
 | Profil | Ce face |
 |---|---|

@@ -26,6 +26,28 @@ action_full_interactive() {
         "4|$(t profile_serpantinum)" \
         "5|$(t profile_none)" || return 1
     local profile="$MENU_CHOICE"
+    local profile_name="" theme_name=""
+    case "$profile" in
+        1) profile_name="$(t profile_caelestia)"; theme_name=caelestia ;;
+        2) profile_name="$(t profile_stylish)"; theme_name=stylish ;;
+        3) profile_name="$(t profile_end4)"; theme_name=end4 ;;
+        4) profile_name="$(t profile_serpantinum)"; theme_name=serpantinum ;;
+        5) profile_name="$(t profile_none)" ;;
+    esac
+    if [[ "$profile" == "5" ]]; then
+        menu_select "$(t sddm_theme_select)" \
+            "1|$(t profile_caelestia)" \
+            "2|$(t profile_end4)" \
+            "3|$(t profile_stylish)" \
+            "4|$(t profile_serpantinum)" \
+            "0|$(t profile_none)" || return 1
+        case "$MENU_CHOICE" in
+            1) theme_name=caelestia ;;
+            2) theme_name=end4 ;;
+            3) theme_name=stylish ;;
+            4) theme_name=serpantinum ;;
+        esac
+    fi
 
     # Шаг 2: ПО и системные удобства
     local -A labels=(
@@ -37,6 +59,7 @@ action_full_interactive() {
         [steam]="$(t comp_steam)"
         [aur]="$(t comp_aur)"
         [sddm]="$(t comp_sddm)"
+        [sddm-theme]="$(t comp_sddm_theme) ${theme_name:-$(t profile_none)}"
         [fish]="$(t comp_fish)"
         [rust-fetches]="$(t comp_rust_fetches)"
         [flatpak]="$(t comp_flatpak)"
@@ -46,7 +69,9 @@ action_full_interactive() {
         [monitors]="$(t comp_monitors)"
         [home-readme]="$(t comp_home_readme)"
     )
-    local -a comp_order=(update basic browser discord telegram steam aur sddm fish rust-fetches flatpak warp firewall cursors monitors home-readme)
+    local -a comp_order=(update basic browser discord telegram steam aur sddm)
+    [[ -n "$theme_name" ]] && comp_order+=(sddm-theme)
+    comp_order+=(fish rust-fetches flatpak warp firewall cursors monitors home-readme)
     local -a items=()
     local comp
     for comp in "${comp_order[@]}"; do
@@ -90,16 +115,6 @@ action_full_interactive() {
         2) cursor_theme=Bibata-Modern-Ice ;;
     esac
 
-    local profile_name
-    case "$profile" in
-        1) profile_name="$(t profile_caelestia)" ;;
-        2) profile_name="$(t profile_stylish)" ;;
-        3) profile_name="$(t profile_end4)" ;;
-        4) profile_name="$(t profile_serpantinum)" ;;
-        5) profile_name="$(t profile_none)" ;;
-        *) profile_name="$profile" ;;
-    esac
-
     # Шаг 4: сводка и подтверждение
     echo
     echo -e "${BOLD}${CYAN}================== OVERVIEW ==================${NC}"
@@ -134,6 +149,7 @@ action_full_interactive() {
             steam) pkg_install steam || warn "steam failed" ;;
             aur) action_install_aur_helper yay || warn "aur helper failed" ;;
             sddm) action_install_sddm || warn "sddm failed" ;;
+            sddm-theme) action_install_sddm_theme "$theme_name" || warn "sddm theme failed" ;;
             fish) action_install_fish || warn "fish failed" ;;
             rust-fetches) action_build_rust_fetches || warn "rust fetches failed" ;;
             flatpak) action_install_flatpak || warn "flatpak failed" ;;

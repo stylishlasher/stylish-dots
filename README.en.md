@@ -94,7 +94,7 @@ bash install/install_debian.sh
 
 ## Dotfiles profiles
 
-The **full interactive install** (menu option 1) is a four-step wizard: dotfiles profile, software, configs and presets, then a summary with confirmation. Everything is optional: nothing is installed unless you tick it, and the profile can be skipped.
+The **full interactive install** (menu option 1) is a four-step wizard: dotfiles profile, software, configs and presets, then a summary with confirmation. Everything is optional: nothing is installed unless you tick it, and the profile can be skipped. The "SDDM theme for profile" checkbox installs only the theme matching your chosen dots; if no profile is picked, a separate question asks which theme to use.
 
 | Profile | What it does |
 |---|---|

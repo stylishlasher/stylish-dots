@@ -55,6 +55,7 @@ run_action() {
         uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
         install_sddm) require_module actions/extras.sh; action_install_sddm "$@" ;;
         install_sddm_themes) require_module actions/extras.sh; action_install_sddm_themes "$@" ;;
+        install_sddm_theme) require_module actions/extras.sh; action_install_sddm_theme "$@" ;;
         set_sddm_image) require_module actions/extras.sh; action_set_sddm_image "$@" ;;
         install_caelestia) require_module actions/extras.sh; action_install_caelestia "$@" ;;
         install_bibata) require_module actions/extras.sh; action_install_bibata "$@" ;;

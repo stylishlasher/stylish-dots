@@ -433,7 +433,7 @@ run_clear_cache_test
 # Мастер установки передаёт имена пресетов, а не номера пунктов меню.
 run_wizard_test() {
     local out
-    out="$(printf '2\n14\nd\n2\n6\n2\n' | timeout 10 bash -c '
+    out="$(printf '2\n9\n15\nd\n2\n6\n2\n' | timeout 10 bash -c '
         require_module(){ :; }
         t(){ echo "$1"; }
         info(){ :; }; warn(){ echo "$*"; }; err(){ echo "$*"; }; ok(){ echo "$*"; }
@@ -445,6 +445,7 @@ run_wizard_test() {
         pkg_install(){ :; }
         action_install_aur_helper(){ :; }
         action_install_sddm(){ :; }
+        action_install_sddm_theme(){ echo "THEME:$1"; }
         action_install_fish(){ :; }
         action_build_rust_fetches(){ :; }
         action_install_flatpak(){ :; }
@@ -465,8 +466,9 @@ run_wizard_test() {
     grep -q 'NVIM:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "wizard: wrong Neovim preset"; }
     grep -q 'PROFILE:stylish:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "wizard: profile got a menu number"; }
     grep -q 'CURSOR:Bibata-Modern-Ice' <<<"$out" || { echo "$out" >&2; fail "wizard: wrong cursor theme"; }
+    grep -q 'THEME:stylish' <<<"$out" || { echo "$out" >&2; fail "wizard: SDDM theme does not match the dotfiles profile"; }
     ! grep -q 'NVIM:1' <<<"$out" || fail "wizard: numeric preset leaked into action"
-    pass "wizard maps profile, Neovim preset and cursor theme by name"
+    pass "wizard maps dotfiles profile, SDDM theme, Neovim preset and cursor by name"
 }
 run_wizard_test
 
@@ -528,6 +530,14 @@ run_sddm_themes_test() {
     HOME="$tmp/home" bash "$src/set-image.sh" stylish background "$src/end4/assets/background.png" >/dev/null || fail "set-image: background failed"
     [[ -s "$tmp/home/.local/share/sddm/themes/stylish/assets/background.png" ]] || fail "set-image: empty background"
     grep -q 'PNG' <(file "$tmp/home/.local/share/sddm/themes/stylish/assets/background.png") || fail "set-image: background is not a PNG"
+    rm -rf "$tmp/home/.local/share/sddm/themes"
+    out="$(HOME="$tmp/home" CONFIGS_DIR="$ROOT/config" bash -c '
+        t(){ echo "$1"; }; stash_dir(){ :; }; ok(){ echo "$*"; }; warn(){ echo "$*"; }
+        source "$1"; action_install_sddm_theme end4
+    ' _ "$ROOT/modules/actions/extras.sh" 2>&1)"
+    grep -q 'sddm_theme_ready' <<<"$out" || { echo "$out" >&2; fail "single theme: install failed"; }
+    [[ -f "$tmp/home/.local/share/sddm/themes/end4/metadata.desktop" ]] || fail "single theme: end4 not installed"
+    [[ ! -e "$tmp/home/.local/share/sddm/themes/stylish" ]] || fail "single theme: installed unrelated themes"
     rm -rf "$tmp"
     pass "four SDDM themes install and accept a custom image"
 }
