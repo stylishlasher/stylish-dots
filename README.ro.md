@@ -94,13 +94,16 @@ bash install/install_debian.sh
 
 ## Profiluri dotfiles
 
-Utilitarele permit alegerea profilului și o **instalare interactivă completă** (opțiunea 1 din meniu): alegi profilul, un preset Neovim și un preset fastfetch pe secțiuni, apoi bifezi componentele dorite.
+**Instalarea interactivă completă** (opțiunea 1) este un asistent în patru pași: profilul dotfiles, software-ul, configurațiile și presetările, apoi un rezumat cu confirmare. Totul este opțional: nimic nu se instalează fără bifă, iar profilul poate fi omis.
 
 | Profil | Ce face |
 |---|---|
+| **Caelestia** | `caelestia-cli` din AUR + `caelestia install` (doar Arch; componentele le alege proiectul upstream). |
 | **end-4 / illogical-impulse** | Aplică configurația mea actuală din `end4/` peste dots-hyprland instalat. |
 | **serpantinum** | Rulează instalatorul extern Serpantinum (prin instalatorul său); temele/preseturile pot fi aplicate din `config/themes/`. |
 | **stylish-dots** | Aplică dotfile-urile mele: fish, preset Neovim, preset fastfetch, fetch-uri 3D în Rust. |
+
+Opțiunile 6-9 din meniul Software instalează SDDM, Caelestia, cursoarele Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland) și configurează monitoarele conectate la rata maximă de reîmprospătare prin `hyprctl`, `wlr-randr` sau `xrandr`. Opțiunea 9 din meniul principal, "Șterge cache-ul scriptului", elimină `~/.local/share/arch-multitool` după confirmare; îl recreezi cu `bash install/install.sh` (sau `install_debian.sh`). Pe Debian Caelestia este best-effort: upstream acceptă doar Arch.
 
 ---
 

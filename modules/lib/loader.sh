@@ -53,6 +53,12 @@ run_action() {
         restore_backup) require_module actions/backup.sh; action_restore_backup "$@" ;;
         restore_profile) require_module actions/backup.sh; action_restore_profile "$@" ;;
         uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
+        install_sddm) require_module actions/extras.sh; action_install_sddm "$@" ;;
+        install_caelestia) require_module actions/extras.sh; action_install_caelestia "$@" ;;
+        install_bibata) require_module actions/extras.sh; action_install_bibata "$@" ;;
+        cursors_menu) require_module actions/extras.sh; action_cursors_menu "$@" ;;
+        setup_monitors) require_module actions/extras.sh; action_setup_monitors "$@" ;;
+        clear_cache) require_module actions/extras.sh; action_clear_cache "$@" ;;
         *) err "$(t unknown_action "$action")"; return 1 ;;
     esac
 }

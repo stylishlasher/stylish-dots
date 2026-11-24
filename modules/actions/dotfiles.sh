@@ -35,18 +35,19 @@ apply_stylish_configs_only() {
 action_apply_stylish_configs_only() { apply_stylish_configs_only "$@"; }
 
 apply_stylish_configs() {
+    local preset="${1-$NVIM_PRESET}"
     require_module actions/fish.sh
     require_module actions/neovim.sh
     require_module actions/fetches.sh
     apply_fish_config || warn "fish config not applied"
     action_build_rust_fetches || warn "Rust fetches not built"
     install_fish_plugins || true
-    apply_nvim_config "${1:-$NVIM_PRESET}" || warn "nvim config not applied"
+    [[ -z "$preset" ]] || apply_nvim_config "$preset" || warn "nvim config not applied"
 }
 
 action_apply_mango() { apply_mango_config; }
 action_apply_end4() { apply_end4_config; }
-action_apply_stylish() { apply_stylish_configs "${1:-$NVIM_PRESET}"; }
+action_apply_stylish() { apply_stylish_configs "${1-$NVIM_PRESET}"; }
 
 action_apply_configs() {
     require_module lib/menu.sh
@@ -55,12 +56,14 @@ action_apply_configs() {
         "2|end-4 / illogical-impulse" \
         "3|MangoWC" \
         "4|Fastfetch preset" \
+        "5|$(t profile_serpantinum)" \
         "0|$(t menu_back)" || return 0
     case "$MENU_CHOICE" in
         1) action_apply_stylish ;;
         2) action_apply_end4 ;;
         3) action_apply_mango ;;
         4) require_module actions/fetches.sh; action_fetches_menu ;;
+        5) action_install_dotfiles_profile serpantinum ;;
         0) return 0 ;;
     esac
 }

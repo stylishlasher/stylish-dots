@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Full interactive install: sectioned choices + checkboxes.
+# Полная установка: 4 шага (профиль -> ПО -> конфиги -> применение).
 
 action_full_interactive() {
     require_module lib/menu.sh
@@ -13,97 +13,112 @@ action_full_interactive() {
     require_module actions/dotfiles.sh
     require_module actions/flatpak.sh
     require_module actions/network.sh
+    require_module actions/extras.sh
 
     action_preflight install || return 1
     info "$(t interactive_start)"
 
-    # Profile
-    menu_select "$(t dotfiles_profile)" \
-        "1|stylish-dots (fish + nvim + fetches)" \
-        "2|$(t profile_end4)" \
-        "3|MangoWC" \
-        "4|$(t profile_none)" || return 1
+    # Шаг 1: профиль dotfiles
+    menu_select "$(t wizard_profile)" \
+        "1|$(t profile_caelestia)" \
+        "2|$(t profile_stylish)" \
+        "3|$(t profile_end4)" \
+        "4|$(t profile_serpantinum)" \
+        "5|$(t profile_none)" || return 1
     local profile="$MENU_CHOICE"
 
-    # Neovim preset
-    menu_select "Neovim preset" \
+    # Шаг 2: ПО и системные удобства
+    local -A labels=(
+        [update]="$(t comp_update)"
+        [basic]="$(t comp_basic)"
+        [browser]="$(t comp_browser)"
+        [discord]="$(t comp_discord)"
+        [telegram]="$(t comp_telegram)"
+        [steam]="$(t comp_steam)"
+        [aur]="$(t comp_aur)"
+        [sddm]="$(t comp_sddm)"
+        [fish]="$(t comp_fish)"
+        [rust-fetches]="$(t comp_rust_fetches)"
+        [flatpak]="$(t comp_flatpak)"
+        [warp]="$(t comp_warp)"
+        [firewall]="$(t comp_firewall)"
+        [cursors]="$(t comp_cursors)"
+        [monitors]="$(t comp_monitors)"
+        [home-readme]="$(t comp_home_readme)"
+    )
+    local -a comp_order=(update basic browser discord telegram steam aur sddm fish rust-fetches flatpak warp firewall cursors monitors home-readme)
+    local -a items=()
+    local comp
+    for comp in "${comp_order[@]}"; do
+        local def=off
+        [[ "$comp" == "basic" || "$comp" == "fish" || "$comp" == "rust-fetches" ]] && def=on
+        items+=("$comp|${labels[$comp]}|$def")
+    done
+    select_packages "$(t wizard_software)" "${items[@]}" || return 1
+
+    # Шаг 3: конфиги и пресеты
+    menu_select "$(t wizard_configs) — Neovim" \
         "1|$(t nvim_recommended)" \
         "2|$(t nvim_old)" \
         "3|$(t nvim_none)" || return 1
     local nvim_choice="$MENU_CHOICE"
-
-    # Fastfetch preset
-    menu_select "Fastfetch preset" \
+    menu_select "$(t fastfetch_preset)" \
         "1|$(t ff_mine)" \
-        "2|default" \
-        "3|micro" \
-        "4|stylish" \
-        "5|universal" \
+        "2|$(t preset_default)" \
+        "3|$(t preset_micro)" \
+        "4|$(t preset_stylish)" \
+        "5|$(t preset_universal)" \
         "6|$(t ff_none)" || return 1
     local ff_choice="$MENU_CHOICE"
+    menu_select "$(t cursor_theme)" \
+        "1|$(t cursor_classic)" \
+        "2|$(t cursor_ice)" \
+        "3|$(t cursor_none)" || return 1
+    local cursor_choice="$MENU_CHOICE"
 
-    # Components
-    local -a items=(
-        "update|$(t comp_update)|off"
-        "basic|$(t comp_basic)|on"
-        "aur|$(t comp_aur)|off"
-        "fish|$(t comp_fish)|on"
-        "rust-fetches|Rust 3D fetches (keyfetch/treefetch/...)|on"
-        "flatpak|Flatpak + Flathub|off"
-        "warp|Cloudflare WARP (Arch)|off"
-        "firewall|Firewall (ufw)|off"
-        "home-readme|$(t comp_home_readme)|off"
-    )
-    select_packages "$(t components)" "${items[@]}" || return 1
-
-    local profile_name nvim_name ff_name
-    case "$profile" in
-        1) profile_name="stylish-dots (fish + nvim + fetches)";;
-        2) profile_name="end-4 / illogical-impulse";;
-        3) profile_name="MangoWC";;
-        4) profile_name="$(t no_apply)";;
-        *) profile_name="$profile";;
-    esac
+    local nvim_preset="" ff_preset="" cursor_theme=""
     case "$nvim_choice" in
-        1) nvim_name="lazyvim-stylish";;
-        2) nvim_name="super-easy-casual";;
-        3) nvim_name="$(t no_install)";;
-        *) nvim_name="$nvim_choice";;
+        1) nvim_preset=lazyvim-stylish ;;
+        2) nvim_preset=super-easy-casual ;;
     esac
     case "$ff_choice" in
-        1) ff_name="mine";; 2) ff_name="default";; 3) ff_name="micro";;
-        4) ff_name="stylish";; 5) ff_name="universal";; 6) ff_name="$(t no_set)";;
-        *) ff_name="$ff_choice";;
+        1) ff_preset=mine ;; 2) ff_preset=default ;; 3) ff_preset=micro ;;
+        4) ff_preset=stylish ;; 5) ff_preset=universal ;;
+    esac
+    case "$cursor_choice" in
+        1) cursor_theme=Bibata-Modern-Classic ;;
+        2) cursor_theme=Bibata-Modern-Ice ;;
     esac
 
+    local profile_name
+    case "$profile" in
+        1) profile_name="$(t profile_caelestia)" ;;
+        2) profile_name="$(t profile_stylish)" ;;
+        3) profile_name="$(t profile_end4)" ;;
+        4) profile_name="$(t profile_serpantinum)" ;;
+        5) profile_name="$(t profile_none)" ;;
+        *) profile_name="$profile" ;;
+    esac
+
+    # Шаг 4: сводка и подтверждение
     echo
     echo -e "${BOLD}${CYAN}================== OVERVIEW ==================${NC}"
     echo -e "${BOLD}$(t overview_profile):${NC} $profile_name"
-    echo -e "${BOLD}Neovim preset:${NC}    $nvim_name"
-    echo -e "${BOLD}Fastfetch preset:${NC} $ff_name"
+    echo -e "${BOLD}Neovim:${NC}    ${nvim_preset:-$(t no_install)}"
+    echo -e "${BOLD}Fastfetch:${NC} ${ff_preset:-$(t no_set)}"
+    echo -e "${BOLD}$(t cursor_theme):${NC} ${cursor_theme:-$(t cursor_none)}"
     echo -e "${BOLD}$(t overview_components):${NC}"
-    local comp
-    for comp in update basic aur fish rust-fetches flatpak warp firewall home-readme; do
-        local mark="[-]"; local desc="$comp"
-        case "$comp" in
-            update) desc="$(t comp_update)";;
-            basic) desc="$(t comp_basic)";;
-            aur) desc="$(t comp_aur)";;
-            fish) desc="$(t comp_fish)";;
-            rust-fetches) desc="Rust 3D fetches (keyfetch/treefetch/...)";;
-            flatpak) desc="Flatpak + Flathub";;
-            warp) desc="Cloudflare WARP (Arch)";;
-            firewall) desc="Firewall (ufw)";;
-            home-readme) desc="$(t comp_home_readme)";;
-        esac
+    for comp in "${comp_order[@]}"; do
+        local mark="[-]"
         for p in "${SELECTED_PACKAGES[@]}"; do [[ "$p" == "$comp" ]] && mark="[x]"; done
-        echo "  $mark $desc"
+        echo "  $mark ${labels[$comp]}"
     done
     echo -e "${BOLD}$(t overview_will)${NC}"
-    for p in "${SELECTED_PACKAGES[@]}"; do echo "  - $p"; done
-    [[ "$nvim_choice" != "3" ]] && echo "  - neovim preset: $nvim_name"
-    [[ "$ff_choice" != "6" ]] && echo "  - fastfetch preset: $ff_name"
-    [[ "$profile" != "4" ]] && echo "  - dotfiles profile: $profile_name"
+    for p in "${SELECTED_PACKAGES[@]}"; do echo "  - ${labels[$p]:-$p}"; done
+    [[ -n "$nvim_preset" ]] && echo "  - Neovim: $nvim_preset"
+    [[ -n "$ff_preset" ]] && echo "  - Fastfetch: $ff_preset"
+    [[ -n "$cursor_theme" ]] && echo "  - $(t cursor_theme): $cursor_theme"
+    [[ "$profile" != "5" ]] && echo "  - $(t overview_profile): $profile_name"
     echo -e "${BOLD}${CYAN}===============================================${NC}"
     echo
     is_interactive && ! confirm "$(t confirm_install)" && return 1
@@ -113,36 +128,31 @@ action_full_interactive() {
         case "$p" in
             update) action_update_system || warn "update failed" ;;
             basic) action_install_basic || warn "basic failed" ;;
+            browser) pkg_install firefox || warn "firefox failed" ;;
+            discord) pkg_install discord || warn "discord failed" ;;
+            telegram) pkg_install telegram-desktop || warn "telegram failed" ;;
+            steam) pkg_install steam || warn "steam failed" ;;
             aur) action_install_aur_helper yay || warn "aur helper failed" ;;
+            sddm) action_install_sddm || warn "sddm failed" ;;
             fish) action_install_fish || warn "fish failed" ;;
             rust-fetches) action_build_rust_fetches || warn "rust fetches failed" ;;
             flatpak) action_install_flatpak || warn "flatpak failed" ;;
             warp) action_install_warp || warn "warp failed" ;;
             firewall) action_configure_firewall || warn "firewall failed" ;;
+            cursors) action_install_bibata && apply_bibata_theme "$cursor_theme" || warn "cursors failed" ;;
+            monitors) action_setup_monitors || warn "monitors failed" ;;
             home-readme) require_module actions/extras.sh; action_create_home_readme || warn "home readme failed" ;;
         esac
     done
 
-    case "$nvim_choice" in
-        1) action_install_neovim lazyvim-stylish || warn "nvim failed" ;;
-        2) action_install_neovim super-easy-casual || warn "nvim failed" ;;
-        3) ;;
-    esac
-
-    case "$ff_choice" in
-        1) action_install_fastfetch_preset mine || warn "fastfetch failed" ;;
-        2) action_install_fastfetch_preset default || warn "fastfetch failed" ;;
-        3) action_install_fastfetch_preset micro || warn "fastfetch failed" ;;
-        4) action_install_fastfetch_preset stylish || warn "fastfetch failed" ;;
-        5) action_install_fastfetch_preset universal || warn "fastfetch failed" ;;
-        6) ;;
-    esac
+    [[ -n "$nvim_preset" ]] && { action_install_neovim "$nvim_preset" || warn "nvim failed"; }
+    [[ -n "$ff_preset" ]] && { action_install_fastfetch_preset "$ff_preset" || warn "fastfetch failed"; }
 
     case "$profile" in
-        1) action_apply_stylish "${nvim_choice}" || warn "profile apply failed" ;;
-        2) action_apply_end4 || warn "end4 apply failed" ;;
-        3) action_apply_mango || warn "mango apply failed" ;;
-        4) ;;
+        1) action_install_caelestia || warn "caelestia failed" ;;
+        2) action_apply_stylish "$nvim_preset" || warn "profile apply failed" ;;
+        3) action_apply_end4 || warn "end4 apply failed" ;;
+        4) action_install_dotfiles_profile serpantinum || warn "serpantinum failed" ;;
     esac
 
     ok "$(t interactive_done)"
@@ -172,9 +182,10 @@ action_install_dotfiles_only() {
     action_preflight dotfiles || return 1
 
     menu_select "$(t dotfiles_only_profile)" \
-        "1|stylish-dots (fish + nvim config only)" \
-        "2|end-4 / illogical-impulse config" \
-        "3|MangoWC config" \
+        "1|$(t profile_stylish)" \
+        "2|$(t profile_end4)" \
+        "3|MangoWC" \
+        "4|$(t profile_serpantinum)" \
         "0|$(t menu_back)" || return 0
     local profile="$MENU_CHOICE"
     [[ "$profile" == "0" ]] && return 0
@@ -211,6 +222,7 @@ action_install_dotfiles_only() {
         1) action_apply_stylish_configs_only "$nvim_choice" || warn "profile failed" ;;
         2) action_apply_end4 || warn "end4 failed" ;;
         3) action_apply_mango || warn "mango failed" ;;
+        4) action_install_dotfiles_profile serpantinum || warn "serpantinum failed" ;;
     esac
     ok "$(t dotfiles_only_done)"
 }

@@ -15,13 +15,18 @@ action_software_menu() {
     require_module lib/menu.sh
     require_module actions/fetches.sh
     require_module actions/flatpak.sh
+    require_module actions/extras.sh
     while true; do
         menu_select "$(t software_install)" \
             "1|$(t software_basic)" \
-            "2|Flatpak + Flathub" \
+            "2|$(t comp_flatpak)" \
             "3|$(t software_fetches)" \
             "4|Fish" \
             "5|Neovim" \
+            "6|$(t comp_sddm)" \
+            "7|$(t profile_caelestia)" \
+            "8|$(t comp_cursors)" \
+            "9|$(t comp_monitors)" \
             "0|$(t menu_back)" || return 0
         case "$MENU_CHOICE" in
             1) action_install_basic; pause ;;
@@ -29,6 +34,10 @@ action_software_menu() {
             3) action_fetches_menu; pause ;;
             4) require_module actions/fish.sh; action_install_fish; pause ;;
             5) require_module actions/neovim.sh; action_neovim_menu; pause ;;
+            6) action_install_sddm; pause ;;
+            7) action_install_caelestia; pause ;;
+            8) action_cursors_menu ;;
+            9) action_setup_monitors; pause ;;
             0) return 0 ;;
         esac
     done

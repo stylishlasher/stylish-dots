@@ -94,13 +94,16 @@ bash install/install_debian.sh
 
 ## Dotfiles profiles
 
-The multitools support profile selection and a **full interactive install** (menu option 1): go section by section to choose a profile, a Neovim preset, and a fastfetch preset, then tick the components you want.
+The **full interactive install** (menu option 1) is a four-step wizard: dotfiles profile, software, configs and presets, then a summary with confirmation. Everything is optional: nothing is installed unless you tick it, and the profile can be skipped.
 
 | Profile | What it does |
 |---|---|
+| **Caelestia** | `caelestia-cli` from the AUR + `caelestia install` (Arch only; upstream picks components). |
 | **end-4 / illogical-impulse** | Applies my current config from `end4/` on top of an installed dots-hyprland. |
 | **serpantinum** | Runs the external Serpantinum installer (via its own installer); themes/presets can be applied from `config/themes/`. |
 | **stylish-dots** | Applies my dotfiles: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
+
+Software menu options 6-9 install SDDM, Caelestia, Bibata Modern Classic / Modern Ice cursors (GTK, X11, Qt, Hyprland) and set connected monitors to their maximum refresh rate via `hyprctl`, `wlr-randr` or `xrandr`. Main menu option 9, "Clear script cache", removes `~/.local/share/arch-multitool` after confirmation; restore it with `bash install/install.sh` (or `install_debian.sh`). On Debian Caelestia is best-effort: upstream supports Arch only.
 
 ---
 

@@ -106,9 +106,10 @@ main_menu() {
             "3|$(t menu_software)" \
             "4|$(t menu_apply)" \
             "5|$(t menu_backups)" \
-            "6|Uninstall" \
+            "6|$(t menu_uninstall)" \
             "7|$(t menu_update)" \
             "8|$(t menu_audit)" \
+            "9|$(t menu_clear_cache)" \
             "0|$(t menu_exit)" || exit 0
         case "$MENU_CHOICE" in
             1) run_action full_interactive; pause ;;
@@ -128,6 +129,7 @@ main_menu() {
             6) run_action uninstall; pause ;;
             7) run_action update_system; pause ;;
             8) run_action quick_audit; pause ;;
+            9) run_action clear_cache; pause ;;
             0) exit 0 ;;
         esac
     done

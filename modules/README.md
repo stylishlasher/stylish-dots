@@ -12,8 +12,9 @@
   - `menu.sh` — menu_select/select_packages
   - `loader.sh` — докачка/подключение модулей, run_action
 - `actions/` — действия:
-  - `interactive.sh` — полная интерактивная установка (галочки)
+  - `interactive.sh` — полная установка: мастер из 4 шагов
   - `software.sh` — меню ПО
+  - `extras.sh` — SDDM, Caelestia, курсоры Bibata, мониторы, очистка кэша
   - `dotfiles.sh` — применение профилей/configs
   - `fish.sh`, `neovim.sh`, `fetches.sh`, `flatpak.sh`, `network.sh`, `system.sh`, `audit.sh`
 

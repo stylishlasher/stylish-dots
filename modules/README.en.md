@@ -12,8 +12,9 @@ The modular system of stylish-dots. The multitools (`arch_multitool.sh`, `arch_m
   - `menu.sh` — menu_select/select_packages
   - `loader.sh` — module download/sourcing, run_action
 - `actions/` — actions:
-  - `interactive.sh` — full interactive install (checkboxes)
+  - `interactive.sh` — full install: four-step wizard
   - `software.sh` — software menu
+  - `extras.sh` — SDDM, Caelestia, Bibata cursors, monitors, cache cleanup
   - `dotfiles.sh` — applying profiles/configs
   - `fish.sh`, `neovim.sh`, `fetches.sh`, `flatpak.sh`, `network.sh`, `system.sh`, `audit.sh`
 

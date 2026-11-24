@@ -94,13 +94,16 @@ bash install/install_debian.sh
 
 ## Профили dotfiles
 
-Мультитулы поддерживают выбор профиля и **полную интерактивную установку** (пункт 1 в меню): по разделам выбираешь профиль, пресет Neovim, пресет fastfetch и галочками отмечаешь компоненты.
+**Полная интерактивная установка** (пункт 1) — мастер из четырёх шагов: профиль dotfiles → выбор ПО → конфиги и пресеты → сводка с подтверждением. Всё по желанию: ничего не ставится без галочки, профиль можно пропустить.
 
 | Профиль | Что делает |
 |---|---|
+| **Caelestia** | `caelestia-cli` из AUR + `caelestia install` (только Arch; компоненты выбирает апстрим). |
 | **end-4 / illogical-impulse** | Применяет мой текущий конфиг из `end4/` поверх установленного dots-hyprland. |
 | **serpantinum** | Внешний установщик Serpantinum (через его installer), темы/пресеты можно применять из `config/themes/`. |
 | **stylish-dots** | Применяет мои дотсы: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
+
+Пункты 6–9 меню «Установка ПО» отдельно ставят SDDM, Caelestia, курсоры Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland) и настраивают подключённые мониторы на максимум герц через `hyprctl`, `wlr-randr` или `xrandr`. Пункт 9 главного меню «Очистить кэш скрипта» удаляет `~/.local/share/arch-multitool` после подтверждения; вернуть кэш можно `bash install/install.sh` (для Debian — `install_debian.sh`). На Debian Caelestia — best-effort, официально она только под Arch.
 
 ---
 

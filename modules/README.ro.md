@@ -12,8 +12,9 @@ Sistemul modular al stylish-dots. Utilitarele (`arch_multitool.sh`, `arch_multit
   - `menu.sh` — menu_select/select_packages
   - `loader.sh` — descărcarea/încărcarea modulelor, run_action
 - `actions/` — acțiuni:
-  - `interactive.sh` — instalare interactivă completă (casete de selectare)
+  - `interactive.sh` — instalare completă: asistent în patru pași
   - `software.sh` — meniul de programe
+  - `extras.sh` — SDDM, Caelestia, cursoare Bibata, monitoare, ștergerea cache-ului
   - `dotfiles.sh` — aplicarea profilurilor/configurărilor
   - `fish.sh`, `neovim.sh`, `fetches.sh`, `flatpak.sh`, `network.sh`, `system.sh`, `audit.sh`
 

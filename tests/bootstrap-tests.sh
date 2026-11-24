@@ -412,4 +412,97 @@ run_nvim_submenu_test() {
 }
 run_nvim_submenu_test
 
+# Кэш удаляется только после подтверждения.
+run_clear_cache_test() {
+    local tmp out
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-cache-test.XXXXXX")"
+    mkdir -p "$tmp/arch-multitool/releases/one" "$tmp/arch-multitool/current"
+    echo payload > "$tmp/arch-multitool/releases/one/file"
+    local stub='t(){ echo "$1"; }; warn(){ echo "$*"; }; ok(){ echo "$*"; }; is_interactive(){ return 0; }; source "$1"; source "$2"; action_clear_cache'
+    out="$(XDG_DATA_HOME="$tmp" bash -c "confirm(){ return 1; }; $stub" _ "$ROOT/modules/lib/i18n.sh" "$ROOT/modules/actions/extras.sh" 2>&1 || true)"
+    [[ -f "$tmp/arch-multitool/releases/one/file" ]] || { echo "$out" >&2; fail "clear cache: cancelled run deleted files"; }
+    out="$(XDG_DATA_HOME="$tmp" bash -c "confirm(){ return 0; }; $stub" _ "$ROOT/modules/lib/i18n.sh" "$ROOT/modules/actions/extras.sh" 2>&1)"
+    [[ ! -e "$tmp/arch-multitool/releases" && ! -e "$tmp/arch-multitool/current" ]] || { echo "$out" >&2; fail "clear cache: confirmed run left files"; }
+    rm -rf "$tmp/arch-multitool"
+    XDG_DATA_HOME="$tmp" bash -c "confirm(){ return 0; }; $stub" _ "$ROOT/modules/lib/i18n.sh" "$ROOT/modules/actions/extras.sh" >/dev/null 2>&1 || fail "clear cache: missing cache should be a no-op"
+    rm -rf "$tmp"
+    pass "cache deletion requires confirmation and is idempotent"
+}
+run_clear_cache_test
+
+# Мастер установки передаёт имена пресетов, а не номера пунктов меню.
+run_wizard_test() {
+    local out
+    out="$(printf '2\n14\nd\n2\n6\n2\n' | timeout 10 bash -c '
+        require_module(){ :; }
+        t(){ echo "$1"; }
+        info(){ :; }; warn(){ echo "$*"; }; err(){ echo "$*"; }; ok(){ echo "$*"; }
+        is_interactive(){ return 1; }
+        confirm(){ return 0; }
+        action_preflight(){ :; }
+        action_update_system(){ :; }
+        action_install_basic(){ :; }
+        pkg_install(){ :; }
+        action_install_aur_helper(){ :; }
+        action_install_sddm(){ :; }
+        action_install_fish(){ :; }
+        action_build_rust_fetches(){ :; }
+        action_install_flatpak(){ :; }
+        action_install_warp(){ :; }
+        action_configure_firewall(){ :; }
+        action_install_bibata(){ :; }
+        apply_bibata_theme(){ echo "CURSOR:$1"; }
+        action_setup_monitors(){ :; }
+        action_create_home_readme(){ :; }
+        action_install_neovim(){ echo "NVIM:$1"; }
+        action_install_fastfetch_preset(){ echo "FF:$1"; }
+        action_install_caelestia(){ :; }
+        action_apply_stylish(){ echo "PROFILE:stylish:$1"; }
+        action_apply_end4(){ :; }
+        action_install_dotfiles_profile(){ :; }
+        source "$1"; source "$2"; action_full_interactive
+    ' _ "$ROOT/modules/lib/menu.sh" "$ROOT/modules/actions/interactive.sh" 2>&1)"
+    grep -q 'NVIM:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "wizard: wrong Neovim preset"; }
+    grep -q 'PROFILE:stylish:super-easy-casual' <<<"$out" || { echo "$out" >&2; fail "wizard: profile got a menu number"; }
+    grep -q 'CURSOR:Bibata-Modern-Ice' <<<"$out" || { echo "$out" >&2; fail "wizard: wrong cursor theme"; }
+    ! grep -q 'NVIM:1' <<<"$out" || fail "wizard: numeric preset leaked into action"
+    pass "wizard maps profile, Neovim preset and cursor theme by name"
+}
+run_wizard_test
+
+# Авто-детект мониторов: X11 и Hyprland выбирают максимальную частоту.
+run_monitors_test() {
+    local tmp out
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-monitors-test.XXXXXX")"
+    mkdir -p "$tmp/home"
+    out="$(HOME="$tmp/home" bash -c '
+        t(){ echo "$1"; }; info(){ :; }; warn(){ echo "$*"; }; ok(){ echo "$*"; }
+        has(){ [[ "$1" == xrandr ]]; }
+        xrandr(){
+            if [[ "$1" == --current ]]; then
+                printf "eDP-1 connected primary 1920x1080+0+0\n  1920x1080 60.00*+ 120.00 50.00\nHDMI-1 connected\n  1920x1080 144.00*+ 60.00\n"
+            else echo "XRANDR:$*"; fi
+        }
+        source "$1"; action_setup_monitors
+    ' _ "$ROOT/modules/actions/extras.sh" 2>&1)"
+    grep -q 'XRANDR:--output HDMI-1 --mode 1920x1080 --rate 144.00' <<<"$out" || { echo "$out" >&2; fail "monitors: X11 did not pick 144 Hz"; }
+    grep -q 'xrandr --output eDP-1 --mode 1920x1080 --rate 120.00' "$tmp/home/.xprofile" || fail "monitors: X11 settings not persisted"
+    out="$(HOME="$tmp/home" bash -c '
+        t(){ echo "$1"; }; info(){ :; }; warn(){ echo "$*"; }; ok(){ echo "$*"; }
+        stash_dir(){ :; }
+        has(){ [[ "$1" == hyprctl ]]; }
+        hyprctl(){
+            if [[ "$1 $2" == "monitors all" ]]; then printf "Monitor eDP-1 (ID 0):\n  availableModes: 1920x1080@60Hz 1920x1080@144Hz\n"
+            elif [[ "$1" == monitors ]]; then return 0
+            else echo "HYPR:$*"; fi
+        }
+        source "$1"; action_setup_monitors
+    ' _ "$ROOT/modules/actions/extras.sh" 2>&1)"
+    grep -q 'HYPR:keyword monitor eDP-1, highrr, auto, 1' <<<"$out" || { echo "$out" >&2; fail "monitors: Hyprland monitor not configured"; }
+    grep -q 'monitor = eDP-1, highrr, auto, 1' "$tmp/home/.config/hypr/monitors.conf" || fail "monitors: Hyprland settings not persisted"
+    rm -rf "$tmp"
+    pass "monitor auto-detection applies maximum refresh on X11 and Hyprland"
+}
+run_monitors_test
+
 echo "ALL BOOTSTRAP TESTS PASSED"
