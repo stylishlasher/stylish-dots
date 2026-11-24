@@ -254,18 +254,22 @@ Install via the multitool: **Console pranks → LARP / movie hacker (hackerlarp)
 
 ## csorting (ambient sorting)
 
-`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). Dots gather into a gradient circle (a neat spiral once sorted); bars grow vertically from small to large. Every swap/comparison is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over.
+`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). Dots form an even dotted ring along a gradient; bars fill the terminal width and grow vertically from small to large. Every operation is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over. The title shows operation counts for the current and all runs.
 
-- Views: `--circle` (dots) and `--line` (bars, default)
+- Views: `--circle` (even dotted ring) and `--line` (bars, default)
 - Algorithms: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (default) cycles through them; `--algorithm shell` or the positional form `csorting --circle shell` pins one
+- Color: without `--color` it uses matugen from `~/.local/state/quickshell/user/generated/colors.json` (or `$MATUGEN_COLORS_FILE`), falling back to `rainbow`. The gradient is a smooth 24-bit RGB interpolation between stops
+- `--color ocean|fire|ice|mono|rainbow|matugen` picks a palette, `--color '#ff0000,#00ff00,#0000ff'` sets custom stops; `--palettes` lists them
 - Exit: `Ctrl+C`, `Ctrl+D`, `q` or `Esc`
-- Algorithm check: `python3 config/bin/csorting --self-test`
+- Algorithm and gradient check: `python3 config/bin/csorting --self-test`
 
 ```bash
 csorting --circle
 csorting --line --algorithm gnome --delay 0.02
 csorting --circle shell
+csorting --circle --color fire
+csorting --line --color '#13140c,#c6cc7a,#e5e3d6'
 ```
 
 Install via the multitool: **Console pranks → csorting** (copied to `~/.local/bin`, fish function to `~/.config/fish/functions`).

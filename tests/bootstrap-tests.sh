@@ -545,10 +545,53 @@ run_sddm_themes_test() {
 }
 run_sddm_themes_test
 
-# Консольные приколы: csorting ставится точечно, fish-функция и алгоритмы на месте.
+# Консольные приколы: csorting ставится точечно, цвет/круг/градиент проверяются отдельно.
 run_console_toys_test() {
     local tmp out
     python3 "$ROOT/config/bin/csorting" --self-test >/dev/null || fail "csorting: self-test failed"
+    python3 - "$ROOT/config/bin/csorting" <<'PY' || fail "csorting: gradient/circle/matugen check failed"
+import contextlib, importlib.machinery, importlib.util, io, json, os, re, sys, tempfile
+
+loader = importlib.machinery.SourceFileLoader("csorting", sys.argv[1])
+spec = importlib.util.spec_from_loader(loader.name, loader)
+cs = importlib.util.module_from_spec(spec)
+loader.exec_module(cs)
+
+assert cs.parse_hex("#abc") == (170, 187, 204)
+rainbow = [cs.parse_hex(c) for c in cs.PALETTES["rainbow"]]
+assert cs.gradient_color(0, rainbow) == rainbow[0]
+assert cs.gradient_color(1, rainbow) == rainbow[-1]
+assert cs.paint(0, 100, rainbow).startswith("\x1b[38;2;")
+
+cols, rows = 110, 32
+height, ring = cs.circle_geometry(cols, rows)
+assert len(ring) > 150
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    cs.frame(list(range(len(ring))), "circle", (), "shell", 1, 1,
+             cols, rows, rainbow, "test", ring)
+clean = [re.sub(r"\x1b\[[0-9;]*m", "", line) for line in buf.getvalue().splitlines()[1:]]
+points = [(x, y) for y, line in enumerate(clean) for x, ch in enumerate(line) if ch in "●◉"]
+assert len(points) == len(ring), f"circle has gaps: {len(points)}/{len(ring)}"
+cx, cy = cols // 2, height // 2
+radii = [(x - cx) ** 2 + ((y - cy) * 2) ** 2 for x, y in points]
+assert max(radii) - min(radii) < 130, "circle radius is not even"
+
+with tempfile.TemporaryDirectory() as tmp:
+    path = os.path.join(tmp, "colors.json")
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump({"background": "#000000", "primary": "#ff0000", "secondary": "#00ff00"}, handle)
+    previous = os.environ.get("MATUGEN_COLORS_FILE")
+    os.environ["MATUGEN_COLORS_FILE"] = path
+    try:
+        stops, label = cs.resolve_palette(None)
+        assert label == "matugen" and stops[0] == (0, 0, 0)
+    finally:
+        if previous is None:
+            os.environ.pop("MATUGEN_COLORS_FILE", None)
+        else:
+            os.environ["MATUGEN_COLORS_FILE"] = previous
+PY
     tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-console-test.XXXXXX")"
     out="$(HOME="$tmp/home" CONFIGS_DIR="$ROOT/config" bash -c '
         t(){ echo "$1"; }; info(){ :; }; warn(){ echo "$*"; }; err(){ echo "$*"; }; ok(){ echo "$*"; }
@@ -561,7 +604,7 @@ run_console_toys_test() {
     [[ -f "$tmp/home/.config/fish/functions/csorting.fish" ]] || fail "console toy: fish function missing"
     [[ ! -e "$tmp/home/.local/bin/hackerlarp" ]] || fail "console toy: installed unrelated prank"
     rm -rf "$tmp"
-    pass "csorting installs with fish function and all algorithms pass self-test"
+    pass "csorting installs, reads matugen and draws an even gradient ring"
 }
 run_console_toys_test
 

@@ -2,11 +2,14 @@
 """csorting - ambient sorting visualizer: dots in a circle or bars in a line.
 
 Real in-place sorting algorithms, one visible step at a time. When the array is
-sorted it is shuffled again and the next algorithm takes over. Ctrl+C, Ctrl+D
-or q exits. No dependencies beyond the Python standard library.
+sorted it is shuffled again and the next algorithm takes over. Colors come from
+matugen when available, or from --color. Ctrl+C, Ctrl+D or q exits.
+No dependencies beyond the Python standard library.
 """
 import argparse
+import json
 import math
+import os
 import random
 import select
 import shutil
@@ -208,42 +211,130 @@ ALGORITHMS = {
 }
 
 
-def paint(value, n, active=False):
-    color = 21 + int(value / max(1, n - 1) * 180)
-    return f"\x1b[38;5;{color}m" + ("\x1b[7m" if active else "")
+PALETTES = {
+    "rainbow": ("#3b1e6e", "#2f6bff", "#00d9ff", "#4dff9f", "#ffd166", "#ff4d6d"),
+    "ocean": ("#040f2e", "#0b3d91", "#0077b6", "#00b4d8", "#90e0ef"),
+    "fire": ("#1a0500", "#7f1d1d", "#ea580c", "#facc15", "#fff7ed"),
+    "ice": ("#0b132b", "#1c3d5a", "#4d908e", "#a8dadc", "#f1faee"),
+    "mono": ("#181818", "#6e6e6e", "#dcdcdc", "#ffffff"),
+    "matugen": (),  # filled from the generated palette at runtime
+}
 
 
-def frame(values, mode, active, algorithm, steps, cols, rows, sorted_=False):
+def parse_hex(value):
+    text = str(value).strip().lstrip("#")
+    if len(text) == 3:
+        text = "".join(ch * 2 for ch in text)
+    if len(text) != 6 or any(ch not in "0123456789abcdefABCDEF" for ch in text):
+        raise ValueError(f"invalid color {value!r}; use #rgb or #rrggbb")
+    return tuple(int(text[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def matugen_colors():
+    home = os.path.expanduser("~")
+    state = os.environ.get("XDG_STATE_HOME") or os.path.join(home, ".local", "state")
+    paths = (
+        os.environ.get("MATUGEN_COLORS_FILE", ""),
+        os.path.join(state, "quickshell", "user", "generated", "colors.json"),
+        os.path.join(home, ".config", "matugen", "colors.json"),
+        os.path.join(home, ".cache", "matugen", "colors.json"),
+    )
+    for raw in paths:
+        if not raw:
+            continue
+        path = os.path.expandvars(os.path.expanduser(raw))
+        try:
+            with open(path, encoding="utf-8") as handle:
+                data = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            continue
+        stops = []
+        for key in ("background", "primary", "tertiary", "secondary", "on_background"):
+            if key in data:
+                try:
+                    stops.append(parse_hex(data[key]))
+                except ValueError:
+                    pass
+        if len(stops) >= 2:
+            return stops
+    return None
+
+
+def resolve_palette(spec):
+    """Return (RGB stops, label). No spec means matugen, then rainbow."""
+    if spec is None:
+        stops = matugen_colors()
+        if stops:
+            return stops, "matugen"
+        return [parse_hex(c) for c in PALETTES["rainbow"]], "rainbow"
+    if spec in PALETTES:
+        if spec != "matugen":
+            return [parse_hex(c) for c in PALETTES[spec]], spec
+        stops = matugen_colors()
+        if stops:
+            return stops, "matugen"
+        return [parse_hex(c) for c in PALETTES["rainbow"]], "rainbow (no matugen)"
+    parts = [part for part in spec.split(",") if part.strip()]
+    if len(parts) < 2:
+        raise ValueError("--color needs a palette name or 2+ hex colors")
+    return [parse_hex(part) for part in parts], "custom"
+
+
+def gradient_color(position, stops):
+    t = min(1.0, max(0.0, position))
+    scaled = t * (len(stops) - 1)
+    index = min(int(scaled), len(stops) - 2)
+    mix = scaled - index
+    return tuple(round(stops[index][c] * (1 - mix) + stops[index + 1][c] * mix)
+                 for c in range(3))
+
+
+def paint(value, n, stops, active=False):
+    r, g, b = gradient_color(value / max(1, n - 1), stops)
+    return f"\x1b[38;2;{r};{g};{b}m" + ("\x1b[7m" if active else "")
+
+
+def circle_geometry(cols, rows):
+    """Grid cells of an even dotted ring, ordered clockwise from the top."""
+    height = max(7, rows - 1)
+    cx, cy = cols // 2, height // 2
+    ry = max(2, min((rows - 2) // 2, (cols - 3) // 4))
+    rx = ry * 2  # terminal cells are about twice as tall as wide
+    cells = []
+    for y in range(height):
+        for x in range(cols):
+            dx, dy = x - cx, (y - cy) * 2
+            if abs(dx * dx + dy * dy - rx * rx) <= rx * 2:
+                angle = (math.atan2(dy, dx) + math.pi / 2) % (2 * math.pi)
+                cells.append((angle, x, y))
+    cells.sort()
+    return height, [(x, y) for _, x, y in cells]
+
+
+def frame(values, mode, active, algorithm, steps, total, cols, rows, stops, palette,
+          ring=None, sorted_=False):
     active = set(active or ())
     n = len(values)
-    title = f" csorting | {mode} | {algorithm}"
+    title = f" csorting | {mode} | {algorithm} | {palette} | ops {steps}/{total}"
     if sorted_:
-        title += " | SORTED - reshuffling..."
-    else:
-        title += f" | steps {steps}"
-    title += " | ctrl+c / ctrl+d / q: exit"
+        title += " | SORTED - reshuffling"
+    title += " | ctrl+c/ctrl+d/q"
 
     if mode == "line":
-        height = max(5, rows - 2)
+        height = max(5, rows - 1)
         grid = [[" "] * n for _ in range(height)]
         for i, value in enumerate(values):
             bar = max(1, round(value / max(1, n - 1) * height))
             for y in range(height - bar, height):
-                grid[y][i] = paint(value, n, i in active) + "█" + "\x1b[0m"
+                grid[y][i] = paint(value, n, stops, i in active) + "█" + "\x1b[0m"
         lines = ["".join(row) for row in grid]
     else:
-        height = max(7, rows - 2)
+        height, ring = circle_geometry(cols, rows) if ring is None else (max(7, rows - 1), ring)
         grid = [[" "] * cols for _ in range(height)]
-        cx, cy = cols // 2, height // 2
-        radius_max = max(2, min(cx - 2, height - 2))
         for i, value in enumerate(values):
-            angle = 2 * math.pi * i / n - math.pi / 2
-            radius = 1 + value / max(1, n - 1) * (radius_max - 1)
-            x = round(cx + radius * math.cos(angle))
-            y = round(cy + radius * math.sin(angle) * 0.5)
-            if 0 <= x < cols and 0 <= y < height:
-                cell = "◉" if i in active else "●"
-                grid[y][x] = paint(value, n, i in active) + cell + "\x1b[0m"
+            x, y = ring[i % len(ring)]
+            cell = "◉" if i in active else "●"
+            grid[y][x] = paint(value, n, stops, i in active) + cell + "\x1b[0m"
         lines = ["".join(row).rstrip() for row in grid]
 
     body = [title] + lines
@@ -266,19 +357,27 @@ def self_test():
             for _ in algorithm(values):
                 pass
             assert values == sorted(source), f"{name} failed for size {size}"
-    print(f"OK: {len(ALGORITHMS)} sorting algorithms sort correctly")
+    rainbow = [parse_hex(c) for c in PALETTES["rainbow"]]
+    assert gradient_color(0, rainbow) == rainbow[0]
+    assert gradient_color(1, rainbow) == rainbow[-1]
+    assert gradient_color(0.5, rainbow) != rainbow[0]
+    assert parse_hex("#abc") == (170, 187, 204)
+    assert len(circle_geometry(100, 30)[1]) > 100
+    print(f"OK: {len(ALGORITHMS)} sorting algorithms and gradients pass self-test")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     view = parser.add_mutually_exclusive_group()
-    view.add_argument("--circle", action="store_true", help="dots on a circle (spiral when sorted)")
-    view.add_argument("--line", action="store_true", help="vertical bars (default)")
+    view.add_argument("--circle", action="store_true", help="even dotted circle (default: line)")
+    view.add_argument("--line", action="store_true", help="long vertical bars (default)")
     parser.add_argument("algorithm_pos", nargs="?", help="algorithm name (same as -a)")
     parser.add_argument("-a", "--algorithm", help="algorithm name or 'all' to cycle through them")
+    parser.add_argument("-C", "--color", help="palette name or 2+ hex stops (default: matugen, then rainbow)")
     parser.add_argument("-n", "--items", type=int, default=0, help="number of elements")
     parser.add_argument("--delay", type=float, default=0.012, help="seconds per step")
     parser.add_argument("--list", action="store_true", help="list algorithms and exit")
+    parser.add_argument("--palettes", action="store_true", help="list color palettes and exit")
     parser.add_argument("--self-test", action="store_true", help="verify every algorithm and exit")
     args = parser.parse_args()
     algorithm = args.algorithm or args.algorithm_pos or "all"
@@ -291,6 +390,13 @@ def main():
     if args.list:
         print(" ".join(ALGORITHMS))
         return 0
+    if args.palettes:
+        print(" ".join(name for name in PALETTES if name != "matugen"))
+        return 0
+    try:
+        stops, palette = resolve_palette(args.color)
+    except ValueError as exc:
+        parser.error(str(exc))
     if algorithm != "all" and algorithm not in ALGORITHMS:
         parser.error(f"unknown algorithm {algorithm!r}; choose from: {' '.join(ALGORITHMS)}")
     if not sys.stdout.isatty():
@@ -299,11 +405,13 @@ def main():
     mode = "circle" if args.circle else "line"
     size = shutil.get_terminal_size((80, 24))
     cols, rows = size.columns, size.lines
-    n = args.items or (72 if mode == "circle" else min(60, cols - 2))
-    if mode == "line":
-        n = min(n, cols)
+    ring = circle_geometry(cols, rows)[1] if mode == "circle" else None
+    default_n = len(ring) if mode == "circle" else min(cols - 2, 240)
+    n = args.items or default_n
+    n = min(n, len(ring) if mode == "circle" else max(1, cols - 2))
     names = list(ALGORITHMS) if algorithm == "all" else [algorithm]
     current = 0
+    total = 0
 
     sys.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J")
     settings = termios.tcgetattr(sys.stdin)
@@ -319,9 +427,10 @@ def main():
                 if quit_requested():
                     return 0
                 steps += 1
-                frame(values, mode, active, name, steps, cols, rows)
+                total += 1
+                frame(values, mode, active, name, steps, total, cols, rows, stops, palette, ring)
                 time.sleep(max(0.0, args.delay))
-            frame(values, mode, (), name, steps, cols, rows, sorted_=True)
+            frame(values, mode, (), name, steps, total, cols, rows, stops, palette, ring, sorted_=True)
             time.sleep(0.5)
     except KeyboardInterrupt:
         return 0

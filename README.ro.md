@@ -254,18 +254,22 @@ Instalare prin utilitar: **Glume în consolă → LARP / hacker de film (hackerl
 
 ## csorting (sortare ambientală)
 
-`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). Punctele se adună într-un cerc cu gradient (devin o spirală ordonată când array-ul e sortat), iar barele cresc vertical de la mic la mare. Fiecare schimb/comparație este afișat ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor.
+`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). Punctele formează un cerc uniform de puncte de-a lungul gradientului, iar barele ocupă toată lățimea terminalului și cresc vertical de la mic la mare. Fiecare operație este afișată ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor. Titlul arată numărul de operații din trecerea curentă și din toate trecerile.
 
-- Vederi: `--circle` (puncte) și `--line` (bare, implicit)
+- Vederi: `--circle` (cerc uniform de puncte) și `--line` (bare, implicit)
 - Algoritmi: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (implicit) îi parcurge pe rând; `--algorithm shell` sau forma pozițională `csorting --circle shell` îl fixează pe unul
+- Culoare: fără `--color` se folosește paleta matugen din `~/.local/state/quickshell/user/generated/colors.json` (sau `$MATUGEN_COLORS_FILE`), cu revenire la `rainbow`. Gradientul este o interpolare lină RGB pe 24 de biți între culori
+- `--color ocean|fire|ice|mono|rainbow|matugen` alege o paletă, `--color '#ff0000,#00ff00,#0000ff'` setează culori proprii; `--palettes` le listează
 - Ieșire: `Ctrl+C`, `Ctrl+D`, `q` sau `Esc`
-- Verificare algoritmi: `python3 config/bin/csorting --self-test`
+- Verificare algoritmi și gradient: `python3 config/bin/csorting --self-test`
 
 ```bash
 csorting --circle
 csorting --line --algorithm gnome --delay 0.02
 csorting --circle shell
+csorting --circle --color fire
+csorting --line --color '#13140c,#c6cc7a,#e5e3d6'
 ```
 
 Instalare prin utilitar: **Glume în consolă → csorting** (copiat în `~/.local/bin`, funcția fish în `~/.config/fish/functions`).

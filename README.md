@@ -254,18 +254,22 @@ python3 config/bin/hackerlarp --no-disclaimer --once
 
 ## csorting (фоновая сортировка)
 
-`config/bin/csorting` — лёгкий визуализатор сортировок без зависимостей (только stdlib Python). Точки собираются в круг по градиенту (по мере сортировки превращаются в аккуратную спираль), полоски растут вертикально от маленькой к большой. Каждая перестановка/сравнение показывается отдельным кадром; когда массив отсортирован — рандомизация и следующий алгоритм.
+`config/bin/csorting` — лёгкий визуализатор сортировок без зависимостей (только stdlib Python). Точки образуют ровную точечную окружность по градиенту, полоски занимают всю ширину терминала и растут вертикально от маленькой к большой. Каждая операция показывается отдельным кадром; когда массив отсортирован — рандомизация и следующий алгоритм. В заголовке — счётчик операций за текущий и все проходы.
 
-- Виды: `--circle` (точки) и `--line` (полоски, по умолчанию)
+- Виды: `--circle` (ровная точечная линия по кругу) и `--line` (полоски, по умолчанию)
 - Алгоритмы: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (по умолчанию) перебирает их по очереди; `--algorithm shell` или позиционный аргумент `csorting --circle shell` закрепляет один
+- Цвет: без `--color` берётся палитра matugen из `~/.local/state/quickshell/user/generated/colors.json` (или `$MATUGEN_COLORS_FILE`); если её нет — `rainbow`. Градиент — плавная интерполяция в 24-bit RGB между стопами
+- `--color ocean|fire|ice|mono|rainbow|matugen` выбирает палитру, `--color '#ff0000,#00ff00,#0000ff'` — свои стопы; список — `--palettes`
 - Выход: `Ctrl+C`, `Ctrl+D`, `q` или `Esc`
-- Проверка алгоритмов: `python3 config/bin/csorting --self-test`
+- Проверка алгоритмов и градиента: `python3 config/bin/csorting --self-test`
 
 ```bash
 csorting --circle
 csorting --line --algorithm gnome --delay 0.02
 csorting --circle shell
+csorting --circle --color fire
+csorting --line --color '#13140c,#c6cc7a,#e5e3d6'
 ```
 
 Установка через мультитул: **Консольные приколы → csorting** (копируется в `~/.local/bin`, fish-функция — в `~/.config/fish/functions`).
