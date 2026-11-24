@@ -1,0 +1,9 @@
+[SddmGreeterTheme]
+Name=Stylish Dots - Stylish
+Description=SDDM theme for the stylish dotfiles profile
+Author=AkhiLeith
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+QtVersion=6
+X-SDDM-Theme-InterfaceVersion=2

@@ -103,7 +103,7 @@ bash install/install_debian.sh
 | **serpantinum** | Внешний установщик Serpantinum (через его installer), темы/пресеты можно применять из `config/themes/`. |
 | **stylish-dots** | Применяет мои дотсы: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
 
-Пункты 6–9 меню «Установка ПО» отдельно ставят SDDM, Caelestia, курсоры Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland) и настраивают подключённые мониторы на максимум герц через `hyprctl`, `wlr-randr` или `xrandr`. Пункт 9 главного меню «Очистить кэш скрипта» удаляет `~/.local/share/arch-multitool` после подтверждения; вернуть кэш можно `bash install/install.sh` (для Debian — `install_debian.sh`). На Debian Caelestia — best-effort, официально она только под Arch.
+Пункты 6–11 меню «Установка ПО» отдельно ставят SDDM, Caelestia, курсоры Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland), настраивают мониторы на максимум герц через `hyprctl`, `wlr-randr` или `xrandr`, а также кладут четыре темы SDDM (по одной на профиль: `caelestia`, `end4`, `stylish`, `serpantinum`) в `~/.local/share/sddm/themes` — без root. Пункт 11 меняет аватар или фон любой темы: `config/sddm-themes/set-image.sh <тема> <avatar|background> <путь>`. Для экрана входа темы надо скопировать вместе с `_assets` в `/usr/share/sddm/themes` и указать `Current=` в `/etc/sddm.conf.d/`; посмотреть можно через `sddm-greeter-qt6 --test-mode --theme ~/.local/share/sddm/themes/stylish`. Пункт 9 главного меню «Очистить кэш скрипта» удаляет `~/.local/share/arch-multitool` после подтверждения; вернуть кэш можно `bash install/install.sh` (для Debian — `install_debian.sh`). На Debian Caelestia — best-effort, официально она только под Arch.
 
 ---
 

@@ -1,0 +1,9 @@
+[SddmGreeterTheme]
+Name=Stylish Dots - Serpantinum
+Description=SDDM theme for the serpantinum dotfiles profile
+Author=AkhiLeith
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+QtVersion=6
+X-SDDM-Theme-InterfaceVersion=2

@@ -1,0 +1,9 @@
+[SddmGreeterTheme]
+Name=Stylish Dots - Caelestia
+Description=SDDM theme for the caelestia dotfiles profile
+Author=AkhiLeith
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+QtVersion=6
+X-SDDM-Theme-InterfaceVersion=2

@@ -106,6 +106,164 @@
 # mode 644 config/placeholders/archy-style.png
 # mode 644 config/placeholders/glass.png
 # mode 644 config/placeholders/ultra-minimalist.png
+# mode 644 config/sddm-themes/_assets/google-sans-flex/GoogleSansFlex.ttf
+# mode 644 config/sddm-themes/_assets/google-sans-flex/LICENSE
+# mode 644 config/sddm-themes/caelestia/LICENSE
+# mode 644 config/sddm-themes/caelestia/Main.qml
+# mode 644 config/sddm-themes/caelestia/assets/avatar.png
+# mode 644 config/sddm-themes/caelestia/assets/background.png
+# mode 644 config/sddm-themes/caelestia/assets/dino.png
+# mode 644 config/sddm-themes/caelestia/components/Avatar.qml
+# mode 644 config/sddm-themes/caelestia/components/BlurWrapper.qml
+# mode 644 config/sddm-themes/caelestia/components/Greeting.qml
+# mode 644 config/sddm-themes/caelestia/components/LayerState.qml
+# mode 644 config/sddm-themes/caelestia/components/Logo.qml
+# mode 644 config/sddm-themes/caelestia/components/MainClock.qml
+# mode 644 config/sddm-themes/caelestia/components/MaterialIcon.qml
+# mode 644 config/sddm-themes/caelestia/components/MaterialIcon.qml.save
+# mode 644 config/sddm-themes/caelestia/components/PasswordInput.qml
+# mode 644 config/sddm-themes/caelestia/components/RandomQuote.qml
+# mode 644 config/sddm-themes/caelestia/components/SessionPicker.qml
+# mode 644 config/sddm-themes/caelestia/components/VideoBackground.qml
+# mode 644 config/sddm-themes/caelestia/components/shapes/ShapeCanvas.qml
+# mode 644 config/sddm-themes/caelestia/components/shapes/geometry/offset.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/graphics/matrix.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/material-shapes.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/corner-rounding.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/cubic.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/feature-mapping.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/feature.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/float-mapping.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/morph.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/point.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/polygon-measure.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/rounded-corner.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/rounded-polygon.js
+# mode 644 config/sddm-themes/caelestia/components/shapes/shapes/utils.js
+# mode 644 config/sddm-themes/caelestia/config/quotes.json
+# mode 644 config/sddm-themes/caelestia/metadata.desktop
+# mode 644 config/sddm-themes/caelestia/theme.conf
+# mode 644 config/sddm-themes/caelestia/theme.conf.template
+# mode 644 config/sddm-themes/caelestia/widgets/CaelestiaFetch.qml
+# mode 644 config/sddm-themes/caelestia/widgets/SystemButtons.qml
+# mode 644 config/sddm-themes/caelestia/widgets/WelcomeText.qml
+# mode 644 config/sddm-themes/end4/LICENSE
+# mode 644 config/sddm-themes/end4/Main.qml
+# mode 644 config/sddm-themes/end4/assets/avatar.png
+# mode 644 config/sddm-themes/end4/assets/background.png
+# mode 644 config/sddm-themes/end4/assets/dino.png
+# mode 644 config/sddm-themes/end4/components/Avatar.qml
+# mode 644 config/sddm-themes/end4/components/BlurWrapper.qml
+# mode 644 config/sddm-themes/end4/components/Greeting.qml
+# mode 644 config/sddm-themes/end4/components/LayerState.qml
+# mode 644 config/sddm-themes/end4/components/Logo.qml
+# mode 644 config/sddm-themes/end4/components/MainClock.qml
+# mode 644 config/sddm-themes/end4/components/MaterialIcon.qml
+# mode 644 config/sddm-themes/end4/components/MaterialIcon.qml.save
+# mode 644 config/sddm-themes/end4/components/PasswordInput.qml
+# mode 644 config/sddm-themes/end4/components/RandomQuote.qml
+# mode 644 config/sddm-themes/end4/components/SessionPicker.qml
+# mode 644 config/sddm-themes/end4/components/VideoBackground.qml
+# mode 644 config/sddm-themes/end4/components/shapes/ShapeCanvas.qml
+# mode 644 config/sddm-themes/end4/components/shapes/geometry/offset.js
+# mode 644 config/sddm-themes/end4/components/shapes/graphics/matrix.js
+# mode 644 config/sddm-themes/end4/components/shapes/material-shapes.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/corner-rounding.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/cubic.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/feature-mapping.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/feature.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/float-mapping.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/morph.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/point.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/polygon-measure.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/rounded-corner.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/rounded-polygon.js
+# mode 644 config/sddm-themes/end4/components/shapes/shapes/utils.js
+# mode 644 config/sddm-themes/end4/config/quotes.json
+# mode 644 config/sddm-themes/end4/metadata.desktop
+# mode 644 config/sddm-themes/end4/theme.conf
+# mode 644 config/sddm-themes/end4/theme.conf.template
+# mode 644 config/sddm-themes/end4/widgets/CaelestiaFetch.qml
+# mode 644 config/sddm-themes/end4/widgets/SystemButtons.qml
+# mode 644 config/sddm-themes/end4/widgets/WelcomeText.qml
+# mode 644 config/sddm-themes/serpantinum/LICENSE
+# mode 644 config/sddm-themes/serpantinum/Main.qml
+# mode 644 config/sddm-themes/serpantinum/assets/avatar.png
+# mode 644 config/sddm-themes/serpantinum/assets/background.png
+# mode 644 config/sddm-themes/serpantinum/assets/dino.png
+# mode 644 config/sddm-themes/serpantinum/components/Avatar.qml
+# mode 644 config/sddm-themes/serpantinum/components/BlurWrapper.qml
+# mode 644 config/sddm-themes/serpantinum/components/Greeting.qml
+# mode 644 config/sddm-themes/serpantinum/components/LayerState.qml
+# mode 644 config/sddm-themes/serpantinum/components/Logo.qml
+# mode 644 config/sddm-themes/serpantinum/components/MainClock.qml
+# mode 644 config/sddm-themes/serpantinum/components/MaterialIcon.qml
+# mode 644 config/sddm-themes/serpantinum/components/MaterialIcon.qml.save
+# mode 644 config/sddm-themes/serpantinum/components/PasswordInput.qml
+# mode 644 config/sddm-themes/serpantinum/components/RandomQuote.qml
+# mode 644 config/sddm-themes/serpantinum/components/SessionPicker.qml
+# mode 644 config/sddm-themes/serpantinum/components/VideoBackground.qml
+# mode 644 config/sddm-themes/serpantinum/components/shapes/ShapeCanvas.qml
+# mode 644 config/sddm-themes/serpantinum/components/shapes/geometry/offset.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/graphics/matrix.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/material-shapes.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/corner-rounding.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/cubic.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/feature-mapping.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/feature.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/float-mapping.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/morph.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/point.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/polygon-measure.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/rounded-corner.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/rounded-polygon.js
+# mode 644 config/sddm-themes/serpantinum/components/shapes/shapes/utils.js
+# mode 644 config/sddm-themes/serpantinum/config/quotes.json
+# mode 644 config/sddm-themes/serpantinum/metadata.desktop
+# mode 644 config/sddm-themes/serpantinum/theme.conf
+# mode 644 config/sddm-themes/serpantinum/theme.conf.template
+# mode 644 config/sddm-themes/serpantinum/widgets/CaelestiaFetch.qml
+# mode 644 config/sddm-themes/serpantinum/widgets/SystemButtons.qml
+# mode 644 config/sddm-themes/serpantinum/widgets/WelcomeText.qml
+# mode 644 config/sddm-themes/stylish/LICENSE
+# mode 644 config/sddm-themes/stylish/Main.qml
+# mode 644 config/sddm-themes/stylish/assets/avatar.png
+# mode 644 config/sddm-themes/stylish/assets/background.png
+# mode 644 config/sddm-themes/stylish/assets/dino.png
+# mode 644 config/sddm-themes/stylish/components/Avatar.qml
+# mode 644 config/sddm-themes/stylish/components/BlurWrapper.qml
+# mode 644 config/sddm-themes/stylish/components/Greeting.qml
+# mode 644 config/sddm-themes/stylish/components/LayerState.qml
+# mode 644 config/sddm-themes/stylish/components/Logo.qml
+# mode 644 config/sddm-themes/stylish/components/MainClock.qml
+# mode 644 config/sddm-themes/stylish/components/MaterialIcon.qml
+# mode 644 config/sddm-themes/stylish/components/MaterialIcon.qml.save
+# mode 644 config/sddm-themes/stylish/components/PasswordInput.qml
+# mode 644 config/sddm-themes/stylish/components/RandomQuote.qml
+# mode 644 config/sddm-themes/stylish/components/SessionPicker.qml
+# mode 644 config/sddm-themes/stylish/components/VideoBackground.qml
+# mode 644 config/sddm-themes/stylish/components/shapes/ShapeCanvas.qml
+# mode 644 config/sddm-themes/stylish/components/shapes/geometry/offset.js
+# mode 644 config/sddm-themes/stylish/components/shapes/graphics/matrix.js
+# mode 644 config/sddm-themes/stylish/components/shapes/material-shapes.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/corner-rounding.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/cubic.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/feature-mapping.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/feature.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/float-mapping.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/morph.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/point.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/polygon-measure.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/rounded-corner.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/rounded-polygon.js
+# mode 644 config/sddm-themes/stylish/components/shapes/shapes/utils.js
+# mode 644 config/sddm-themes/stylish/config/quotes.json
+# mode 644 config/sddm-themes/stylish/metadata.desktop
+# mode 644 config/sddm-themes/stylish/theme.conf
+# mode 644 config/sddm-themes/stylish/theme.conf.template
+# mode 644 config/sddm-themes/stylish/widgets/CaelestiaFetch.qml
+# mode 644 config/sddm-themes/stylish/widgets/SystemButtons.qml
+# mode 644 config/sddm-themes/stylish/widgets/WelcomeText.qml
 # mode 644 config/themes/amber-crt.json
 # mode 644 config/themes/archy-style.json
 # mode 644 config/themes/arctic-glass.json
@@ -210,6 +368,7 @@
 # mode 755 config/mango/scripts/toggle-scroller
 # mode 755 config/mango/scripts/wallpaper
 # mode 755 config/mango/scripts/wallpaper-pick
+# mode 755 config/sddm-themes/set-image.sh
 # mode 755 config/waybar/scripts/distro-icon.sh
 7c645804bdf90fc068350a35a960a7f05cd611e527d7279140c5ed00d52dc518  arch_multitool.sh
 011b05fadc66d5d97013a9781c1ac0cbcefcd5943c87b984d7b1d1cc29f09ca2  arch_multitool_debian.sh
@@ -343,6 +502,165 @@ b57e471092f21393a8785d56aa623a9c3c9285ebc41095bbc7ab4f43fc6f5b93  config/nvim/lu
 774427d622cc561643b69f42eed1599f302c5714be14dd3f44d5e6bc7251f027  config/placeholders/archy-style.png
 94021e1edaf4f214317593ac6978aee0fb4717568475d9e69253f3f87811b1cc  config/placeholders/glass.png
 21933d36676e3709407d124319a438e50b856b0b0c78bf5d9aa1f347ec2013e2  config/placeholders/ultra-minimalist.png
+2510a8b7a24beb1fe8163e9a49813ccfe96b5453444b9443d42665ca4fa320c9  config/sddm-themes/_assets/google-sans-flex/GoogleSansFlex.ttf
+fb755fa3280d1d215a20df2e64fe6a0f75f8208439b11671978214aae60d2997  config/sddm-themes/_assets/google-sans-flex/LICENSE
+3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986  config/sddm-themes/caelestia/LICENSE
+657defbe5ee8903f40455336609d283d2ca9d21861fd5757d31cac0ed842e87d  config/sddm-themes/caelestia/Main.qml
+08094f087a7494eb05df67cd24bff0abda963c5b60baf0ca966219ee00319b1f  config/sddm-themes/caelestia/assets/avatar.png
+2e72d5fc43423ae9e75e80c0fbedceca23505f01500c0bc9da1b3c814228424b  config/sddm-themes/caelestia/assets/background.png
+39015398cf0f6094b851d30163b7ca4e11d1b556bc66a10fb2bcab2a0e4be137  config/sddm-themes/caelestia/assets/dino.png
+1fe33d5649bbb6cf2c90fc52232568caf68a1a27f7c752e2581cd9f78ef7ae2f  config/sddm-themes/caelestia/components/Avatar.qml
+29bd7d3c0853bb1706955eeb93601767156bf01c7cc51957bed3be8b8d36c6ee  config/sddm-themes/caelestia/components/BlurWrapper.qml
+3a80a355092bc14962e438ffdbd1616ff73ba7521a967747b8f7e750d05d1411  config/sddm-themes/caelestia/components/Greeting.qml
+5bc9e9f820401fa1a9a97dfc9469b3edd0c2e3d3680dcbf92faa7fe3621470de  config/sddm-themes/caelestia/components/LayerState.qml
+4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/caelestia/components/Logo.qml
+1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/caelestia/components/MainClock.qml
+a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/caelestia/components/MaterialIcon.qml
+5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/caelestia/components/MaterialIcon.qml.save
+8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/caelestia/components/PasswordInput.qml
+f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/caelestia/components/RandomQuote.qml
+47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/caelestia/components/SessionPicker.qml
+c2b61ef90d85b34f1c0f735b05fccee411c43f2844aba3efe06687b32cd57be5  config/sddm-themes/caelestia/components/VideoBackground.qml
+534e4e81c6c46c89588fecec0358aab58b87afb5e6856db4d32d8a677057ee8a  config/sddm-themes/caelestia/components/shapes/ShapeCanvas.qml
+5ddc6d47e7b39537da43d38eabf5809f84c28bb390b430f16e6e4eea404f99ad  config/sddm-themes/caelestia/components/shapes/geometry/offset.js
+d624b09f32cf4a4896de0b526a45b8dcf0cc5a8d5bf75e027ae92c567b0b2e36  config/sddm-themes/caelestia/components/shapes/graphics/matrix.js
+ba3ac8388b3a3ffc46e188086c9237bf51a0019ccd1f033f3d339eab764312e9  config/sddm-themes/caelestia/components/shapes/material-shapes.js
+a74f99183fb900e93bc761a6effc6721d104644aa2543714e84cf2d0f62520d7  config/sddm-themes/caelestia/components/shapes/shapes/corner-rounding.js
+ae04b6424c342568b1cb8ec95154e4e815b74524ed6c9799f9b681584b3025c7  config/sddm-themes/caelestia/components/shapes/shapes/cubic.js
+f9790494643c5018f608d08000907bb3b0c102463287932263988c91902f9d73  config/sddm-themes/caelestia/components/shapes/shapes/feature-mapping.js
+b0f07edff41813d6037a4529e8d6653bec7f37e4a0b6d0c54285b854ed0bdc4c  config/sddm-themes/caelestia/components/shapes/shapes/feature.js
+90d5573a9495c146333555ff2a6c834d1f6ce6a4fdc920e0cebdfcb9ea51ac36  config/sddm-themes/caelestia/components/shapes/shapes/float-mapping.js
+955593b7b220f3ee897ca138d10c64a6fc2842b59fe10d6f4205e7ce7778d6c9  config/sddm-themes/caelestia/components/shapes/shapes/morph.js
+de6a7b0066347eab32045a2649f0826718b664a2131e109313ffd27ac8bc797a  config/sddm-themes/caelestia/components/shapes/shapes/point.js
+b3584cee5ac2440c630123b07dc38d1f3cd5e7e559301bf7bc11d8bbf28501ba  config/sddm-themes/caelestia/components/shapes/shapes/polygon-measure.js
+de719645cf404ecd775a250f3d0708f00f168106deaaa19c9546d754e362eb88  config/sddm-themes/caelestia/components/shapes/shapes/rounded-corner.js
+67c6fd8b784b2d978591748080db0fc01a6e6b7211d71b39e32a3bd2dd54f503  config/sddm-themes/caelestia/components/shapes/shapes/rounded-polygon.js
+dd470245904ec33f029f2dac0594f78f9109a4e2b8528ed663f6fd8587fcf064  config/sddm-themes/caelestia/components/shapes/shapes/utils.js
+a9cd89f3f542a3ea3dfa157c4983bd218242e59a1b3ce4454483d3727a0ea30c  config/sddm-themes/caelestia/config/quotes.json
+96217f42dfdf5fea224eb9240aaf08ecebbc24965c5221b7a4bb9f2d5e9c7942  config/sddm-themes/caelestia/metadata.desktop
+5f24dcc2f5d762423199a79dc9ab0b044542918246158db9891440d1f193c2b2  config/sddm-themes/caelestia/theme.conf
+66246b82cc4edf577df515f9ec5c6b7669a6f272483953bf9157da564287b1b6  config/sddm-themes/caelestia/theme.conf.template
+3fcabd0120c2de7d382d80064162e648a61ce4f8e5877dd214b37927abafa582  config/sddm-themes/caelestia/widgets/CaelestiaFetch.qml
+90478e115d8febeff7cae2cd45ec1e0d6a7a0b127e10980fc31621af3b22eed3  config/sddm-themes/caelestia/widgets/SystemButtons.qml
+a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-themes/caelestia/widgets/WelcomeText.qml
+3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986  config/sddm-themes/end4/LICENSE
+657defbe5ee8903f40455336609d283d2ca9d21861fd5757d31cac0ed842e87d  config/sddm-themes/end4/Main.qml
+9b6bb1f54407a38f12f167d18a41448602fc4a86b789ceb51b5de11daf8bae98  config/sddm-themes/end4/assets/avatar.png
+06436d8bf01fa196680ac46a178de871b6e338ceab3ef1f49d03ea2786091ea6  config/sddm-themes/end4/assets/background.png
+39015398cf0f6094b851d30163b7ca4e11d1b556bc66a10fb2bcab2a0e4be137  config/sddm-themes/end4/assets/dino.png
+1fe33d5649bbb6cf2c90fc52232568caf68a1a27f7c752e2581cd9f78ef7ae2f  config/sddm-themes/end4/components/Avatar.qml
+29bd7d3c0853bb1706955eeb93601767156bf01c7cc51957bed3be8b8d36c6ee  config/sddm-themes/end4/components/BlurWrapper.qml
+3a80a355092bc14962e438ffdbd1616ff73ba7521a967747b8f7e750d05d1411  config/sddm-themes/end4/components/Greeting.qml
+5bc9e9f820401fa1a9a97dfc9469b3edd0c2e3d3680dcbf92faa7fe3621470de  config/sddm-themes/end4/components/LayerState.qml
+4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/end4/components/Logo.qml
+1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/end4/components/MainClock.qml
+a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/end4/components/MaterialIcon.qml
+5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/end4/components/MaterialIcon.qml.save
+8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/end4/components/PasswordInput.qml
+f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/end4/components/RandomQuote.qml
+47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/end4/components/SessionPicker.qml
+c2b61ef90d85b34f1c0f735b05fccee411c43f2844aba3efe06687b32cd57be5  config/sddm-themes/end4/components/VideoBackground.qml
+534e4e81c6c46c89588fecec0358aab58b87afb5e6856db4d32d8a677057ee8a  config/sddm-themes/end4/components/shapes/ShapeCanvas.qml
+5ddc6d47e7b39537da43d38eabf5809f84c28bb390b430f16e6e4eea404f99ad  config/sddm-themes/end4/components/shapes/geometry/offset.js
+d624b09f32cf4a4896de0b526a45b8dcf0cc5a8d5bf75e027ae92c567b0b2e36  config/sddm-themes/end4/components/shapes/graphics/matrix.js
+ba3ac8388b3a3ffc46e188086c9237bf51a0019ccd1f033f3d339eab764312e9  config/sddm-themes/end4/components/shapes/material-shapes.js
+a74f99183fb900e93bc761a6effc6721d104644aa2543714e84cf2d0f62520d7  config/sddm-themes/end4/components/shapes/shapes/corner-rounding.js
+ae04b6424c342568b1cb8ec95154e4e815b74524ed6c9799f9b681584b3025c7  config/sddm-themes/end4/components/shapes/shapes/cubic.js
+f9790494643c5018f608d08000907bb3b0c102463287932263988c91902f9d73  config/sddm-themes/end4/components/shapes/shapes/feature-mapping.js
+b0f07edff41813d6037a4529e8d6653bec7f37e4a0b6d0c54285b854ed0bdc4c  config/sddm-themes/end4/components/shapes/shapes/feature.js
+90d5573a9495c146333555ff2a6c834d1f6ce6a4fdc920e0cebdfcb9ea51ac36  config/sddm-themes/end4/components/shapes/shapes/float-mapping.js
+955593b7b220f3ee897ca138d10c64a6fc2842b59fe10d6f4205e7ce7778d6c9  config/sddm-themes/end4/components/shapes/shapes/morph.js
+de6a7b0066347eab32045a2649f0826718b664a2131e109313ffd27ac8bc797a  config/sddm-themes/end4/components/shapes/shapes/point.js
+b3584cee5ac2440c630123b07dc38d1f3cd5e7e559301bf7bc11d8bbf28501ba  config/sddm-themes/end4/components/shapes/shapes/polygon-measure.js
+de719645cf404ecd775a250f3d0708f00f168106deaaa19c9546d754e362eb88  config/sddm-themes/end4/components/shapes/shapes/rounded-corner.js
+67c6fd8b784b2d978591748080db0fc01a6e6b7211d71b39e32a3bd2dd54f503  config/sddm-themes/end4/components/shapes/shapes/rounded-polygon.js
+dd470245904ec33f029f2dac0594f78f9109a4e2b8528ed663f6fd8587fcf064  config/sddm-themes/end4/components/shapes/shapes/utils.js
+a9cd89f3f542a3ea3dfa157c4983bd218242e59a1b3ce4454483d3727a0ea30c  config/sddm-themes/end4/config/quotes.json
+c90e2119e666fc52c15fbbf86d0f30fd79ccadc59291d2b8f8b1128628433fa6  config/sddm-themes/end4/metadata.desktop
+9c6113dc3e6761cf20cc6f5e8d7dfa0bb8b966493c3b31f869b22d4dc7ef741d  config/sddm-themes/end4/theme.conf
+66246b82cc4edf577df515f9ec5c6b7669a6f272483953bf9157da564287b1b6  config/sddm-themes/end4/theme.conf.template
+bf637192a91f8c2e34b1f692a6a58b60a5014d76c9f02d1bfd2da2333b6cd73b  config/sddm-themes/end4/widgets/CaelestiaFetch.qml
+90478e115d8febeff7cae2cd45ec1e0d6a7a0b127e10980fc31621af3b22eed3  config/sddm-themes/end4/widgets/SystemButtons.qml
+a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-themes/end4/widgets/WelcomeText.qml
+3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986  config/sddm-themes/serpantinum/LICENSE
+657defbe5ee8903f40455336609d283d2ca9d21861fd5757d31cac0ed842e87d  config/sddm-themes/serpantinum/Main.qml
+9e4ea855543b5274dc7fa8ccc3b1fd32d53a9c1627541ce59f5d971084a0448e  config/sddm-themes/serpantinum/assets/avatar.png
+283c35dd4bf2b6704841a5d449897bda0421c40223d96c25c544df8ff3bd0f5c  config/sddm-themes/serpantinum/assets/background.png
+39015398cf0f6094b851d30163b7ca4e11d1b556bc66a10fb2bcab2a0e4be137  config/sddm-themes/serpantinum/assets/dino.png
+1fe33d5649bbb6cf2c90fc52232568caf68a1a27f7c752e2581cd9f78ef7ae2f  config/sddm-themes/serpantinum/components/Avatar.qml
+29bd7d3c0853bb1706955eeb93601767156bf01c7cc51957bed3be8b8d36c6ee  config/sddm-themes/serpantinum/components/BlurWrapper.qml
+3a80a355092bc14962e438ffdbd1616ff73ba7521a967747b8f7e750d05d1411  config/sddm-themes/serpantinum/components/Greeting.qml
+5bc9e9f820401fa1a9a97dfc9469b3edd0c2e3d3680dcbf92faa7fe3621470de  config/sddm-themes/serpantinum/components/LayerState.qml
+4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/serpantinum/components/Logo.qml
+1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/serpantinum/components/MainClock.qml
+a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/serpantinum/components/MaterialIcon.qml
+5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/serpantinum/components/MaterialIcon.qml.save
+8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/serpantinum/components/PasswordInput.qml
+f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/serpantinum/components/RandomQuote.qml
+47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/serpantinum/components/SessionPicker.qml
+c2b61ef90d85b34f1c0f735b05fccee411c43f2844aba3efe06687b32cd57be5  config/sddm-themes/serpantinum/components/VideoBackground.qml
+534e4e81c6c46c89588fecec0358aab58b87afb5e6856db4d32d8a677057ee8a  config/sddm-themes/serpantinum/components/shapes/ShapeCanvas.qml
+5ddc6d47e7b39537da43d38eabf5809f84c28bb390b430f16e6e4eea404f99ad  config/sddm-themes/serpantinum/components/shapes/geometry/offset.js
+d624b09f32cf4a4896de0b526a45b8dcf0cc5a8d5bf75e027ae92c567b0b2e36  config/sddm-themes/serpantinum/components/shapes/graphics/matrix.js
+ba3ac8388b3a3ffc46e188086c9237bf51a0019ccd1f033f3d339eab764312e9  config/sddm-themes/serpantinum/components/shapes/material-shapes.js
+a74f99183fb900e93bc761a6effc6721d104644aa2543714e84cf2d0f62520d7  config/sddm-themes/serpantinum/components/shapes/shapes/corner-rounding.js
+ae04b6424c342568b1cb8ec95154e4e815b74524ed6c9799f9b681584b3025c7  config/sddm-themes/serpantinum/components/shapes/shapes/cubic.js
+f9790494643c5018f608d08000907bb3b0c102463287932263988c91902f9d73  config/sddm-themes/serpantinum/components/shapes/shapes/feature-mapping.js
+b0f07edff41813d6037a4529e8d6653bec7f37e4a0b6d0c54285b854ed0bdc4c  config/sddm-themes/serpantinum/components/shapes/shapes/feature.js
+90d5573a9495c146333555ff2a6c834d1f6ce6a4fdc920e0cebdfcb9ea51ac36  config/sddm-themes/serpantinum/components/shapes/shapes/float-mapping.js
+955593b7b220f3ee897ca138d10c64a6fc2842b59fe10d6f4205e7ce7778d6c9  config/sddm-themes/serpantinum/components/shapes/shapes/morph.js
+de6a7b0066347eab32045a2649f0826718b664a2131e109313ffd27ac8bc797a  config/sddm-themes/serpantinum/components/shapes/shapes/point.js
+b3584cee5ac2440c630123b07dc38d1f3cd5e7e559301bf7bc11d8bbf28501ba  config/sddm-themes/serpantinum/components/shapes/shapes/polygon-measure.js
+de719645cf404ecd775a250f3d0708f00f168106deaaa19c9546d754e362eb88  config/sddm-themes/serpantinum/components/shapes/shapes/rounded-corner.js
+67c6fd8b784b2d978591748080db0fc01a6e6b7211d71b39e32a3bd2dd54f503  config/sddm-themes/serpantinum/components/shapes/shapes/rounded-polygon.js
+dd470245904ec33f029f2dac0594f78f9109a4e2b8528ed663f6fd8587fcf064  config/sddm-themes/serpantinum/components/shapes/shapes/utils.js
+a9cd89f3f542a3ea3dfa157c4983bd218242e59a1b3ce4454483d3727a0ea30c  config/sddm-themes/serpantinum/config/quotes.json
+3667a2a75ddb19356f50f68770e6a0ca1df6ec6c53615fb8f1f70c05610b07e8  config/sddm-themes/serpantinum/metadata.desktop
+7d3c532e57324a5f24436bac1ed4014b7a909096f63ce8eccb5210fd5bd41810  config/sddm-themes/serpantinum/theme.conf
+66246b82cc4edf577df515f9ec5c6b7669a6f272483953bf9157da564287b1b6  config/sddm-themes/serpantinum/theme.conf.template
+0ce84c3caa4afed48a92a5e34f354fb1838582712a1ba50432abcebcece22bee  config/sddm-themes/serpantinum/widgets/CaelestiaFetch.qml
+90478e115d8febeff7cae2cd45ec1e0d6a7a0b127e10980fc31621af3b22eed3  config/sddm-themes/serpantinum/widgets/SystemButtons.qml
+a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-themes/serpantinum/widgets/WelcomeText.qml
+c1ab36d9a4f4a6a6ade6dd34398059c4d7fef606c540e79f26130de139f8f3e5  config/sddm-themes/set-image.sh
+3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986  config/sddm-themes/stylish/LICENSE
+657defbe5ee8903f40455336609d283d2ca9d21861fd5757d31cac0ed842e87d  config/sddm-themes/stylish/Main.qml
+03da68e9c54bf30cb9c5175844efe6187cdae9dde2356e419b782c3f45d8cc34  config/sddm-themes/stylish/assets/avatar.png
+592c9337e408e724952db1611a4c89e671992c859cc3f67f68ef3d1b3483b1b4  config/sddm-themes/stylish/assets/background.png
+39015398cf0f6094b851d30163b7ca4e11d1b556bc66a10fb2bcab2a0e4be137  config/sddm-themes/stylish/assets/dino.png
+1fe33d5649bbb6cf2c90fc52232568caf68a1a27f7c752e2581cd9f78ef7ae2f  config/sddm-themes/stylish/components/Avatar.qml
+29bd7d3c0853bb1706955eeb93601767156bf01c7cc51957bed3be8b8d36c6ee  config/sddm-themes/stylish/components/BlurWrapper.qml
+3a80a355092bc14962e438ffdbd1616ff73ba7521a967747b8f7e750d05d1411  config/sddm-themes/stylish/components/Greeting.qml
+5bc9e9f820401fa1a9a97dfc9469b3edd0c2e3d3680dcbf92faa7fe3621470de  config/sddm-themes/stylish/components/LayerState.qml
+4397725c148ff2ee196a1a896eb9718f7af364d3ac1627944934f1900989348f  config/sddm-themes/stylish/components/Logo.qml
+1faa4651a1bc81a5bfb7ea96b2eb77da5b864001fcfebae235d43c3e1e022b08  config/sddm-themes/stylish/components/MainClock.qml
+a85f5680ac2176524cdb722e7051f7716fd7e275aa9bf4df982a154e841c039a  config/sddm-themes/stylish/components/MaterialIcon.qml
+5b917b9d7552c455dc9e73dd2e96a3909200bab9acb3d0c6aa33fce335e5728d  config/sddm-themes/stylish/components/MaterialIcon.qml.save
+8105d5178a502aabd83f1a0667c76f4d5a3a0b44ece0a2b3caef5225d4f68dde  config/sddm-themes/stylish/components/PasswordInput.qml
+f780d2315eba0819c6673e60e23c1cbe9d956c76375081eeee6c8ace3b22d795  config/sddm-themes/stylish/components/RandomQuote.qml
+47e76c0b272f491325af8b4f6e42a3f16f9e41757f2fdc9ad8c3d0e040b8dc32  config/sddm-themes/stylish/components/SessionPicker.qml
+c2b61ef90d85b34f1c0f735b05fccee411c43f2844aba3efe06687b32cd57be5  config/sddm-themes/stylish/components/VideoBackground.qml
+534e4e81c6c46c89588fecec0358aab58b87afb5e6856db4d32d8a677057ee8a  config/sddm-themes/stylish/components/shapes/ShapeCanvas.qml
+5ddc6d47e7b39537da43d38eabf5809f84c28bb390b430f16e6e4eea404f99ad  config/sddm-themes/stylish/components/shapes/geometry/offset.js
+d624b09f32cf4a4896de0b526a45b8dcf0cc5a8d5bf75e027ae92c567b0b2e36  config/sddm-themes/stylish/components/shapes/graphics/matrix.js
+ba3ac8388b3a3ffc46e188086c9237bf51a0019ccd1f033f3d339eab764312e9  config/sddm-themes/stylish/components/shapes/material-shapes.js
+a74f99183fb900e93bc761a6effc6721d104644aa2543714e84cf2d0f62520d7  config/sddm-themes/stylish/components/shapes/shapes/corner-rounding.js
+ae04b6424c342568b1cb8ec95154e4e815b74524ed6c9799f9b681584b3025c7  config/sddm-themes/stylish/components/shapes/shapes/cubic.js
+f9790494643c5018f608d08000907bb3b0c102463287932263988c91902f9d73  config/sddm-themes/stylish/components/shapes/shapes/feature-mapping.js
+b0f07edff41813d6037a4529e8d6653bec7f37e4a0b6d0c54285b854ed0bdc4c  config/sddm-themes/stylish/components/shapes/shapes/feature.js
+90d5573a9495c146333555ff2a6c834d1f6ce6a4fdc920e0cebdfcb9ea51ac36  config/sddm-themes/stylish/components/shapes/shapes/float-mapping.js
+955593b7b220f3ee897ca138d10c64a6fc2842b59fe10d6f4205e7ce7778d6c9  config/sddm-themes/stylish/components/shapes/shapes/morph.js
+de6a7b0066347eab32045a2649f0826718b664a2131e109313ffd27ac8bc797a  config/sddm-themes/stylish/components/shapes/shapes/point.js
+b3584cee5ac2440c630123b07dc38d1f3cd5e7e559301bf7bc11d8bbf28501ba  config/sddm-themes/stylish/components/shapes/shapes/polygon-measure.js
+de719645cf404ecd775a250f3d0708f00f168106deaaa19c9546d754e362eb88  config/sddm-themes/stylish/components/shapes/shapes/rounded-corner.js
+67c6fd8b784b2d978591748080db0fc01a6e6b7211d71b39e32a3bd2dd54f503  config/sddm-themes/stylish/components/shapes/shapes/rounded-polygon.js
+dd470245904ec33f029f2dac0594f78f9109a4e2b8528ed663f6fd8587fcf064  config/sddm-themes/stylish/components/shapes/shapes/utils.js
+a9cd89f3f542a3ea3dfa157c4983bd218242e59a1b3ce4454483d3727a0ea30c  config/sddm-themes/stylish/config/quotes.json
+acb070b0ae9e319e7f4fa72b5bb93342bfcf16b09d5abf0251c9cc5fa44a1709  config/sddm-themes/stylish/metadata.desktop
+5ba8565673b05bcd37b767711a8a5f714917ecef319e977393371221c5795a6d  config/sddm-themes/stylish/theme.conf
+66246b82cc4edf577df515f9ec5c6b7669a6f272483953bf9157da564287b1b6  config/sddm-themes/stylish/theme.conf.template
+2d802693bb7a3e6adc3d255c47daf7972fa6876c1d3ec307a1203133869ed3d6  config/sddm-themes/stylish/widgets/CaelestiaFetch.qml
+90478e115d8febeff7cae2cd45ec1e0d6a7a0b127e10980fc31621af3b22eed3  config/sddm-themes/stylish/widgets/SystemButtons.qml
+a247f51ba9a5f1a11ada19889a933a22d5ceeab481e9ad148c1033e27c789ea2  config/sddm-themes/stylish/widgets/WelcomeText.qml
 39bbfe445125b27c2f6bac7a4d0da757ac4568d1bab14582f973e36d6f83a868  config/themes/amber-crt.json
 71e66f70f0ca30e421e64d89baab5be2dd8bacf7ab3262578a0d15fb9722cd0f  config/themes/archy-style.json
 a9820ca5f4091829ac5d3a296bb562d47072841230cad76ba95d8caa01bd5167  config/themes/arctic-glass.json
@@ -405,7 +723,7 @@ fe460f1f726fbdd626f7a8e1991d3df8a07980fe3499f17706e86dd5e0dfd75a  config/waybar/
 0996db8388a147678550b8d151837d7c6fc2753275161de734c6e8120d0b3811  modules/actions/audit.sh
 a9e431c11f59206feef6d52e2cf15e3d3b37ce1ea7f809d074114cb9054e8306  modules/actions/backup.sh
 621632b37fd6296216ea963e74c5905df0d7a2341a529c823dd2b6d5f44d78c0  modules/actions/dotfiles.sh
-3fe704575bbefee30016f4a32752c93f13759049c56ea2950abaa847313dfc91  modules/actions/extras.sh
+fc6b9d6e0856d016be00e794bf933fa2da0d643cacd4fcb8a005d71e2f579e89  modules/actions/extras.sh
 0127fce50021c9ac2c4e74a774c553a92f9cb57e528cef35f3cdb07735f4684f  modules/actions/fetches.sh
 6199502ce2c86899d79879c106ef3f14964d2052271c632302c6b144b723efee  modules/actions/fish.sh
 12a00f1bbb18efa1639098c6717834154f60773bbf6190c4e2dce4756c57dedd  modules/actions/flatpak.sh
@@ -414,12 +732,12 @@ cb13235b6fa30d0dd5063ae1c13e11d1224ce9d1dda4cbc970399b7982e00204  modules/action
 c441411bf8b7b6a6f1614fa33dd5715c6f8ec327e47054e44ba6a7731de622b2  modules/actions/neovim.sh
 fbdaf87a4b04d01fb4e47d9fe5a47e8b976a752f78e4e75fd07361974b02ba65  modules/actions/network.sh
 a0e1946b1f0885c392a8e5b562154b80b57be14a66c666971c1dedd203961b41  modules/actions/preflight.sh
-b4af43699e2043ccad9ed717ae79c6fcffaa99966c63b3586d7d08886508ca47  modules/actions/software.sh
+118bce1b0269c2101576b103fdb3e2e866a5c5a8b35e3422eb9941b1d05d39f7  modules/actions/software.sh
 92344e824939915ebca259e6cb5a07486314330ef8c084893a52c03ce783391c  modules/actions/system.sh
 b4f3dfadea03ad403149fe16cb83bd114498c5945b215fac7dfe6058f2fe61d5  modules/actions/uninstall.sh
 410afc4422a6d10581cfb0839b7832ca9ddf30a93ead3fef82982a5f771221bd  modules/lib/common.sh
-338324c4f55934fb92d1d7defdf932c378eeefd703d158edf8d2f62b56d25c71  modules/lib/i18n.sh
-eadf3299d9c895874d7fcd9092046979e635049ebf70f7827ab615c06011c7db  modules/lib/loader.sh
+5fcdf4b4bb6a129887f68b8dcbc4f2dcc898a2c1a386b52e4c203c9712ae61e6  modules/lib/i18n.sh
+606d3b1f85242ee1e550028c3011c5769383c40861b7cf4fc20733198a142243  modules/lib/loader.sh
 af6a9ab1a999c18fdd25395c5c7b65a01627ce1e65fb1b412ebe1b17f2a0e370  modules/lib/menu.sh
 4495ec5ca6c0af944642e5a389b11f9781980d8ad4117b36a12872da3ef57028  modules/lib/multitool.sh
 bef714ac4dc76f1ee602e48f00021029dfd1f107f0e0496ac43ab1e233e5472f  modules/lib/platform.sh

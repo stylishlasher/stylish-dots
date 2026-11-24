@@ -27,6 +27,8 @@ action_software_menu() {
             "7|$(t profile_caelestia)" \
             "8|$(t comp_cursors)" \
             "9|$(t comp_monitors)" \
+            "10|$(t sddm_themes_install)" \
+            "11|$(t sddm_image_change)" \
             "0|$(t menu_back)" || return 0
         case "$MENU_CHOICE" in
             1) action_install_basic; pause ;;
@@ -38,6 +40,8 @@ action_software_menu() {
             7) action_install_caelestia; pause ;;
             8) action_cursors_menu ;;
             9) action_setup_monitors; pause ;;
+            10) action_install_sddm_themes; pause ;;
+            11) action_set_sddm_image; pause ;;
             0) return 0 ;;
         esac
     done

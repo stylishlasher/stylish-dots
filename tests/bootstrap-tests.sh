@@ -505,4 +505,32 @@ run_monitors_test() {
 }
 run_monitors_test
 
+# Четыре темы SDDM и замена картинки без root.
+run_sddm_themes_test() {
+    local tmp src out name before after
+    src="$ROOT/config/sddm-themes"
+    for name in caelestia end4 stylish serpantinum; do
+        [[ -f "$src/$name/metadata.desktop" && -f "$src/$name/assets/avatar.png" && -f "$src/$name/assets/background.png" ]] || fail "sddm theme $name: missing files"
+        [[ ! -e "$src/$name/assets/avatar.jpg" ]] || fail "sddm theme $name: default avatar still present"
+        grep -q '"../../_assets/google-sans-flex/GoogleSansFlex.ttf"' "$src/$name/components/Greeting.qml" || fail "sddm theme $name: broken font path"
+    done
+    tmp="$(mktemp -d "${TMPDIR:-/tmp}/stylish-sddm-test.XXXXXX")"
+    out="$(HOME="$tmp/home" CONFIGS_DIR="$ROOT/config" bash -c '
+        t(){ echo "$1"; }; stash_dir(){ :; }; ok(){ echo "$*"; }; warn(){ echo "$*"; }
+        source "$1"; action_install_sddm_themes
+    ' _ "$ROOT/modules/actions/extras.sh" 2>&1)"
+    grep -q 'sddm_themes_ready' <<<"$out" || { echo "$out" >&2; fail "sddm themes: install failed"; }
+    [[ -f "$tmp/home/.local/share/sddm/themes/end4/metadata.desktop" ]] || fail "sddm themes: not installed"
+    before="$(sha256sum "$tmp/home/.local/share/sddm/themes/stylish/assets/avatar.png" | cut -d' ' -f1)"
+    HOME="$tmp/home" bash "$src/set-image.sh" stylish avatar "$src/stylish/assets/background.png" >/dev/null || fail "set-image: failed"
+    after="$(sha256sum "$tmp/home/.local/share/sddm/themes/stylish/assets/avatar.png" | cut -d' ' -f1)"
+    [[ "$before" != "$after" ]] || fail "set-image: avatar unchanged"
+    HOME="$tmp/home" bash "$src/set-image.sh" stylish background "$src/end4/assets/background.png" >/dev/null || fail "set-image: background failed"
+    [[ -s "$tmp/home/.local/share/sddm/themes/stylish/assets/background.png" ]] || fail "set-image: empty background"
+    grep -q 'PNG' <(file "$tmp/home/.local/share/sddm/themes/stylish/assets/background.png") || fail "set-image: background is not a PNG"
+    rm -rf "$tmp"
+    pass "four SDDM themes install and accept a custom image"
+}
+run_sddm_themes_test
+
 echo "ALL BOOTSTRAP TESTS PASSED"

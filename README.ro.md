@@ -103,7 +103,7 @@ bash install/install_debian.sh
 | **serpantinum** | Rulează instalatorul extern Serpantinum (prin instalatorul său); temele/preseturile pot fi aplicate din `config/themes/`. |
 | **stylish-dots** | Aplică dotfile-urile mele: fish, preset Neovim, preset fastfetch, fetch-uri 3D în Rust. |
 
-Opțiunile 6-9 din meniul Software instalează SDDM, Caelestia, cursoarele Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland) și configurează monitoarele conectate la rata maximă de reîmprospătare prin `hyprctl`, `wlr-randr` sau `xrandr`. Opțiunea 9 din meniul principal, "Șterge cache-ul scriptului", elimină `~/.local/share/arch-multitool` după confirmare; îl recreezi cu `bash install/install.sh` (sau `install_debian.sh`). Pe Debian Caelestia este best-effort: upstream acceptă doar Arch.
+Opțiunile 6-11 din meniul Software instalează SDDM, Caelestia, cursoarele Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland), configurează monitoarele la rata maximă prin `hyprctl`, `wlr-randr` sau `xrandr` și copiază patru teme SDDM (câte una per profil: `caelestia`, `end4`, `stylish`, `serpantinum`) în `~/.local/share/sddm/themes`, fără root. Opțiunea 11 schimbă avatarul sau fundalul temei: `config/sddm-themes/set-image.sh <temă> <avatar|background> <cale>`. Pentru ecranul de login copiază temele împreună cu `_assets` în `/usr/share/sddm/themes` și setează `Current=` în `/etc/sddm.conf.d/`; previzualizezi cu `sddm-greeter-qt6 --test-mode --theme ~/.local/share/sddm/themes/stylish`. Opțiunea 9 din meniul principal, "Șterge cache-ul scriptului", elimină `~/.local/share/arch-multitool` după confirmare; îl recreezi cu `bash install/install.sh` (sau `install_debian.sh`). Pe Debian Caelestia este best-effort: upstream acceptă doar Arch.
 
 ---
 

@@ -28,18 +28,48 @@ action_install_sddm() {
     require_module actions/system.sh
     ensure_sudo || return 1
     pkg_install sddm || return 1
-    if [[ "$PLATFORM" == "arch" ]] && is_interactive && confirm "$(t sddm_theme_prompt)"; then
-        local helper; helper="$(aur_helper)"
-        if [[ -n "$helper" ]]; then
-            pkg_install caelestia-sddm-locklike-git || warn "$(t sddm_theme_failed)"
-        else
-            warn "$(t aur_missing_hint)"
-        fi
-    fi
+    action_install_sddm_themes || warn "$(t sddm_theme_failed)"
     if is_interactive && confirm "$(t sddm_enable_prompt)"; then
         sudo systemctl enable sddm.service || warn "$(t sddm_enable_failed)"
     fi
     ok "$(t sddm_ready)"
+    info "$(t sddm_hint)"
+}
+
+action_install_sddm_themes() {
+    local src="${CONFIGS_DIR:-${REPO_ROOT:-$PWD}/config}/sddm-themes"
+    [[ -d "$src" ]] || { warn "$(t sddm_themes_missing)"; return 1; }
+    local dst="$HOME/.local/share/sddm/themes" name
+    mkdir -p "$dst" || return 1
+    stash_dir "$dst/_assets" || return 1
+    cp -a "$src/_assets" "$dst/" || return 1
+    for name in caelestia end4 stylish serpantinum; do
+        stash_dir "$dst/$name" || return 1
+        cp -a "$src/$name" "$dst/" || return 1
+    done
+    ok "$(t sddm_themes_ready "$dst")"
+}
+
+action_set_sddm_image() {
+    require_module lib/menu.sh
+    local -a names=(caelestia end4 stylish serpantinum)
+    menu_select "$(t sddm_theme_select)" \
+        "1|$(t profile_caelestia)" \
+        "2|$(t profile_end4)" \
+        "3|$(t profile_stylish)" \
+        "4|$(t profile_serpantinum)" || return 1
+    local theme="${names[$((MENU_CHOICE-1))]}"
+    menu_select "$(t sddm_image_select)" \
+        "1|$(t sddm_image_avatar)" \
+        "2|$(t sddm_image_background)" || return 1
+    local kind=avatar; [[ "$MENU_CHOICE" == "2" ]] && kind=background
+    local src
+    read -rp "$(t sddm_image_prompt): " src || return 1
+    [[ -f "$src" ]] || { warn "$(t sddm_image_missing)"; return 1; }
+    local script="${CONFIGS_DIR:-${REPO_ROOT:-$PWD}/config}/sddm-themes/set-image.sh"
+    [[ -f "$script" ]] || script="$HOME/.local/share/arch-multitool/current/config/sddm-themes/set-image.sh"
+    bash "$script" "$theme" "$kind" "$src" || { warn "$(t sddm_image_failed)"; return 1; }
+    ok "$(t sddm_image_done "$theme")"
 }
 
 action_install_caelestia() {

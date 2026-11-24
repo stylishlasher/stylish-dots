@@ -103,7 +103,7 @@ The **full interactive install** (menu option 1) is a four-step wizard: dotfiles
 | **serpantinum** | Runs the external Serpantinum installer (via its own installer); themes/presets can be applied from `config/themes/`. |
 | **stylish-dots** | Applies my dotfiles: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
 
-Software menu options 6-9 install SDDM, Caelestia, Bibata Modern Classic / Modern Ice cursors (GTK, X11, Qt, Hyprland) and set connected monitors to their maximum refresh rate via `hyprctl`, `wlr-randr` or `xrandr`. Main menu option 9, "Clear script cache", removes `~/.local/share/arch-multitool` after confirmation; restore it with `bash install/install.sh` (or `install_debian.sh`). On Debian Caelestia is best-effort: upstream supports Arch only.
+Software menu options 6-11 install SDDM, Caelestia, Bibata Modern Classic / Modern Ice cursors (GTK, X11, Qt, Hyprland), set monitors to their maximum refresh rate via `hyprctl`, `wlr-randr` or `xrandr`, and copy four SDDM themes (one per profile: `caelestia`, `end4`, `stylish`, `serpantinum`) into `~/.local/share/sddm/themes` without root. Option 11 changes a theme's avatar or background: `config/sddm-themes/set-image.sh <theme> <avatar|background> <path>`. For the real login screen copy the themes together with `_assets` to `/usr/share/sddm/themes` and set `Current=` in `/etc/sddm.conf.d/`; preview with `sddm-greeter-qt6 --test-mode --theme ~/.local/share/sddm/themes/stylish`. Main menu option 9, "Clear script cache", removes `~/.local/share/arch-multitool` after confirmation; restore it with `bash install/install.sh` (or `install_debian.sh`). On Debian Caelestia is best-effort: upstream supports Arch only.
 
 ---
 

@@ -54,6 +54,8 @@ run_action() {
         restore_profile) require_module actions/backup.sh; action_restore_profile "$@" ;;
         uninstall) require_module actions/uninstall.sh; action_uninstall "$@" ;;
         install_sddm) require_module actions/extras.sh; action_install_sddm "$@" ;;
+        install_sddm_themes) require_module actions/extras.sh; action_install_sddm_themes "$@" ;;
+        set_sddm_image) require_module actions/extras.sh; action_set_sddm_image "$@" ;;
         install_caelestia) require_module actions/extras.sh; action_install_caelestia "$@" ;;
         install_bibata) require_module actions/extras.sh; action_install_bibata "$@" ;;
         cursors_menu) require_module actions/extras.sh; action_cursors_menu "$@" ;;
