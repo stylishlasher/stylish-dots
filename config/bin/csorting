@@ -464,7 +464,7 @@ def main():
     scatter = ([(random.uniform(1, cols - 2), random.uniform(1, rows - 2)) for _ in range(n)]
                if mode == "circle" else None)
     frame_interval = max(0.016, args.delay)
-    batch = max(1, n // 3)
+    ops_per_frame = max(1, n)
     current = 0
 
     sys.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J")
@@ -487,19 +487,21 @@ def main():
                 started = time.monotonic()
                 frame(values, mode, active, name, steps, rate, cols, rows, stops, palette,
                       cells, progress, scatter, sorted_=sorted_)
+                time.sleep(max(0.0, frame_interval - (time.monotonic() - started)))
                 last_render = time.monotonic()
-                time.sleep(max(0.0, frame_interval - (last_render - started)))
 
             if mode == "circle":
                 draw((), progress=0.0)
+            processed = 0
             for active in ALGORITHMS[name](values):
                 if quit_requested():
                     return 0
                 steps += 1
-                now = time.monotonic()
-                if steps % batch == 0 or now - last_render >= frame_interval:
+                processed += 1
+                if processed >= ops_per_frame or time.monotonic() - last_render >= frame_interval:
                     progress = gather_progress(values) if mode == "circle" else 1.0
                     draw(active, progress)
+                    processed = 0
             draw((), progress=1.0, sorted_=True)
             if not hold(3.0):
                 return 0

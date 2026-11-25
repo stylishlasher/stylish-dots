@@ -568,7 +568,9 @@ height, fill = cs.circle_geometry(cols, rows)
 assert 600 < len(fill) <= cs.FILL_CAP, "circle is not filled or too dense"
 cells = cs.sample_cells(fill)
 assert len(cells) <= cs.FILL_CAP
-assert "hold(3.0)" in inspect.getsource(cs.main), "sorted result is not held for 3 seconds"
+main_source = inspect.getsource(cs.main)
+assert "hold(3.0)" in main_source, "sorted result is not held for 3 seconds"
+assert "ops_per_frame" in main_source and "frame_interval" in main_source, "redraw is not capped"
 values = list(range(len(cells)))
 scatter = [(2 + (v % 30), 2 + (v // 30)) for v in values]
 
