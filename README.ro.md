@@ -254,13 +254,14 @@ Instalare prin utilitar: **Glume în consolă → LARP / hacker de film (hackerl
 
 ## csorting (sortare ambientală)
 
-`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). În modul cerc, punctele pornesc împrăștiate prin terminal și se adună într-un cerc uniform cu gradient pe măsură ce sortarea avansează, iar barele ocupă toată lățimea terminalului și cresc vertical de la mic la mare. Fiecare operație este afișată ca cadru separat; după sortare array-ul este amestecat din nou și urmează algoritmul următor. Titlul arată numărul de operații din trecerea curentă și din toate trecerile, plus procentul de adunare.
+`config/bin/csorting` este un vizualizator de sortări ușor, fără dependențe (doar stdlib Python). În modul cerc, punctele pornesc împrăștiate prin terminal și se adună într-un disc plin cu gradient pe măsură ce sortarea avansează, iar barele ocupă toată lățimea terminalului și cresc vertical de la mic la mare. Cadrele sunt limitate ca rată, nu desenate la fiecare operație, deci demo-ul nu consumă mult CPU. Rezultatul final este ținut trei secunde, apoi array-ul este amestecat din nou pentru algoritmul următor. Titlul arată operațiile, operațiile pe secundă și procentul de adunare.
 
-- Vederi: `--circle` (cerc uniform de puncte) și `--line` (bare, implicit)
+- Vederi: `--circle` (puncte împrăștiate care formează un disc plin) și `--line` (bare, implicit)
 - Algoritmi: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (implicit) îi parcurge pe rând; `--algorithm shell` sau forma pozițională `csorting --circle shell` îl fixează pe unul
 - Culoare: fără `--color` se folosește paleta matugen din `~/.local/state/quickshell/user/generated/colors.json` (sau `$MATUGEN_COLORS_FILE`), cu revenire la `rainbow`. Gradientul este o interpolare lină RGB pe 24 de biți între culori
 - `--color ocean|fire|ice|mono|rainbow|matugen` alege o paletă, `--color '#ff0000,#00ff00,#0000ff'` setează culori proprii; `--palettes` le listează
+- `--delay` — intervalul minim dintre cadre în secunde (implicit `0.05`)
 - Ieșire: `Ctrl+C`, `Ctrl+D`, `q` sau `Esc`
 - Verificare algoritmi și gradient: `python3 config/bin/csorting --self-test`
 

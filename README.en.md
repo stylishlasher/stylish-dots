@@ -254,13 +254,14 @@ Install via the multitool: **Console pranks → LARP / movie hacker (hackerlarp)
 
 ## csorting (ambient sorting)
 
-`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). In circle mode the dots start scattered across the terminal and gather into an even gradient ring as the sort advances; bars fill the terminal width and grow vertically from small to large. Every operation is drawn as its own frame; once the array is sorted it is shuffled again and the next algorithm takes over. The title shows operation counts for the current and all runs plus the gather percentage.
+`config/bin/csorting` is a lightweight sorting visualizer with no dependencies (Python stdlib only). In circle mode the dots start scattered across the terminal and gather into a filled gradient disk as the sort advances; bars fill the terminal width and grow vertically from small to large. Frames are capped instead of redrawn on every operation, so the demo stays light on CPU. The finished result is held for three seconds, then shuffled again for the next algorithm. The title shows operations, operations per second and the gather percentage.
 
-- Views: `--circle` (scattered dots gathering into an even ring) and `--line` (bars, default)
+- Views: `--circle` (scattered dots gathering into a filled disk) and `--line` (bars, default)
 - Algorithms: `bubble`, `cocktail`, `gnome`, `insertion`, `selection`, `shell`, `comb`, `oddeven`, `quick`, `heap`, `merge`
 - `--algorithm all` (default) cycles through them; `--algorithm shell` or the positional form `csorting --circle shell` pins one
 - Color: without `--color` it uses matugen from `~/.local/state/quickshell/user/generated/colors.json` (or `$MATUGEN_COLORS_FILE`), falling back to `rainbow`. The gradient is a smooth 24-bit RGB interpolation between stops
 - `--color ocean|fire|ice|mono|rainbow|matugen` picks a palette, `--color '#ff0000,#00ff00,#0000ff'` sets custom stops; `--palettes` lists them
+- `--delay` sets the minimum interval between rendered frames in seconds (default `0.05`)
 - Exit: `Ctrl+C`, `Ctrl+D`, `q` or `Esc`
 - Algorithm and gradient check: `python3 config/bin/csorting --self-test`
 

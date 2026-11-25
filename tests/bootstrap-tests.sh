@@ -550,7 +550,7 @@ run_console_toys_test() {
     local tmp out
     python3 "$ROOT/config/bin/csorting" --self-test >/dev/null || fail "csorting: self-test failed"
     python3 - "$ROOT/config/bin/csorting" <<'PY' || fail "csorting: gradient/circle/matugen check failed"
-import contextlib, importlib.machinery, importlib.util, io, json, os, re, sys, tempfile
+import contextlib, importlib.machinery, importlib.util, inspect, io, json, os, re, sys, tempfile
 
 loader = importlib.machinery.SourceFileLoader("csorting", sys.argv[1])
 spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -564,25 +564,32 @@ assert cs.gradient_color(1, rainbow) == rainbow[-1]
 assert cs.paint(0, 100, rainbow).startswith("\x1b[38;2;")
 
 cols, rows = 110, 32
-height, ring = cs.circle_geometry(cols, rows)
-assert len(ring) > 150
-values = list(range(len(ring)))
-scatter = [(2 + (v % 20), 2 + (v // 20)) for v in values]
+height, fill = cs.circle_geometry(cols, rows)
+assert 600 < len(fill) <= cs.FILL_CAP, "circle is not filled or too dense"
+cells = cs.sample_cells(fill)
+assert len(cells) <= cs.FILL_CAP
+assert "hold(3.0)" in inspect.getsource(cs.main), "sorted result is not held for 3 seconds"
+values = list(range(len(cells)))
+scatter = [(2 + (v % 30), 2 + (v // 30)) for v in values]
 
 def drawn(values, progress):
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        cs.frame(values, "circle", (), "shell", 1, 1,
-                 cols, rows, rainbow, "test", ring, progress, scatter)
-    clean = [re.sub(r"\x1b\[[0-9;]*m", "", line) for line in buf.getvalue().splitlines()[1:]]
-    return [(x, y) for y, line in enumerate(clean) for x, ch in enumerate(line) if ch in "●◉"]
+        cs.frame(values, "circle", (), "shell", 1, 42,
+                 cols, rows, rainbow, "test", cells, progress, scatter)
+    lines = buf.getvalue().splitlines()
+    assert "42/s" in lines[0], "operations per second are not shown"
+    clean = [re.sub(r"\x1b\[[0-9;]*m", "", line) for line in lines[1:]]
+    return [(x, y) for y, line in enumerate(clean) for x, ch in enumerate(line) if ch in "•●"]
 
 assert set(drawn(values, 0)) == set(scatter), "dots are not scattered at the start"
 points = drawn(values, 1)
-assert len(points) == len(ring), f"circle has gaps: {len(points)}/{len(ring)}"
+assert set(points) == set(cells), "filled disk is not assembled from the dots"
 cx, cy = cols // 2, height // 2
 radii = [(x - cx) ** 2 + ((y - cy) * 2) ** 2 for x, y in points]
-assert max(radii) - min(radii) < 130, "circle radius is not even"
+assert min(radii) < 100 and max(radii) > 800, "disk does not span center to edge"
+assert cs.gather_progress(list(range(8))) == 1.0
+assert cs.gather_progress([3, 1, 0, 2]) == 0.0
 
 with tempfile.TemporaryDirectory() as tmp:
     path = os.path.join(tmp, "colors.json")
@@ -611,7 +618,7 @@ PY
     [[ -f "$tmp/home/.config/fish/functions/csorting.fish" ]] || fail "console toy: fish function missing"
     [[ ! -e "$tmp/home/.local/bin/hackerlarp" ]] || fail "console toy: installed unrelated prank"
     rm -rf "$tmp"
-    pass "csorting installs, reads matugen and draws an even gradient ring"
+    pass "csorting installs, reads matugen and fills a gradient disk"
 }
 run_console_toys_test
 
