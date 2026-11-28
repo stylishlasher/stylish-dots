@@ -148,8 +148,8 @@ dotfiles_run_upstream_installer() {
             local log="$WORK_DIR/upstream-darkshadowshell.log"
             # dotfiles-only: avoid package/service side effects from upstream installer
             if ! (cd "$repo_dir" && bash ./install.sh --yes --no-packages) >"$log" 2>&1; then
-                err "$(t dotfiles_upstream_failed "$profile")"
-                tail -n 40 "$log" >&2 || true
+                err "$(t dotfiles_upstream_failed "$profile") (log: $log)"
+                tail -n 60 "$log" >&2 || true
                 return 1
             fi
             tail -n 20 "$log" || true
@@ -160,8 +160,8 @@ dotfiles_run_upstream_installer() {
             local log="$WORK_DIR/upstream-macshell.log"
             # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
             if ! (cd "$repo_dir" && bash ./install.sh --yes --local --no-deps --no-services --no-start --no-gui --no-autostart) >"$log" 2>&1; then
-                err "$(t dotfiles_upstream_failed "$profile")"
-                tail -n 40 "$log" >&2 || true
+                err "$(t dotfiles_upstream_failed "$profile") (log: $log)"
+                tail -n 60 "$log" >&2 || true
                 return 1
             fi
             tail -n 20 "$log" || true
