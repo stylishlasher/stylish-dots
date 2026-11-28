@@ -26,11 +26,13 @@ action_software_menu() {
             "5|Neovim" \
             "6|$(t comp_sddm)" \
             "7|$(t profile_caelestia)" \
-            "8|$(t comp_cursors)" \
-            "9|$(t comp_monitors)" \
-            "10|$(t sddm_themes_install)" \
-            "11|$(t sddm_image_change)" \
-            "12|$(t console_toys)" \
+            "8|$(t profile_darkshadowshell)" \
+            "9|$(t profile_macshell)" \
+            "10|$(t comp_cursors)" \
+            "11|$(t comp_monitors)" \
+            "12|$(t sddm_themes_install)" \
+            "13|$(t sddm_image_change)" \
+            "14|$(t console_toys)" \
             "0|$(t menu_back)" || return 0
         case "$MENU_CHOICE" in
             1) action_install_basic; pause ;;
@@ -39,12 +41,14 @@ action_software_menu() {
             4) require_module actions/fish.sh; action_install_fish; pause ;;
             5) require_module actions/neovim.sh; action_neovim_menu; pause ;;
             6) action_install_sddm; pause ;;
-            7) action_install_caelestia; pause ;;
-            8) action_cursors_menu ;;
-            9) action_setup_monitors; pause ;;
-            10) action_install_sddm_themes; pause ;;
-            11) action_set_sddm_image; pause ;;
-            12) action_console_menu; pause ;;
+            7) require_module actions/dotfiles.sh; action_install_dotfiles_profile caelestia; pause ;;
+            8) require_module actions/dotfiles.sh; action_install_dotfiles_profile darkshadowshell; pause ;;
+            9) require_module actions/dotfiles.sh; action_install_dotfiles_profile macshell; pause ;;
+            10) action_cursors_menu ;;
+            11) action_setup_monitors; pause ;;
+            12) action_install_sddm_themes; pause ;;
+            13) action_set_sddm_image; pause ;;
+            14) action_console_menu; pause ;;
             0) return 0 ;;
         esac
     done

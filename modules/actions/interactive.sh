@@ -24,18 +24,24 @@ action_full_interactive() {
         "1|$(t profile_caelestia)" \
         "2|$(t profile_stylish)" \
         "3|$(t profile_end4)" \
-        "4|$(t profile_serpantinum)" \
-        "5|$(t profile_none)" || return 1
+        "4|$(t profile_mango)" \
+        "5|$(t profile_serpantinum)" \
+        "6|$(t profile_darkshadowshell)" \
+        "7|$(t profile_macshell)" \
+        "8|$(t profile_none)" || return 1
     local profile="$MENU_CHOICE"
-    local profile_name="" theme_name=""
+    local profile_name="" theme_name="" profile_id=""
     case "$profile" in
-        1) profile_name="$(t profile_caelestia)"; theme_name=caelestia ;;
-        2) profile_name="$(t profile_stylish)"; theme_name=stylish ;;
-        3) profile_name="$(t profile_end4)"; theme_name=end4 ;;
-        4) profile_name="$(t profile_serpantinum)"; theme_name=serpantinum ;;
-        5) profile_name="$(t profile_none)" ;;
+        1) profile_id=caelestia; profile_name="$(t profile_caelestia)"; theme_name=caelestia ;;
+        2) profile_id=stylish-dots; profile_name="$(t profile_stylish)"; theme_name=stylish ;;
+        3) profile_id=end-4; profile_name="$(t profile_end4)"; theme_name=end4 ;;
+        4) profile_id=mango; profile_name="$(t profile_mango)" ;;
+        5) profile_id=serpantinum; profile_name="$(t profile_serpantinum)"; theme_name=serpantinum ;;
+        6) profile_id=darkshadowshell; profile_name="$(t profile_darkshadowshell)" ;;
+        7) profile_id=macshell; profile_name="$(t profile_macshell)" ;;
+        8) profile_name="$(t profile_none)" ;;
     esac
-    if [[ "$profile" == "5" ]]; then
+    if [[ "$profile" == "8" ]]; then
         menu_select "$(t sddm_theme_select)" \
             "1|$(t profile_caelestia)" \
             "2|$(t profile_end4)" \
@@ -167,11 +173,9 @@ action_full_interactive() {
     [[ -n "$nvim_preset" ]] && { action_install_neovim "$nvim_preset" || warn "nvim failed"; }
     [[ -n "$ff_preset" ]] && { action_install_fastfetch_preset "$ff_preset" || warn "fastfetch failed"; }
 
-    case "$profile" in
-        1) action_install_caelestia || warn "caelestia failed" ;;
-        2) action_apply_stylish "$nvim_preset" || warn "profile apply failed" ;;
-        3) action_apply_end4 || warn "end4 apply failed" ;;
-        4) action_install_dotfiles_profile serpantinum || warn "serpantinum failed" ;;
+    case "$profile_id" in
+        "") ;;
+        *) action_install_dotfiles_profile "$profile_id" || warn "profile apply failed" ;;
     esac
 
     ok "$(t interactive_done)"
@@ -203,11 +207,23 @@ action_install_dotfiles_only() {
     menu_select "$(t dotfiles_only_profile)" \
         "1|$(t profile_stylish)" \
         "2|$(t profile_end4)" \
-        "3|MangoWC" \
-        "4|$(t profile_serpantinum)" \
+        "3|$(t profile_caelestia)" \
+        "4|$(t profile_mango)" \
+        "5|$(t profile_darkshadowshell)" \
+        "6|$(t profile_macshell)" \
+        "7|$(t profile_serpantinum)" \
         "0|$(t menu_back)" || return 0
-    local profile="$MENU_CHOICE"
+    local profile="$MENU_CHOICE" profile_id=""
     [[ "$profile" == "0" ]] && return 0
+    case "$profile" in
+        1) profile_id=stylish-dots ;;
+        2) profile_id=end-4 ;;
+        3) profile_id=caelestia ;;
+        4) profile_id=mango ;;
+        5) profile_id=darkshadowshell ;;
+        6) profile_id=macshell ;;
+        7) profile_id=serpantinum ;;
+    esac
 
     menu_select "Neovim config preset" \
         "1|lazyvim-stylish" "2|super-easy-casual" "3|$(t no_change)" || return 1
@@ -218,16 +234,16 @@ action_install_dotfiles_only() {
 
     echo
     echo -e "${BOLD}${CYAN}== DOTFILES-ONLY OVERVIEW ==${NC}"
-    echo "  profile=$profile nvim=$nvim_choice fastfetch=$ff_choice"
+    echo "  profile=$profile_id nvim=$nvim_choice fastfetch=$ff_choice"
     echo "$(t dotfiles_only_notice)"
-    echo "$(t dotfiles_only_notice2)"
+    echo "$(t dotfiles_backup_note)"
     is_interactive && ! confirm "$(t confirm_apply)" && return 1
 
     case "$nvim_choice" in
         1|2)
             require_module actions/neovim.sh
             local preset="lazyvim-stylish"; [[ "$nvim_choice" == "2" ]] && preset="super-easy-casual"
-            apply_nvim_config "$preset" || warn "nvim config failed"
+            NVIM_PRESET="$preset"
             ;;
     esac
     case "$ff_choice" in
@@ -237,11 +253,6 @@ action_install_dotfiles_only() {
             action_copy_fastfetch_preset "$p" || warn "fastfetch config failed"
             ;;
     esac
-    case "$profile" in
-        1) action_apply_stylish_configs_only "$nvim_choice" || warn "profile failed" ;;
-        2) action_apply_end4 || warn "end4 failed" ;;
-        3) action_apply_mango || warn "mango failed" ;;
-        4) action_install_dotfiles_profile serpantinum || warn "serpantinum failed" ;;
-    esac
+    action_install_dotfiles_profile "$profile_id" || warn "profile failed"
     ok "$(t dotfiles_only_done)"
 }

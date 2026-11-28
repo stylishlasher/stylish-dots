@@ -83,7 +83,7 @@ cd stylish-dots
 bash install/install_debian.sh
 ```
 
-> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). Прямой запуск лаунчеров отключён: они только печатают подсказку и требуют bootstrap.
+> Оба мультитула — GUI/меню-оболочки: логика в `modules/`. Bootstrap-установщики (`install/install.sh`, `install/install_debian.sh`) кладут лаунчеры, `modules/` и `config/` в `~/.local/share/arch-multitool`, поэтому после первого запуска всё работает офлайн; `bash install/install.sh --refresh` обновляет кэш (для Debian — `install_debian.sh --refresh`). Прямой запуск лаунчеров отключён: они только печатают подсказку и требуют bootstrap. Upstream-дотсы (end-4/Caelestia/DarkShadowShell/MacShell) скачиваются из их репозиториев во время установки профиля.
 > Arch-версия рассчитана на pacman/AUR, Debian-версия — best-effort для apt/dpkg.
 >
 > Манифест набора (`bundle.sha256`) подписан RSA-ключом: публичный вшит в оба `install/*.sh`, приватного в репозитории нет. Проверяются SHA-256 каждого файла, права доступа и символьные ссылки — подмена файлов вместе с манифестом не пройдёт. После изменений в `modules/` или `config/` переподписывай манифест: `bash scripts/sign-bundle.sh` (приватный ключ — `STYLISH_SIGNING_KEY` или `~/.local/share/stylish-dots/signing.key`). Неподписанным остаётся только сам `install/*.sh`, который грузится по HTTPS.
@@ -98,12 +98,15 @@ bash install/install_debian.sh
 
 | Профиль | Что делает |
 |---|---|
-| **Caelestia** | `caelestia-cli` из AUR + `caelestia install` (только Arch; компоненты выбирает апстрим). |
-| **end-4 / illogical-impulse** | Применяет мой текущий конфиг из `end4/` поверх установленного dots-hyprland. |
-| **serpantinum** | Внешний установщик Serpantinum (через его installer), темы/пресеты можно применять из `config/themes/`. |
+| **Caelestia** | Ставит upstream Caelestia (`caelestia-cli`/`caelestia install` на Arch, best-effort на Debian) и затем применяет локальный оверлей, если он есть в `config/caelestia/`. |
+| **end-4 / illogical-impulse** | Сначала ставит upstream [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland), потом накатывает твой конфиг из `config/end4/`. Перед заменой делает бэкапы затрагиваемых путей. |
+| **MangoWC** | Применяет MangoWC dotfiles из `config/mango/` с бэкапом текущих путей. |
+| **Serpantinum** | Внешний установщик Serpantinum; после установки можно применять темы/пресеты из `config/themes/`. |
+| **DarkShadowShell** | Клонирует [DarkShadowShell](https://github.com/shadowww-dev/DarkShadowShell), запускает его установщик, бэкапит связанные Quickshell/Hyprland пути. |
+| **MacShell** | Клонирует [MacShell](https://github.com/0-ss/MacShell), запускает его установщик, бэкапит MacShell/MacLock/гибридные пути. |
 | **stylish-dots** | Применяет мои дотсы: fish, Neovim preset, fastfetch preset, Rust 3D fetches. |
 
-Пункты 6–11 меню «Установка ПО» отдельно ставят SDDM, Caelestia, курсоры Bibata Modern Classic / Modern Ice (GTK, X11, Qt, Hyprland), настраивают мониторы на максимум герц через `hyprctl`, `wlr-randr` или `xrandr`, а также кладут четыре темы SDDM (по одной на профиль: `caelestia`, `end4`, `stylish`, `serpantinum`) в `~/.local/share/sddm/themes` — без root. Пункт 11 меняет аватар или фон любой темы: `config/sddm-themes/set-image.sh <тема> <avatar|background> <путь>`. Для экрана входа темы надо скопировать вместе с `_assets` в `/usr/share/sddm/themes` и указать `Current=` в `/etc/sddm.conf.d/`; посмотреть можно через `sddm-greeter-qt6 --test-mode --theme ~/.local/share/sddm/themes/stylish`. Пункт 9 главного меню «Очистить кэш скрипта» удаляет `~/.local/share/arch-multitool` после подтверждения; вернуть кэш можно `bash install/install.sh` (для Debian — `install_debian.sh`). На Debian Caelestia — best-effort, официально она только под Arch.
+В меню «Установка ПО» можно отдельно поставить SDDM, Caelestia, DarkShadowShell, MacShell, курсоры Bibata, настроить мониторы на максимум герц, установить темы SDDM и поменять аватар/фон темы. Профили dotfiles доступны и в полной установке, и в отдельном пункте «Применить конфиги / установить dotfiles»: выбранный профиль скачивается/устанавливается, текущие конфиги бэкапятся, затем накатываются новые дотсы и локальный конфиг (если есть). Пункт 11 меняет аватар или фон любой темы: `config/sddm-themes/set-image.sh <тема> <avatar|background> <путь>`. Для экрана входа темы надо скопировать вместе с `_assets` в `/usr/share/sddm/themes` и указать `Current=` в `/etc/sddm.conf.d/`; посмотреть можно через `sddm-greeter-qt6 --test-mode --theme ~/.local/share/sddm/themes/stylish`. Пункт 9 главного меню «Очистить кэш скрипта» удаляет `~/.local/share/arch-multitool` после подтверждения; вернуть кэш можно `bash install/install.sh` (для Debian — `install_debian.sh`). На Debian Caelestia — best-effort, официально она только под Arch.
 
 ---
 
