@@ -248,7 +248,6 @@ action_install_dotfiles_profile() {
                 return 1
             fi
             if ! dotfiles_run_upstream_installer "$profile" "$repo_dir"; then
-                err "$(t dotfiles_upstream_failed "$profile")"
                 return 1
             fi
             if [[ "$profile" == "end-4" ]]; then
