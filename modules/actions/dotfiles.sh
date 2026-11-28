@@ -147,8 +147,12 @@ dotfiles_run_upstream_installer() {
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
             # dotfiles-only: avoid package/service side effects from upstream installer
-            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-packages) 2>&1 | tee "$log"; then
-                err "$(t dotfiles_upstream_failed "$profile") (log: $log)"
+            set +e
+            (cd "$repo_dir" && bash ./install.sh --yes --no-packages) 2>&1 | tee "$log"
+            local rc=${PIPESTATUS[0]}
+            set -e
+            if [[ $rc -ne 0 ]]; then
+                err "$(t dotfiles_upstream_failed "$profile") (log: $log, rc=$rc)"
                 return 1
             fi
             ;;
