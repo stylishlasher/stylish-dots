@@ -120,7 +120,12 @@ dotfiles_run_upstream_installer() {
             elif [[ -f "$repo_dir/install.sh" ]]; then installer="$repo_dir/install.sh"
             fi
             [[ -n "$installer" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
-            bash "$installer" || return 1
+            chmod +x "$installer" 2>/dev/null || true
+            if is_interactive; then
+                (cd "$repo_dir" && bash ./setup install) || return 1
+            else
+                (cd "$repo_dir" && bash ./setup install --force --skip-sysupdate) || return 1
+            fi
             ;;
         caelestia)
             if [[ "$PLATFORM" == "arch" ]]; then
@@ -224,6 +229,9 @@ action_install_dotfiles_profile() {
         end-4|caelestia|darkshadowshell|macshell)
             repo_dir="$(dotfiles_clone_upstream "$profile")" || return 1
             dotfiles_run_upstream_installer "$profile" "$repo_dir" || return 1
+            if [[ "$profile" == "end-4" ]]; then
+                ok "$(t dotfiles_upstream_installed "$profile")"
+            fi
             dotfiles_apply_profile_config "$profile" || warn "$(t dotfiles_upstream_failed "$profile")"
             ;;
     esac
@@ -275,43 +283,3 @@ apply_stylish_configs() {
 }
 
 action_apply_mango() { apply_mango_config; }
-action_apply_end4() { apply_end4_config; }
-action_apply_stylish() { apply_stylish_configs "${1-$NVIM_PRESET}"; }
-
-action_apply_configs() {
-    require_module lib/menu.sh
-    menu_select "$(t apply_configs)" \
-        "1|stylish-dots (fish+nvim+rust fetches)" \
-        "2|end-4 / illogical-impulse (dotfiles+config)" \
-        "3|Caelestia (dotfiles+config)" \
-        "4|MangoWC (dotfiles+config)" \
-        "5|DarkShadowShell (dotfiles)" \
-        "6|MacShell (dotfiles)" \
-        "7|$(t profile_serpantinum)" \
-        "8|Fastfetch preset" \
-        "0|$(t menu_back)" || return 0
-    case "$MENU_CHOICE" in
-        1) action_install_dotfiles_profile stylish-dots ;;
-        2) action_install_dotfiles_profile end-4 ;;
-        3) action_install_dotfiles_profile caelestia ;;
-        4) action_install_dotfiles_profile mango ;;
-        5) action_install_dotfiles_profile darkshadowshell ;;
-        6) action_install_dotfiles_profile macshell ;;
-        7) action_install_dotfiles_profile serpantinum ;;
-        8) require_module actions/fetches.sh; action_fetches_menu ;;
-        0) return 0 ;;
-    esac
-}
-
-action_install_dotfiles_profile() {
-    local profile="${1:-$DOTFILES_PROFILE}"
-    case "$profile" in
-        stylish-dots) action_apply_stylish ;;
-        end-4) action_apply_end4 ;;
-        serpantinum)
-            warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes.";
-            info "Example: curl -fsSL https://install.serpantinum.dev | bash"
-            ;;
-        *) err "Unknown profile: $profile"; return 1 ;;
-    esac
-}
