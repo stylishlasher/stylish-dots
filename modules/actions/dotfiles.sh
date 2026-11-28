@@ -159,7 +159,7 @@ dotfiles_run_upstream_installer() {
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
             local log="$WORK_DIR/upstream-macshell.log"
             # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
-            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-deps --no-services --no-start --no-gui --no-autostart) >"$log" 2>&1; then
+            if ! (cd "$repo_dir" && bash ./install.sh --yes --local --no-deps --no-services --no-start --no-gui --no-autostart) >"$log" 2>&1; then
                 err "$(t dotfiles_upstream_failed "$profile")"
                 tail -n 40 "$log" >&2 || true
                 return 1
