@@ -47,7 +47,7 @@ dotfiles_backup_targets() {
     case "$profile" in
         end-4)
             printf '%s
-'                 "$HOME/.config/hypr/custom"                 "$HOME/.config/hypr/hyprland/keybinds.lua"                 "$HOME/.config/illogical-impulse/config.json"                 "$HOME/.config/environment.d/10-cursor.conf"                 "$HOME/.config/gtk-3.0/settings.ini"                 "$HOME/.config/gtk-4.0/settings.ini"                 "$HOME/.icons/default/index.theme" ;;
+'                 "$HOME/.config/hypr/custom"                 "$HOME/.config/hypr/hyprland"                 "$HOME/.config/hypr/hyprland.lua"                 "$HOME/.config/hypr/hyprland.conf"                 "$HOME/.config/hypr/hyprland.conf.old"                 "$HOME/.config/hypr/hyprlock.conf"                 "$HOME/.config/hypr/hypridle.conf"                 "$HOME/.config/illogical-impulse/config.json"                 "$HOME/.config/environment.d/10-cursor.conf"                 "$HOME/.config/gtk-3.0/settings.ini"                 "$HOME/.config/gtk-4.0/settings.ini"                 "$HOME/.icons/default/index.theme" ;;
         caelestia)
             printf '%s
 '                 "$HOME/.config/caelestia"                 "$HOME/.config/quickshell/caelestia"                 "$HOME/.local/state/caelestia" ;;
@@ -59,10 +59,10 @@ dotfiles_backup_targets() {
 '                 "$HOME/.config/fish"                 "$HOME/.config/nvim"                 "$HOME/.config/fastfetch"                 "$HOME/README.md" ;;
         darkshadowshell)
             printf '%s
-'                 "$HOME/.config/quickshell/rice-desktop"                 "$HOME/.config/quickshell/rice-settings"                 "$HOME/.config/quickshell/rice-welcome"                 "$HOME/.config/quickshell/hyprquickpaper"                 "$HOME/.config/quickshell/rice-apps"                 "$HOME/.config/hypr/user.lua"                 "$HOME/.local/share/darkshadows-shell" ;;
+'                 "$HOME/.config/quickshell/rice-desktop"                 "$HOME/.config/quickshell/rice-settings"                 "$HOME/.config/quickshell/rice-welcome"                 "$HOME/.config/quickshell/hyprquickpaper"                 "$HOME/.config/quickshell/rice-apps"                 "$HOME/.config/hypr/user.lua"                 "$HOME/.config/hypr/hyprland.lua"                 "$HOME/.config/hypr/hyprland.conf"                 "$HOME/.local/share/darkshadows-shell" ;;
         macshell)
             printf '%s
-'                 "$HOME/.config/quickshell/MacShell"                 "$HOME/.config/quickshell/MacLock"                 "$HOME/.config/hypr-macshell"                 "$HOME/.config/macbar"                 "$HOME/.config/macdock"                 "$HOME/.config/macwidgets"                 "$HOME/.config/macshell" ;;
+'                 "$HOME/.config/quickshell/MacShell"                 "$HOME/.config/quickshell/MacLock"                 "$HOME/.config/hypr-macshell"                 "$HOME/.config/hypr/macshell.lua"                 "$HOME/.config/hypr/hyprland.lua"                 "$HOME/.config/hypr/hyprland.conf"                 "$HOME/.config/macbar"                 "$HOME/.config/macdock"                 "$HOME/.config/macwidgets"                 "$HOME/.config/macshell" ;;
         serpantinum)
             printf '%s
 '                 "$HOME/.local/state/serpantinum"                 "$HOME/.config/quickshell/serpantinum" ;;
@@ -139,12 +139,14 @@ dotfiles_run_upstream_installer() {
         darkshadowshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            (cd "$repo_dir" && bash ./install.sh --yes) || return 1
+            # dotfiles-only: avoid package/service side effects from upstream installer
+            (cd "$repo_dir" && bash ./install.sh --yes --no-packages) || return 1
             ;;
         macshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            (cd "$repo_dir" && bash ./install.sh --yes --no-start --no-gui) || return 1
+            # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
+            (cd "$repo_dir" && bash ./install.sh --yes --no-deps --no-services --no-start --no-gui --no-autostart) || return 1
             ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
@@ -209,6 +211,7 @@ action_install_dotfiles_profile() {
 
     if is_interactive && [[ "$assume_yes" != "--yes" ]]; then
         warn "$(t dotfiles_backup_note)"
+        warn "Upstream installer may modify Hyprland/session config; backup/rollback is available."
         confirm "$(t dotfiles_swap_confirm "$name")" || return 1
     fi
 
