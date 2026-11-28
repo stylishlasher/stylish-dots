@@ -70,12 +70,29 @@ dotfiles_backup_targets() {
     esac
 }
 
+dotfiles_env_profiles() {
+    printf '%s\n' end-4 caelestia mango darkshadowshell macshell serpantinum
+}
+
 dotfiles_backup_profile() {
     local profile="$1" tpath
     while IFS= read -r tpath; do
         [[ -n "$tpath" ]] || continue
         stash_dir "$tpath" || return 1
     done < <(dotfiles_backup_targets "$profile")
+}
+
+dotfiles_backup_for_swap() {
+    local profile="$1" p tpath
+    local -A seen=()
+    for p in "$profile" $(dotfiles_env_profiles); do
+        while IFS= read -r tpath; do
+            [[ -n "$tpath" ]] || continue
+            [[ -n "${seen[$tpath]+x}" ]] && continue
+            seen[$tpath]=1
+            stash_dir "$tpath" || return 1
+        done < <(dotfiles_backup_targets "$p")
+    done
 }
 
 dotfiles_clone_upstream() {
@@ -195,7 +212,7 @@ action_install_dotfiles_profile() {
         confirm "$(t dotfiles_swap_confirm "$name")" || return 1
     fi
 
-    dotfiles_backup_profile "$profile" || return 1
+    dotfiles_backup_for_swap "$profile" || return 1
 
     case "$profile" in
         stylish-dots)
