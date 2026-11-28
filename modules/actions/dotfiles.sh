@@ -102,7 +102,7 @@ dotfiles_clone_upstream() {
     ensure_work_dir
     dest="$WORK_DIR/upstream-$profile"
     rm -rf "$dest"
-    info "$(t dotfiles_upstream_installing "$profile")"
+    info "$(t dotfiles_upstream_installing "$profile")" >&2
     if ! git clone --depth "$DOTFILES_UPSTREAM_CLONE_DEPTH" --recurse-submodules --shallow-submodules --branch "$ref" "$url" "$dest"; then
         err "$(t dotfiles_upstream_failed "$profile")"
         return 1
