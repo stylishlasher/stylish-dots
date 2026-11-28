@@ -121,10 +121,16 @@ dotfiles_run_upstream_installer() {
             fi
             [[ -n "$installer" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$installer" 2>/dev/null || true
+            local log="$WORK_DIR/upstream-end4.log"
             if is_interactive; then
                 (cd "$repo_dir" && bash ./setup install) || return 1
             else
-                (cd "$repo_dir" && bash ./setup install --force --skip-sysupdate) || return 1
+                if ! (cd "$repo_dir" && bash ./setup install --force --skip-sysupdate) >"$log" 2>&1; then
+                    err "$(t dotfiles_upstream_failed "$profile")"
+                    tail -n 40 "$log" >&2 || true
+                    return 1
+                fi
+                tail -n 20 "$log" || true
             fi
             ;;
         caelestia)
@@ -139,14 +145,26 @@ dotfiles_run_upstream_installer() {
         darkshadowshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            local log="$WORK_DIR/upstream-darkshadowshell.log"
             # dotfiles-only: avoid package/service side effects from upstream installer
-            (cd "$repo_dir" && bash ./install.sh --yes --no-packages) || return 1
+            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-packages) >"$log" 2>&1; then
+                err "$(t dotfiles_upstream_failed "$profile")"
+                tail -n 40 "$log" >&2 || true
+                return 1
+            fi
+            tail -n 20 "$log" || true
             ;;
         macshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            local log="$WORK_DIR/upstream-macshell.log"
             # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
-            (cd "$repo_dir" && bash ./install.sh --yes --no-deps --no-services --no-start --no-gui --no-autostart) || return 1
+            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-deps --no-services --no-start --no-gui --no-autostart) >"$log" 2>&1; then
+                err "$(t dotfiles_upstream_failed "$profile")"
+                tail -n 40 "$log" >&2 || true
+                return 1
+            fi
+            tail -n 20 "$log" || true
             ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
