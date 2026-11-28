@@ -138,19 +138,13 @@ dotfiles_run_upstream_installer() {
             ;;
         darkshadowshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
-            if is_interactive; then
-                (cd "$repo_dir" && bash ./install.sh) || return 1
-            else
-                (cd "$repo_dir" && bash ./install.sh --yes) || return 1
-            fi
+            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            (cd "$repo_dir" && bash ./install.sh --yes) || return 1
             ;;
         macshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
-            if is_interactive; then
-                (cd "$repo_dir" && bash ./install.sh) || return 1
-            else
-                (cd "$repo_dir" && bash ./install.sh --yes --no-start) || return 1
-            fi
+            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            (cd "$repo_dir" && bash ./install.sh --yes --no-start --no-gui) || return 1
             ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
