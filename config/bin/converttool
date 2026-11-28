@@ -1,78 +1,369 @@
 #!/usr/bin/env python3
-"""converttool - simple file conversion helper."""
+"""converttool - file conversion helper.
+
+Examples:
+  converttool image.png image.webp
+  converttool song.flac .mp3
+  converttool video.mp4 .gif
+  converttool notes.md notes.pdf
+  converttool '*.png' .webp --batch
+  converttool media/ .mp3 --batch --recursive --output-dir out
+"""
 from __future__ import annotations
-import argparse, os, shutil, subprocess, sys
+
+import argparse
+import glob
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
-def has(cmd): return shutil.which(cmd) is not None
+IMG = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff", ".tif", ".avif", ".ico", ".svg", ".heic", ".heif", ".jxl"}
+AUDIO = {".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac", ".opus", ".wma", ".aiff", ".aif"}
+VIDEO = {".mp4", ".mkv", ".webm", ".mov", ".avi", ".gif", ".m4v"}
+DOC = {".md", ".markdown", ".txt", ".html", ".htm", ".pdf", ".docx", ".odt", ".epub", ".rtf", ".org", ".rst", ".tex"}
 
-def run(cmd):
+
+def has(cmd: str) -> bool:
+    return shutil.which(cmd) is not None
+
+
+def eprint(*args: object) -> None:
+    print(*args, file=sys.stderr)
+
+
+def run(cmd: list[str], dry_run: bool = False) -> bool:
     print("+", " ".join(cmd))
-    r = subprocess.run(cmd)
-    return r.returncode == 0
+    if dry_run:
+        return True
+    return subprocess.run(cmd, check=False).returncode == 0
 
-def convert(src: Path, dst: Path):
-    s, d = src.suffix.lower(), dst.suffix.lower()
+
+def norm_ext(ext: str) -> str:
+    ext = ext.lower().strip()
+    if not ext:
+        return ext
+    if not ext.startswith("."):
+        ext = "." + ext
+    if ext == ".jpeg":
+        return ".jpg"
+    if ext == ".tif":
+        return ".tiff"
+    if ext == ".htm":
+        return ".html"
+    if ext == ".markdown":
+        return ".md"
+    return ext
+
+
+def target_path(src: Path, output: str, output_dir: Path | None) -> Path:
+    out = Path(output)
+    raw = output.strip()
+    if raw.startswith(".") and "/" not in raw and "\\" not in raw:
+        dst = src.with_suffix(norm_ext(raw))
+    elif output_dir is not None:
+        dst = output_dir / (src.stem + (norm_ext(raw) if raw.startswith(".") else out.suffix))
+    else:
+        dst = out
+        if dst.suffix == "":
+            dst = dst.with_suffix(src.suffix)
+    if output_dir is not None and not (raw.startswith(".") and "/" not in raw and "\\" not in raw):
+        # explicit output file with --output-dir: put it inside output_dir by name
+        dst = output_dir / dst.name
+    if output_dir is not None and raw.startswith(".") and "/" not in raw and "\\" not in raw:
+        dst = output_dir / (src.stem + norm_ext(raw))
+    return dst
+
+
+def ffmpeg_audio_cmd(src: Path, dst: Path, args: argparse.Namespace) -> list[str]:
+    cmd = ["ffmpeg"]
+    if args.overwrite:
+        cmd.append("-y")
+    else:
+        cmd.append("-n")
+    cmd += ["-i", str(src)]
+    if args.audio_bitrate:
+        cmd += ["-b:a", args.audio_bitrate]
+    if args.sample_rate:
+        cmd += ["-ar", str(args.sample_rate)]
+    if args.channels:
+        cmd += ["-ac", str(args.channels)]
+    cmd.append(str(dst))
+    return cmd
+
+
+def ffmpeg_video_cmd(src: Path, dst: Path, args: argparse.Namespace) -> list[str]:
+    cmd = ["ffmpeg"]
+    cmd.append("-y" if args.overwrite else "-n")
+    cmd += ["-i", str(src)]
+    if dst.suffix.lower() == ".gif":
+        fps = args.fps or "15"
+        scale = args.resize or "640:-1"
+        cmd += ["-vf", f"fps={fps},scale={scale}:flags=lanczos"]
+    else:
+        vf = []
+        if args.resize:
+            vf.append(f"scale={args.resize}")
+        if args.fps:
+            vf.append(f"fps={args.fps}")
+        if vf:
+            cmd += ["-vf", ",".join(vf)]
+        if args.video_codec:
+            cmd += ["-c:v", args.video_codec]
+        if args.audio_codec:
+            cmd += ["-c:a", args.audio_codec]
+        if args.quality:
+            # generic CRF-ish for common encoders; ignored where irrelevant
+            cmd += ["-crf", str(args.quality)]
+        if args.preset:
+            cmd += ["-preset", args.preset]
+    cmd.append(str(dst))
+    return cmd
+
+
+def magick_cmd(src: Path, dst: Path, args: argparse.Namespace) -> list[str] | None:
+    tool = "magick" if has("magick") else "convert" if has("convert") else None
+    if not tool:
+        return None
+    cmd = [tool, str(src)]
+    if args.resize:
+        cmd += ["-resize", args.resize]
+    if args.quality:
+        cmd += ["-quality", str(args.quality)]
+    cmd.append(str(dst))
+    return cmd
+
+
+def convert_one(src: Path, dst: Path, args: argparse.Namespace) -> bool:
+    src = src.resolve()
+    dst = dst.resolve()
+    if not src.exists() or not src.is_file():
+        eprint(f"Skip: not a file: {src}")
+        return False
+    if src == dst:
+        eprint(f"Skip: source and target are same: {src}")
+        return True
+    if dst.exists() and not args.overwrite:
+        eprint(f"Skip: exists (use -f to overwrite): {dst}")
+        return False
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    s = norm_ext(src.suffix)
+    d = norm_ext(dst.suffix)
+
     if s == d:
-        print("Source and target have same extension; copying.")
-        shutil.copy2(src, dst); return True
+        print(f"Same format, copying: {src} -> {dst}")
+        if args.dry_run:
+            return True
+        shutil.copy2(src, dst)
+        return True
 
-    # images
-    img = {".png",".jpg",".jpeg",".webp",".gif",".bmp",".tiff",".avif",".ico",".svg"}
-    audio = {".mp3",".wav",".flac",".ogg",".m4a",".aac",".opus"}
-    video = {".mp4",".mkv",".webm",".mov",".avi",".gif"}
-    doc = {".md",".txt",".html",".pdf",".docx",".org",".rst"}
+    # SVG special cases
+    if s == ".svg" and d in IMG - {".svg"}:
+        if has("rsvg-convert"):
+            cmd = ["rsvg-convert", "-o", str(dst), str(src)]
+            return run(cmd, args.dry_run)
+        if has("inkscape"):
+            return run(["inkscape", str(src), "--export-filename=" + str(dst)], args.dry_run)
+        mc = magick_cmd(src, dst, args)
+        if mc:
+            return run(mc, args.dry_run)
 
-    if s in img and d in img:
-        if has("magick"): return run(["magick", str(src), str(dst)])
-        if has("convert"): return run(["convert", str(src), str(dst)])
-        if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
-    if s in audio and d in audio:
-        if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
-        if has("sox"): return run(["sox",str(src),str(dst)])
-    if s in video and d in video or (s in video and d == ".gif"):
-        if has("ffmpeg"):
-            cmd=["ffmpeg","-y","-i",str(src)]
-            if d==".gif": cmd += ["-vf","fps=15,scale=640:-1:flags=lanczos"]
+    # PDF -> image
+    if s == ".pdf" and d in IMG:
+        if has("pdftoppm") and d in {".png", ".jpg", ".tiff"}:
+            prefix = dst.with_suffix("")
+            fmt = "png" if d == ".png" else "jpeg" if d == ".jpg" else "tiff"
+            cmd = ["pdftoppm", f"-{fmt}", "-singlefile", str(src), str(prefix)]
+            ok = run(cmd, args.dry_run)
+            if ok and not args.dry_run:
+                # pdftoppm names output predictably with -singlefile
+                produced = prefix.with_suffix(d)
+                if produced != dst and produced.exists():
+                    produced.replace(dst)
+            return ok
+        if has("magick"):
+            cmd = ["magick", "-density", str(args.density or 200), str(src) + "[0]"]
+            if args.resize:
+                cmd += ["-resize", args.resize]
+            if args.quality:
+                cmd += ["-quality", str(args.quality)]
             cmd.append(str(dst))
-            return run(cmd)
-    if s in audio and d in video:
+            return run(cmd, args.dry_run)
+        if has("gs") and d in {".png", ".jpg"}:
+            dev = "png16m" if d == ".png" else "jpeg"
+            return run(["gs", "-sDEVICE=" + dev, "-dFirstPage=1", "-dLastPage=1", "-r" + str(args.density or 200), "-o", str(dst), str(src)], args.dry_run)
+
+    # Images
+    if s in IMG and d in IMG:
+        mc = magick_cmd(src, dst, args)
+        if mc:
+            return run(mc, args.dry_run)
         if has("ffmpeg"):
-            return run(["ffmpeg","-y","-f","lavfi","-i","color=c=black:s=1280x720:r=30","-i",str(src),"-shortest","-c:v","libx264","-c:a","aac","-pix_fmt","yuv420p",str(dst)])
-    if s in doc and d in doc:
-        if has("pandoc"): return run(["pandoc",str(src),"-o",str(dst)])
-    # fallback ffmpeg
-    if has("ffmpeg"): return run(["ffmpeg","-y","-i",str(src),str(dst)])
-    print(f"No converter found for {s} -> {d}. Install ffmpeg/imagemagick/pandoc as needed.")
+            cmd = ["ffmpeg", "-y" if args.overwrite else "-n", "-i", str(src)]
+            if args.resize:
+                cmd += ["-vf", f"scale={args.resize}"]
+            cmd.append(str(dst))
+            return run(cmd, args.dry_run)
+
+    # Audio
+    if s in AUDIO and d in AUDIO:
+        if has("ffmpeg"):
+            return run(ffmpeg_audio_cmd(src, dst, args), args.dry_run)
+        if has("sox"):
+            cmd = ["sox", str(src)]
+            if args.channels:
+                cmd += ["-c", str(args.channels)]
+            if args.sample_rate:
+                cmd += ["-r", str(args.sample_rate)]
+            cmd.append(str(dst))
+            return run(cmd, args.dry_run)
+
+    # Video -> audio (extract)
+    if s in VIDEO and d in AUDIO:
+        if has("ffmpeg"):
+            return run(ffmpeg_audio_cmd(src, dst, args), args.dry_run)
+
+    # Video / gif
+    if (s in VIDEO and d in VIDEO) or (s in VIDEO and d == ".gif") or (s == ".gif" and d in VIDEO):
+        if has("ffmpeg"):
+            return run(ffmpeg_video_cmd(src, dst, args), args.dry_run)
+
+    # Audio -> video (black background)
+    if s in AUDIO and d in VIDEO and d != ".gif":
+        if has("ffmpeg"):
+            size = args.resize or "1280x720"
+            if ":" in size and "x" not in size:
+                size = "1280x720"
+            cmd = ["ffmpeg", "-y" if args.overwrite else "-n", "-f", "lavfi", "-i", f"color=c=black:s={size}:r=30", "-i", str(src), "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p"]
+            cmd += ["-c:a", args.audio_codec or "aac"]
+            if args.audio_bitrate:
+                cmd += ["-b:a", args.audio_bitrate]
+            cmd.append(str(dst))
+            return run(cmd, args.dry_run)
+
+    # Documents
+    if s in DOC and d in DOC:
+        if has("pandoc"):
+            cmd = ["pandoc", str(src), "-o", str(dst)]
+            if args.pandoc_from:
+                cmd[1:1] = ["-f", args.pandoc_from]
+            if args.pandoc_to:
+                cmd[-2:-2] = ["-t", args.pandoc_to]
+            return run(cmd, args.dry_run)
+        if has("libreoffice") and d in {".pdf", ".docx", ".odt", ".txt", ".html"}:
+            outdir = str(dst.parent)
+            ok = run(["libreoffice", "--headless", "--convert-to", d.lstrip("."), "--outdir", outdir, str(src)], args.dry_run)
+            if ok and not args.dry_run:
+                produced = dst.parent / (src.stem + d)
+                if produced.exists() and produced != dst:
+                    produced.replace(dst)
+            return ok
+
+    # Image(s) -> PDF
+    if s in IMG and d == ".pdf":
+        if has("img2pdf") and s in {".png", ".jpg", ".tiff"}:
+            return run(["img2pdf", str(src), "-o", str(dst)], args.dry_run)
+        mc = magick_cmd(src, dst, args)
+        if mc:
+            return run(mc, args.dry_run)
+
+    # Text-ish passthrough with iconv for plain text encodings? keep simple: copy for unknown same-family handled above.
+    if s in {".txt", ".md", ".markdown"} and d in {".txt", ".md"}:
+        if args.dry_run:
+            print(f"+ copy {src} -> {dst}")
+            return True
+        shutil.copy2(src, dst)
+        return True
+
+    # Fallbacks
+    if has("ffmpeg"):
+        cmd = ["ffmpeg", "-y" if args.overwrite else "-n", "-i", str(src)]
+        if args.resize:
+            cmd += ["-vf", f"scale={args.resize}"]
+        cmd.append(str(dst))
+        return run(cmd, args.dry_run)
+    if has("magick"):
+        mc = magick_cmd(src, dst, args)
+        if mc:
+            return run(mc, args.dry_run)
+
+    eprint(f"No converter found for {s} -> {d}. Install ffmpeg, imagemagick, pandoc, libreoffice, or rsvg-convert as needed.")
     return False
 
-def main():
-    ap = argparse.ArgumentParser(description="Simple convert helper: converttool input.ext output.ext")
-    ap.add_argument("input", help="Input file")
-    ap.add_argument("output", help="Output file or target extension like .png")
-    ap.add_argument("--batch", action="store_true", help="Treat input as glob and output as extension")
+
+def collect_inputs(pattern: str, recursive: bool) -> list[Path]:
+    p = Path(pattern)
+    if p.exists() and p.is_dir():
+        it = p.rglob("*") if recursive else p.glob("*")
+        return sorted([x for x in it if x.is_file()])
+    if any(ch in pattern for ch in "*?[]"):
+        return sorted([Path(x) for x in glob.glob(pattern, recursive=recursive) if Path(x).is_file()])
+    return [p]
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Convert files between formats using available system tools.")
+    ap.add_argument("input", nargs="?", help="Input file, directory, or glob pattern")
+    ap.add_argument("output", nargs="?", help="Output file, target extension (.png), or output dir with --batch")
+    ap.add_argument("--batch", action="store_true", help="Convert multiple inputs; output is extension or output dir")
+    ap.add_argument("-r", "--recursive", action="store_true", help="With directory/glob input, recurse into subdirs")
+    ap.add_argument("-o", "--output-dir", help="Directory for converted files")
+    ap.add_argument("-f", "--overwrite", action="store_true", help="Overwrite existing outputs")
+    ap.add_argument("-n", "--dry-run", action="store_true", help="Print commands without running them")
+    ap.add_argument("-q", "--quality", help="Quality/CRF value where supported")
+    ap.add_argument("--resize", help="Resize/scale, e.g. 1280x720, 50%%, 640:-1")
+    ap.add_argument("--fps", help="FPS for video/gif conversions")
+    ap.add_argument("--audio-bitrate", help="Audio bitrate, e.g. 192k")
+    ap.add_argument("--audio-codec", help="Audio codec for video containers")
+    ap.add_argument("--video-codec", help="Video codec for video containers")
+    ap.add_argument("--sample-rate", help="Audio sample rate, e.g. 44100")
+    ap.add_argument("--channels", help="Audio channels, e.g. 1 or 2")
+    ap.add_argument("--density", help="PDF render density/DPI (default 200)")
+    ap.add_argument("--preset", help="Encoder preset for ffmpeg video codecs")
+    ap.add_argument("--pandoc-from", help="Pandoc input format override")
+    ap.add_argument("--pandoc-to", help="Pandoc output format override")
+    ap.add_argument("--list-formats", action="store_true", help="List known format groups and exit")
     args = ap.parse_args()
 
-    inp = args.input
-    out = args.output
-    if args.batch or ("*" in inp):
-        import glob
-        ext = out if out.startswith(".") else "."+out
-        files = glob.glob(inp)
-        ok=True
-        for f in files:
-            src=Path(f); dst=src.with_suffix(ext)
-            if src==dst: continue
-            ok = convert(src,dst) and ok
-        sys.exit(0 if ok else 1)
-    src=Path(inp)
+    if args.list_formats:
+        print("Images:", ", ".join(sorted(IMG)))
+        print("Audio:", ", ".join(sorted(AUDIO)))
+        print("Video:", ", ".join(sorted(VIDEO)))
+        print("Docs:", ", ".join(sorted(DOC)))
+        return 0
+
+    if not args.input or not args.output:
+        ap.print_help()
+        return 1
+
+    inputs = collect_inputs(args.input, args.recursive)
+    if not inputs:
+        eprint("No input files found:", args.input)
+        return 1
+
+    output_dir = Path(args.output_dir).resolve() if args.output_dir else None
+    if output_dir and not args.dry_run:
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    batch = args.batch or len(inputs) > 1 or Path(args.input).is_dir() or any(ch in args.input for ch in "*?[]")
+    if batch:
+        ok = True
+        out_arg = args.output
+        for src in inputs:
+            if not src.is_file():
+                continue
+            dst = target_path(src, out_arg, output_dir)
+            ok = convert_one(src, dst, args) and ok
+        return 0 if ok else 1
+
+    src = inputs[0]
     if not src.exists():
-        print("Input not found:", src); sys.exit(1)
-    dst = Path(out)
-    if out.startswith(".") and "/" not in out and "\\" not in out:
-        dst = src.with_suffix(out)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    sys.exit(0 if convert(src,dst) else 1)
+        eprint("Input not found:", src)
+        return 1
+    dst = target_path(src, args.output, output_dir)
+    return 0 if convert_one(src, dst, args) else 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
