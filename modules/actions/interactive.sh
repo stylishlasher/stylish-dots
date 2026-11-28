@@ -216,7 +216,9 @@ action_install_dotfiles_only() {
         2) profile_id=end-4 ;;
         3) profile_id=caelestia ;;
         4) profile_id=mango ;;
-        5) profile_id=serpantinum ;;
+        5) profile_id=darkshadowshell ;;
+        6) profile_id=macshell ;;
+        7) profile_id=serpantinum ;;
     esac
 
     menu_select "Neovim config preset" \
