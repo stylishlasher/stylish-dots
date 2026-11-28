@@ -117,7 +117,7 @@ main_menu() {
             3) run_action software_menu ;;
             4) run_action apply_configs; pause ;;
             5)
-                menu_select "$(t backup_menu_title)" "1|$(t backup_menu_list)" "2|$(t backup_menu_restore)" "3|Rollback end4" "4|Rollback mango" "5|Rollback stylish" "6|Rollback caelestia" "7|Rollback darkshadowshell" "8|Rollback macshell" "9|Rollback serpantinum" "0|$(t menu_back)" || true
+                menu_select "$(t backup_menu_title)" "1|$(t backup_menu_list)" "2|$(t backup_menu_restore)" "3|Rollback end4" "4|Rollback mango" "5|Rollback stylish" "6|Rollback caelestia" "7|Rollback serpantinum" "0|$(t menu_back)" || true
                 case "$MENU_CHOICE" in
                     1) run_action backup_list ;;
                     2) run_action restore_backup ;;
@@ -125,9 +125,7 @@ main_menu() {
                     4) run_action restore_profile mango ;;
                     5) run_action restore_profile stylish ;;
                     6) run_action restore_profile caelestia ;;
-                    7) run_action restore_profile darkshadowshell ;;
-                    8) run_action restore_profile macshell ;;
-                    9) run_action restore_profile serpantinum ;;
+                    7) run_action restore_profile serpantinum ;;
                 esac
                 pause ;;
             6) run_action uninstall; pause ;;

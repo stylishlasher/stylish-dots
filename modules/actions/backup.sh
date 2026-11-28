@@ -58,8 +58,6 @@ action_restore_profile() {
         mango) targets=("$HOME/.config/mango" "$HOME/.config/waybar" "$HOME/.config/foot" "$HOME/.config/fuzzel" "$HOME/.config/mako" "$HOME/.config/matugen" "$HOME/.local/bin/mango-settings") ;;
         stylish|stylish-dots) targets=("$HOME/.config/fish" "$HOME/.config/nvim" "$HOME/.config/fastfetch" "$HOME/README.md") ;;
         caelestia) targets=("$HOME/.config/caelestia" "$HOME/.config/quickshell/caelestia" "$HOME/.local/state/caelestia") ;;
-        darkshadowshell) targets=("$HOME/.config/quickshell/rice-desktop" "$HOME/.config/quickshell/rice-settings" "$HOME/.config/quickshell/rice-welcome" "$HOME/.config/quickshell/hyprquickpaper" "$HOME/.config/quickshell/rice-apps" "$HOME/.config/hypr/user.lua" "$HOME/.config/hypr/hyprland.lua" "$HOME/.config/hypr/hyprland.conf" "$HOME/.local/share/darkshadows-shell") ;;
-        macshell) targets=("$HOME/.config/quickshell/MacShell" "$HOME/.config/quickshell/MacLock" "$HOME/.config/hypr-macshell" "$HOME/.config/hypr/macshell.lua" "$HOME/.config/hypr/hyprland.lua" "$HOME/.config/hypr/hyprland.conf" "$HOME/.config/macbar" "$HOME/.config/macdock" "$HOME/.config/macwidgets" "$HOME/.config/macshell") ;;
         serpantinum) targets=("$HOME/.local/state/serpantinum" "$HOME/.config/quickshell/serpantinum") ;;
         *) err "$(t unknown_profile "$profile")"; return 1 ;;
     esac

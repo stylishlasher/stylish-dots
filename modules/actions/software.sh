@@ -26,8 +26,6 @@ action_software_menu() {
             "5|Neovim" \
             "6|$(t comp_sddm)" \
             "7|$(t profile_caelestia)" \
-            "8|$(t profile_darkshadowshell)" \
-            "9|$(t profile_macshell)" \
             "10|$(t comp_cursors)" \
             "11|$(t comp_monitors)" \
             "12|$(t sddm_themes_install)" \
@@ -42,8 +40,6 @@ action_software_menu() {
             5) require_module actions/neovim.sh; action_neovim_menu; pause ;;
             6) action_install_sddm; pause ;;
             7) require_module actions/dotfiles.sh; action_install_dotfiles_profile caelestia; pause ;;
-            8) require_module actions/dotfiles.sh; action_install_dotfiles_profile darkshadowshell; pause ;;
-            9) require_module actions/dotfiles.sh; action_install_dotfiles_profile macshell; pause ;;
             10) action_cursors_menu ;;
             11) action_setup_monitors; pause ;;
             12) action_install_sddm_themes; pause ;;

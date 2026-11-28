@@ -26,8 +26,6 @@ action_full_interactive() {
         "3|$(t profile_end4)" \
         "4|$(t profile_mango)" \
         "5|$(t profile_serpantinum)" \
-        "6|$(t profile_darkshadowshell)" \
-        "7|$(t profile_macshell)" \
         "8|$(t profile_none)" || return 1
     local profile="$MENU_CHOICE"
     local profile_name="" theme_name="" profile_id=""
@@ -37,8 +35,6 @@ action_full_interactive() {
         3) profile_id=end-4; profile_name="$(t profile_end4)"; theme_name=end4 ;;
         4) profile_id=mango; profile_name="$(t profile_mango)" ;;
         5) profile_id=serpantinum; profile_name="$(t profile_serpantinum)"; theme_name=serpantinum ;;
-        6) profile_id=darkshadowshell; profile_name="$(t profile_darkshadowshell)" ;;
-        7) profile_id=macshell; profile_name="$(t profile_macshell)" ;;
         8) profile_name="$(t profile_none)" ;;
     esac
     if [[ "$profile" == "8" ]]; then
@@ -209,9 +205,7 @@ action_install_dotfiles_only() {
         "2|$(t profile_end4)" \
         "3|$(t profile_caelestia)" \
         "4|$(t profile_mango)" \
-        "5|$(t profile_darkshadowshell)" \
-        "6|$(t profile_macshell)" \
-        "7|$(t profile_serpantinum)" \
+        "5|$(t profile_serpantinum)" \
         "0|$(t menu_back)" || return 0
     local profile="$MENU_CHOICE" profile_id=""
     [[ "$profile" == "0" ]] && return 0
@@ -220,9 +214,7 @@ action_install_dotfiles_only() {
         2) profile_id=end-4 ;;
         3) profile_id=caelestia ;;
         4) profile_id=mango ;;
-        5) profile_id=darkshadowshell ;;
-        6) profile_id=macshell ;;
-        7) profile_id=serpantinum ;;
+        5) profile_id=serpantinum ;;
     esac
 
     menu_select "Neovim config preset" \

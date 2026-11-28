@@ -61,8 +61,6 @@ run_action() {
         install_sddm_theme) require_module actions/extras.sh; action_install_sddm_theme "$@" ;;
         set_sddm_image) require_module actions/extras.sh; action_set_sddm_image "$@" ;;
         install_caelestia) require_module actions/dotfiles.sh; action_install_dotfiles_profile caelestia "$@" ;;
-        install_darkshadowshell) require_module actions/dotfiles.sh; action_install_dotfiles_profile darkshadowshell "$@" ;;
-        install_macshell) require_module actions/dotfiles.sh; action_install_dotfiles_profile macshell "$@" ;;
         install_bibata) require_module actions/extras.sh; action_install_bibata "$@" ;;
         cursors_menu) require_module actions/extras.sh; action_cursors_menu "$@" ;;
         setup_monitors) require_module actions/extras.sh; action_setup_monitors "$@" ;;

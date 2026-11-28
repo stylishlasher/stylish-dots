@@ -11,8 +11,6 @@ action_uninstall() {
         "rollback-mango|$(t rollback_mango)|off"
         "rollback-stylish|$(t rollback_stylish)|off"
         "rollback-caelestia|Rollback caelestia|off"
-        "rollback-darkshadowshell|Rollback DarkShadowShell|off"
-        "rollback-macshell|Rollback MacShell|off"
         "rollback-serpantinum|Rollback Serpantinum|off"
         "fish-conf|$(t uninstall_fish)|off"
         "nvim-conf|$(t uninstall_nvim)|off"
@@ -40,8 +38,6 @@ action_uninstall() {
             rollback-mango) if action_restore_profile mango; then okc=$((okc+1)); else warn "rollback mango failed"; failed=$((failed+1)); fi ;;
             rollback-stylish) if action_restore_profile stylish; then okc=$((okc+1)); else warn "rollback stylish failed"; failed=$((failed+1)); fi ;;
             rollback-caelestia) if action_restore_profile caelestia; then okc=$((okc+1)); else warn "rollback caelestia failed"; failed=$((failed+1)); fi ;;
-            rollback-darkshadowshell) if action_restore_profile darkshadowshell; then okc=$((okc+1)); else warn "rollback darkshadowshell failed"; failed=$((failed+1)); fi ;;
-            rollback-macshell) if action_restore_profile macshell; then okc=$((okc+1)); else warn "rollback macshell failed"; failed=$((failed+1)); fi ;;
             rollback-serpantinum) if action_restore_profile serpantinum; then okc=$((okc+1)); else warn "rollback serpantinum failed"; failed=$((failed+1)); fi ;;
             fish-conf) if stash_dir "$HOME/.config/fish"; then ok "fish config removed"; okc=$((okc+1)); else failed=$((failed+1)); fi ;;
             nvim-conf) if stash_dir "$HOME/.config/nvim"; then ok "nvim config removed"; okc=$((okc+1)); else failed=$((failed+1)); fi ;;

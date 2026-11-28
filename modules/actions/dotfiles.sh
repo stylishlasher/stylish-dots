@@ -11,8 +11,6 @@ dotfiles_profile_name() {
         end-4) t profile_end4 ;;
         caelestia) t profile_caelestia ;;
         serpantinum) t profile_serpantinum ;;
-        darkshadowshell) t profile_darkshadowshell ;;
-        macshell) t profile_macshell ;;
         mango) t profile_mango ;;
         *) echo "$1" ;;
     esac
@@ -22,8 +20,6 @@ dotfiles_repo_url() {
     case "$1" in
         end-4) echo "https://github.com/end-4/dots-hyprland.git" ;;
         caelestia) echo "https://github.com/caelestia-dots/caelestia.git" ;;
-        darkshadowshell) echo "https://github.com/shadowww-dev/DarkShadowShell.git" ;;
-        macshell) echo "https://github.com/0-ss/MacShell.git" ;;
         mango) echo "https://github.com/stylishlasher/stylish-dots.git" ;;
         serpantinum) echo "https://github.com/Serpantinum/dots-hyprland.git" ;;
         *) return 1 ;;
@@ -34,8 +30,6 @@ dotfiles_repo_ref() {
     case "$1" in
         end-4) echo "main" ;;
         caelestia) echo "main" ;;
-        darkshadowshell) echo "main" ;;
-        macshell) echo "main" ;;
         mango) echo "${REPO_BRANCH:-main}" ;;
         serpantinum) echo "main" ;;
         *) echo "main" ;;
@@ -57,12 +51,6 @@ dotfiles_backup_targets() {
         stylish-dots)
             printf '%s
 '                 "$HOME/.config/fish"                 "$HOME/.config/nvim"                 "$HOME/.config/fastfetch"                 "$HOME/README.md" ;;
-        darkshadowshell)
-            printf '%s
-'                 "$HOME/.config/quickshell/rice-desktop"                 "$HOME/.config/quickshell/rice-settings"                 "$HOME/.config/quickshell/rice-welcome"                 "$HOME/.config/quickshell/hyprquickpaper"                 "$HOME/.config/quickshell/rice-apps"                 "$HOME/.config/hypr/user.lua"                 "$HOME/.config/hypr/hyprland.lua"                 "$HOME/.config/hypr/hyprland.conf"                 "$HOME/.local/share/darkshadows-shell" ;;
-        macshell)
-            printf '%s
-'                 "$HOME/.config/quickshell/MacShell"                 "$HOME/.config/quickshell/MacLock"                 "$HOME/.config/hypr-macshell"                 "$HOME/.config/hypr/macshell.lua"                 "$HOME/.config/hypr/hyprland.lua"                 "$HOME/.config/hypr/hyprland.conf"                 "$HOME/.config/macbar"                 "$HOME/.config/macdock"                 "$HOME/.config/macwidgets"                 "$HOME/.config/macshell" ;;
         serpantinum)
             printf '%s
 '                 "$HOME/.local/state/serpantinum"                 "$HOME/.config/quickshell/serpantinum" ;;
@@ -71,7 +59,7 @@ dotfiles_backup_targets() {
 }
 
 dotfiles_env_profiles() {
-    printf '%s\n' end-4 caelestia mango stylish-dots darkshadowshell macshell serpantinum
+    printf '%s\n' end-4 caelestia mango stylish-dots serpantinum
 }
 
 dotfiles_backup_profile() {
@@ -143,32 +131,6 @@ dotfiles_run_upstream_installer() {
             info "$(t caelestia_debian_hint)"
             return 1
             ;;
-        darkshadowshell)
-            [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
-            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            # dotfiles-only: avoid package/service side effects from upstream installer
-            set +e
-            (cd "$repo_dir" && bash ./install.sh --yes --no-packages) 2>&1 | tee "$log"
-            local rc=${PIPESTATUS[0]}
-            set -e
-            if [[ $rc -ne 0 ]]; then
-                err "$(t dotfiles_upstream_failed "$profile") (log: $log, rc=$rc)"
-                return 1
-            fi
-            ;;
-        macshell)
-            [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
-            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
-            set +e
-            (cd "$repo_dir" && bash ./install.sh --yes --local --no-deps --no-services --no-start --no-gui --no-autostart) 2>&1 | tee "$log"
-            local rc=${PIPESTATUS[0]}
-            set -e
-            if [[ $rc -ne 0 ]]; then
-                err "$(t dotfiles_upstream_failed "$profile") (log: $log, rc=$rc)"
-                return 1
-            fi
-            ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
             info "Example: curl -fsSL https://install.serpantinum.dev | bash"
@@ -197,13 +159,6 @@ dotfiles_apply_profile_config() {
             if [[ -d "$CONFIGS_DIR/themes" ]]; then info "Serpantinum themes available in $CONFIGS_DIR/themes"; fi
             return 0
             ;;
-        darkshadowshell|macshell)
-            if [[ -f "$CONFIGS_DIR/$profile/install.sh" ]]; then
-                bash "$CONFIGS_DIR/$profile/install.sh"
-            else
-                info "No local config overlay for $profile; upstream install is the source of truth."
-            fi
-            ;;
         *) err "Unknown profile: $profile"; return 1 ;;
     esac
 }
@@ -215,7 +170,7 @@ action_install_dotfiles_profile() {
     name="$(dotfiles_profile_name "$profile")"
 
     case "$profile" in
-        stylish-dots|end-4|caelestia|serpantinum|darkshadowshell|macshell|mango) ;;
+        stylish-dots|end-4|caelestia|serpantinum|mango) ;;
         *) err "Unknown profile: $profile"; return 1 ;;
     esac
 
@@ -245,7 +200,7 @@ action_install_dotfiles_profile() {
         mango)
             dotfiles_apply_profile_config mango || return 1
             ;;
-        end-4|caelestia|darkshadowshell|macshell)
+        end-4|caelestia)
             if ! repo_dir="$(dotfiles_clone_upstream "$profile")"; then
                 err "$(t dotfiles_upstream_failed "$profile")"
                 return 1
