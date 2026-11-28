@@ -112,7 +112,8 @@ dotfiles_clone_upstream() {
 }
 
 dotfiles_run_upstream_installer() {
-    local profile="$1" repo_dir="$2"
+    local profile="$1" repo_dir="$2" log=""
+    log="${WORK_DIR:-/tmp}/upstream-${profile}.log"
     case "$profile" in
         end-4)
             local installer=""
@@ -145,26 +146,20 @@ dotfiles_run_upstream_installer() {
         darkshadowshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            local log="$WORK_DIR/upstream-darkshadowshell.log"
             # dotfiles-only: avoid package/service side effects from upstream installer
-            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-packages) >"$log" 2>&1; then
+            if ! (cd "$repo_dir" && bash ./install.sh --yes --no-packages) 2>&1 | tee "$log"; then
                 err "$(t dotfiles_upstream_failed "$profile") (log: $log)"
-                tail -n 60 "$log" >&2 || true
                 return 1
             fi
-            tail -n 20 "$log" || true
             ;;
         macshell)
             [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
             chmod +x "$repo_dir/install.sh" 2>/dev/null || true
-            local log="$WORK_DIR/upstream-macshell.log"
             # dotfiles-only: no package install/services/start; avoid breaking current Hyprland session
-            if ! (cd "$repo_dir" && bash ./install.sh --yes --local --no-deps --no-services --no-start --no-gui --no-autostart) >"$log" 2>&1; then
+            if ! (cd "$repo_dir" && bash ./install.sh --yes --local --no-deps --no-services --no-start --no-gui --no-autostart) 2>&1 | tee "$log"; then
                 err "$(t dotfiles_upstream_failed "$profile") (log: $log)"
-                tail -n 60 "$log" >&2 || true
                 return 1
             fi
-            tail -n 20 "$log" || true
             ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
