@@ -241,11 +241,12 @@ action_install_dotfiles_only() {
 
     case "$nvim_choice" in
         1|2)
-            require_module actions/neovim.sh
             local preset="lazyvim-stylish"; [[ "$nvim_choice" == "2" ]] && preset="super-easy-casual"
             NVIM_PRESET="$preset"
             ;;
+        *) NVIM_PRESET="" ;;
     esac
+    action_install_dotfiles_profile "$profile_id" || { warn "profile failed"; return 1; }
     case "$ff_choice" in
         1|2|3|4|5)
             require_module actions/fetches.sh
@@ -253,6 +254,9 @@ action_install_dotfiles_only() {
             action_copy_fastfetch_preset "$p" || warn "fastfetch config failed"
             ;;
     esac
-    action_install_dotfiles_profile "$profile_id" || warn "profile failed"
+    if [[ "$profile_id" != "stylish-dots" && ( "$nvim_choice" == "1" || "$nvim_choice" == "2" ) ]]; then
+        require_module actions/neovim.sh
+        apply_nvim_config "$NVIM_PRESET" || warn "nvim config failed"
+    fi
     ok "$(t dotfiles_only_done)"
 }

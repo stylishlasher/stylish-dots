@@ -227,8 +227,14 @@ action_install_dotfiles_profile() {
             dotfiles_apply_profile_config mango || return 1
             ;;
         end-4|caelestia|darkshadowshell|macshell)
-            repo_dir="$(dotfiles_clone_upstream "$profile")" || return 1
-            dotfiles_run_upstream_installer "$profile" "$repo_dir" || return 1
+            if ! repo_dir="$(dotfiles_clone_upstream "$profile")"; then
+                err "$(t dotfiles_upstream_failed "$profile")"
+                return 1
+            fi
+            if ! dotfiles_run_upstream_installer "$profile" "$repo_dir"; then
+                err "$(t dotfiles_upstream_failed "$profile")"
+                return 1
+            fi
             if [[ "$profile" == "end-4" ]]; then
                 ok "$(t dotfiles_upstream_installed "$profile")"
             fi
