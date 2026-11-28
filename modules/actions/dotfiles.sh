@@ -71,7 +71,7 @@ dotfiles_backup_targets() {
 }
 
 dotfiles_env_profiles() {
-    printf '%s\n' end-4 caelestia mango darkshadowshell macshell serpantinum
+    printf '%s\n' end-4 caelestia mango stylish-dots darkshadowshell macshell serpantinum
 }
 
 dotfiles_backup_profile() {
@@ -103,7 +103,7 @@ dotfiles_clone_upstream() {
     dest="$WORK_DIR/upstream-$profile"
     rm -rf "$dest"
     info "$(t dotfiles_upstream_installing "$profile")"
-    if ! git clone --depth "$DOTFILES_UPSTREAM_CLONE_DEPTH" --branch "$ref" "$url" "$dest"; then
+    if ! git clone --depth "$DOTFILES_UPSTREAM_CLONE_DEPTH" --recurse-submodules --shallow-submodules --branch "$ref" "$url" "$dest"; then
         err "$(t dotfiles_upstream_failed "$profile")"
         return 1
     fi
@@ -193,6 +193,7 @@ dotfiles_apply_profile_config() {
 
 action_install_dotfiles_profile() {
     local profile="${1:-$DOTFILES_PROFILE}"
+    local assume_yes="${2:-}"
     local name repo_dir=""
     name="$(dotfiles_profile_name "$profile")"
 
@@ -212,7 +213,7 @@ action_install_dotfiles_profile() {
         return 1
     fi
 
-    if is_interactive; then
+    if is_interactive && [[ "$assume_yes" != "--yes" ]]; then
         warn "$(t dotfiles_backup_note)"
         confirm "$(t dotfiles_swap_confirm "$name")" || return 1
     fi

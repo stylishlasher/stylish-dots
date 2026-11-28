@@ -175,7 +175,7 @@ action_full_interactive() {
 
     case "$profile_id" in
         "") ;;
-        *) action_install_dotfiles_profile "$profile_id" || warn "profile apply failed" ;;
+        *) action_install_dotfiles_profile "$profile_id" --yes || warn "profile apply failed" ;;
     esac
 
     ok "$(t interactive_done)"
@@ -246,7 +246,7 @@ action_install_dotfiles_only() {
             ;;
         *) NVIM_PRESET="" ;;
     esac
-    action_install_dotfiles_profile "$profile_id" || { warn "profile failed"; return 1; }
+    action_install_dotfiles_profile "$profile_id" --yes || { warn "profile failed"; return 1; }
     case "$ff_choice" in
         1|2|3|4|5)
             require_module actions/fetches.sh
