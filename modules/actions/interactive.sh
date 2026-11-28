@@ -205,7 +205,9 @@ action_install_dotfiles_only() {
         "2|$(t profile_end4)" \
         "3|$(t profile_caelestia)" \
         "4|$(t profile_mango)" \
-        "5|$(t profile_serpantinum)" \
+        "5|DarkShadowShell (GUI install)" \
+        "6|MacShell (GUI install)" \
+        "7|$(t profile_serpantinum)" \
         "0|$(t menu_back)" || return 0
     local profile="$MENU_CHOICE" profile_id=""
     [[ "$profile" == "0" ]] && return 0

@@ -11,6 +11,8 @@ dotfiles_profile_name() {
         end-4) t profile_end4 ;;
         caelestia) t profile_caelestia ;;
         serpantinum) t profile_serpantinum ;;
+        darkshadowshell) t profile_darkshadowshell ;;
+        macshell) t profile_macshell ;;
         mango) t profile_mango ;;
         *) echo "$1" ;;
     esac
@@ -32,6 +34,7 @@ dotfiles_repo_ref() {
         caelestia) echo "main" ;;
         mango) echo "${REPO_BRANCH:-main}" ;;
         serpantinum) echo "main" ;;
+        darkshadowshell|macshell) echo "main" ;;
         *) echo "main" ;;
     esac
 }
@@ -59,7 +62,7 @@ dotfiles_backup_targets() {
 }
 
 dotfiles_env_profiles() {
-    printf '%s\n' end-4 caelestia mango stylish-dots serpantinum
+    printf '%s\n' end-4 caelestia mango stylish-dots serpantinum darkshadowshell macshell
 }
 
 dotfiles_backup_profile() {
@@ -131,6 +134,18 @@ dotfiles_run_upstream_installer() {
             info "$(t caelestia_debian_hint)"
             return 1
             ;;
+        darkshadowshell)
+            [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
+            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            info "DarkShadowShell: launching upstream installer (GUI/manual flow)."
+            (cd "$repo_dir" && bash ./install.sh) || return 1
+            ;;
+        macshell)
+            [[ -f "$repo_dir/install.sh" ]] || { err "$(t dotfiles_upstream_failed "$profile")"; return 1; }
+            chmod +x "$repo_dir/install.sh" 2>/dev/null || true
+            info "MacShell: launching upstream installer (GUI/manual flow)."
+            (cd "$repo_dir" && bash ./install.sh) || return 1
+            ;;
         serpantinum)
             warn "Serpantinum installer is external; run its official installer, then apply themes from config/themes."
             info "Example: curl -fsSL https://install.serpantinum.dev | bash"
@@ -170,7 +185,7 @@ action_install_dotfiles_profile() {
     name="$(dotfiles_profile_name "$profile")"
 
     case "$profile" in
-        stylish-dots|end-4|caelestia|serpantinum|mango) ;;
+        stylish-dots|end-4|caelestia|serpantinum|mango|darkshadowshell|macshell) ;;
         *) err "Unknown profile: $profile"; return 1 ;;
     esac
 
